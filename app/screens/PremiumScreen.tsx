@@ -79,7 +79,7 @@ const handleNoThanksPress = (event?: GestureResponderEvent): void => {
   console.log("No Thanks button pressed!");
 };
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -87,64 +87,64 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: width * 0.05,
   },
   header: {
-    fontSize: 24,
+    fontSize: width * 0.06,
     color: "#fff",
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: height * 0.01,
   },
   premiumText: {
-    fontSize: 36,
+    fontSize: width * 0.09,
     color: "#fff",
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: height * 0.03,
   },
   featureContainer: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: height * 0.02,
   },
   featureItem: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1c1c1c",
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 10,
+    padding: width * 0.04,
+    marginVertical: height * 0.01,
+    borderRadius: width * 0.03,
   },
   icon: {
-    fontSize: 24,
+    fontSize: width * 0.07,
     color: "#fff",
-    marginRight: 15,
+    marginRight: width * 0.04,
   },
   textContainer: {
     flex: 1,
   },
   featureText: {
-    fontSize: 18,
+    fontSize: width * 0.045,
     color: "#fff",
     fontWeight: "bold",
   },
   featureDescription: {
-    fontSize: 14,
+    fontSize: width * 0.035,
     color: "#aaa",
   },
   upgradeButton: {
-    width: width * 0.8,
-    padding: 15,
+    width: "80%",
+    paddingVertical: height * 0.02,
     backgroundColor: "#333",
-    borderRadius: 10,
+    borderRadius: width * 0.03,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: height * 0.02,
   },
   upgradeText: {
-    fontSize: 16,
+    fontSize: width * 0.045,
     color: "#fff",
     fontWeight: "bold",
   },
   noThanksText: {
-    fontSize: 16,
+    fontSize: width * 0.045,
     color: "#aaa",
     textDecorationLine: "underline",
   },

@@ -15,6 +15,8 @@ import {
   Feather,
 } from "@expo/vector-icons";
 
+const { width, height } = Dimensions.get("window");
+
 const SettingsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
@@ -30,10 +32,18 @@ const SettingsScreen: React.FC = () => {
           </View>
           <View style={styles.iconContainer}>
             <TouchableOpacity style={styles.icon}>
-              <Ionicons name="people-outline" size={24} color="#fff" />
+              <Ionicons
+                name="people-outline"
+                size={width * 0.06}
+                color="#fff"
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.icon}>
-              <Ionicons name="settings-outline" size={24} color="#fff" />
+              <Ionicons
+                name="settings-outline"
+                size={width * 0.06}
+                color="#fff"
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -55,11 +65,15 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.sectionHeader}>Customize</Text>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>App Premium</Text>
-            <MaterialIcons name="shopping-cart" size={24} color="#fff" />
+            <MaterialIcons
+              name="shopping-cart"
+              size={width * 0.06}
+              color="#fff"
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Streak on</Text>
-            <FontAwesome name="star" size={24} color="#fff" />
+            <FontAwesome name="star" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -68,19 +82,23 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.sectionHeader}>Account</Text>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Edit Name</Text>
-            <FontAwesome name="edit" size={24} color="#fff" />
+            <FontAwesome name="edit" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Edit Birthday</Text>
-            <FontAwesome name="birthday-cake" size={24} color="#fff" />
+            <FontAwesome
+              name="birthday-cake"
+              size={width * 0.06}
+              color="#fff"
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Change Email Address</Text>
-            <MaterialIcons name="email" size={24} color="#fff" />
+            <MaterialIcons name="email" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Restore Purchases</Text>
-            <Ionicons name="refresh-outline" size={24} color="#fff" />
+            <Ionicons name="refresh-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -89,19 +107,23 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.sectionHeader}>Privacy & Safety</Text>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Account Privacy</Text>
-            <Feather name="lock" size={24} color="#fff" />
+            <Feather name="lock" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Review Requests</Text>
-            <Ionicons name="document-text-outline" size={24} color="#fff" />
+            <Ionicons
+              name="document-text-outline"
+              size={width * 0.06}
+              color="#fff"
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Change Password & Security</Text>
-            <Ionicons name="key-outline" size={24} color="#fff" />
+            <Ionicons name="key-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Blocked Accounts</Text>
-            <Ionicons name="ban-outline" size={24} color="#fff" />
+            <Ionicons name="ban-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -110,19 +132,23 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.sectionHeader}>About</Text>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Privacy Policy</Text>
-            <MaterialIcons name="privacy-tip" size={24} color="#fff" />
+            <MaterialIcons
+              name="privacy-tip"
+              size={width * 0.06}
+              color="#fff"
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Terms of Service</Text>
-            <Ionicons name="book-outline" size={24} color="#fff" />
+            <Ionicons name="book-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Contact</Text>
-            <Feather name="phone" size={24} color="#fff" />
+            <Feather name="phone" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Rate Us</Text>
-            <FontAwesome name="star" size={24} color="#fff" />
+            <FontAwesome name="star" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -132,19 +158,17 @@ const SettingsScreen: React.FC = () => {
             <Text style={[styles.listText, styles.deleteText]}>
               Delete Account
             </Text>
-            <Ionicons name="trash-outline" size={24} color="#fff" />
+            <Ionicons name="trash-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.listItem}>
             <Text style={styles.listText}>Sign Out</Text>
-            <Ionicons name="log-out-outline" size={24} color="#fff" />
+            <Ionicons name="log-out-outline" size={width * 0.06} color="#fff" />
           </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
   );
 };
-
-const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -155,76 +179,76 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
-    marginTop: 35,
+    paddingHorizontal: width * 0.05,
+    marginTop: height * 0.04,
   },
   profileContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 10,
+    width: width * 0.12,
+    height: width * 0.12,
+    borderRadius: width * 0.06,
+    marginRight: width * 0.03,
   },
   profileName: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: width * 0.045,
     fontWeight: "bold",
   },
   iconContainer: {
     flexDirection: "row",
   },
   icon: {
-    marginHorizontal: 10,
+    marginHorizontal: width * 0.02,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: width * 0.06,
     color: "#fff",
     fontWeight: "bold",
     textAlign: "center",
-    marginVertical: 20,
+    marginVertical: height * 0.02,
   },
   actionContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 20,
+    marginBottom: height * 0.02,
   },
   actionButton: {
     backgroundColor: "#333",
-    padding: 15,
-    borderRadius: 10,
+    paddingVertical: height * 0.02,
+    borderRadius: width * 0.03,
     width: width * 0.4,
     alignItems: "center",
   },
   actionText: {
-    fontSize: 18,
+    fontSize: width * 0.045,
     color: "#fff",
     fontWeight: "bold",
   },
   section: {
-    marginBottom: 20,
-    paddingHorizontal: 20,
+    marginBottom: height * 0.02,
+    paddingHorizontal: width * 0.05,
   },
   sectionHeader: {
-    fontSize: 18,
+    fontSize: width * 0.045,
     color: "#fff",
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: height * 0.01,
   },
   listItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#1c1c1c",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: width * 0.04,
+    borderRadius: width * 0.03,
+    marginBottom: height * 0.01,
   },
   listText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: width * 0.045,
   },
   deleteAccount: {
     backgroundColor: "#b00020",

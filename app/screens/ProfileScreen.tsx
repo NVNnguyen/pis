@@ -41,7 +41,11 @@ const ProfileScreen: React.FC = () => {
     label: string;
   }) => (
     <TouchableOpacity style={styles.categoryItem}>
-      <FontAwesome name={item.icon} size={width * 0.06} color="#fff" />
+      <FontAwesome
+        name={item.icon as keyof typeof FontAwesome.glyphMap}
+        size={width * 0.06}
+        color="#fff"
+      />
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
   );

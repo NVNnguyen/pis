@@ -8,11 +8,15 @@ import {
   SafeAreaView,
   TouchableWithoutFeedback,
   Keyboard,
+  Dimensions,
 } from "react-native";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import CheckBox from "expo-checkbox";
+
+const { width, height } = Dimensions.get("window");
+
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -54,7 +58,7 @@ const LoginScreen = ({ navigation }) => {
             >
               <FontAwesome5
                 name={isPasswordVisible ? "eye" : "eye-slash"}
-                size={18}
+                size={width * 0.045}
                 color="#bdbdbd"
               />
             </TouchableOpacity>
@@ -67,7 +71,7 @@ const LoginScreen = ({ navigation }) => {
               onValueChange={setRememberMe}
               style={styles.checkbox}
             />
-            <Text style={styles.rememberText}>Remember me ?</Text>
+            <Text style={styles.rememberText}>Remember me?</Text>
           </View>
 
           {/* Sign In Button */}
@@ -84,11 +88,11 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.socialSignInText}>Sign in with</Text>
           <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
-              <FontAwesome name="apple" size={24} color="black" />
+              <FontAwesome name="apple" size={width * 0.06} color="black" />
               <Text style={styles.socialButtonText}>Apple ID</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <AntDesign name="google" size={24} color="black" />
+              <AntDesign name="google" size={width * 0.06} color="black" />
               <Text style={styles.socialButtonText}>Google</Text>
             </TouchableOpacity>
           </View>
@@ -111,98 +115,112 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginBox: {
-    width: "85%",
+    width: width * 0.85,
     backgroundColor: "#fff",
     borderRadius: 20,
-    padding: 20,
+    padding: width * 0.05,
     alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
   },
   title: {
-    fontSize: 28,
+    fontSize: width * 0.08,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: height * 0.03,
     color: "#000",
   },
   label: {
-    fontSize: 16,
+    fontSize: width * 0.045,
     alignSelf: "flex-start",
     color: "#000",
-    marginBottom: 5,
+    marginBottom: height * 0.01,
   },
   inputContainer: {
     width: "100%",
     backgroundColor: "#e0e0e0",
-    borderRadius: 10,
+    borderRadius: width * 0.03,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    marginBottom: 15,
+    paddingHorizontal: width * 0.04,
+    marginBottom: height * 0.02,
   },
   input: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: height * 0.015,
     color: "#000",
+    fontSize: width * 0.045,
   },
   eyeIcon: {
-    padding: 5,
+    marginLeft: width * 0.02,
   },
   rememberContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 20,
+    marginBottom: height * 0.03,
   },
   checkbox: {
-    marginRight: 8,
+    marginRight: width * 0.03,
+    width: width * 0.045,
+    height: width * 0.045,
   },
   rememberText: {
     color: "#000",
+    fontSize: width * 0.045,
   },
   signInButton: {
     backgroundColor: "#000",
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: height * 0.02,
+    borderRadius: width * 0.03,
     width: "100%",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: height * 0.02,
   },
   signInText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: width * 0.045,
   },
   forgotText: {
     color: "#000",
-    marginBottom: 15,
+    marginBottom: height * 0.03,
+    fontSize: width * 0.045,
     textDecorationLine: "underline",
   },
   socialSignInText: {
     color: "#666",
-    marginBottom: 10,
+    marginBottom: height * 0.015,
+    fontSize: width * 0.045,
   },
   socialContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginBottom: 20,
+    marginBottom: height * 0.03,
   },
   socialButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: width * 0.03,
+    paddingVertical: height * 0.015,
+    paddingHorizontal: width * 0.03,
     width: "45%",
     justifyContent: "center",
   },
   socialButtonText: {
-    marginLeft: 8,
+    marginLeft: width * 0.03,
     color: "#000",
+    fontSize: width * 0.04,
   },
   registerText: {
     color: "#000",
+    fontSize: width * 0.045,
     textDecorationLine: "underline",
+    marginTop: height * 0.02,
   },
 });
 

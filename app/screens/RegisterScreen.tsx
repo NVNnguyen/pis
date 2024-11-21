@@ -7,7 +7,10 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Dimensions,
 } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = () => {
   const [username, setUsername] = useState("");
@@ -20,6 +23,7 @@ const RegisterScreen = () => {
       <StatusBar hidden />
       <View style={styles.registerBox}>
         <Text style={styles.title}>Register an account</Text>
+
         <Text style={styles.label}>User name</Text>
         <TextInput
           style={styles.input}
@@ -72,47 +76,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#1c1e21",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: width * 0.05,
   },
   registerBox: {
-    width: "85%",
+    width: "100%",
+    maxWidth: width * 0.85,
     backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: width * 0.05,
+    padding: width * 0.05,
     alignItems: "center",
   },
   title: {
-    fontSize: 24,
+    fontSize: width * 0.06,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: height * 0.02,
     color: "#000",
   },
   label: {
-    fontSize: 16,
+    fontSize: width * 0.045,
     alignSelf: "flex-start",
     color: "#000",
-    marginBottom: 5,
+    marginBottom: height * 0.01,
   },
   input: {
     width: "100%",
     backgroundColor: "#e0e0e0",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 15,
+    borderRadius: width * 0.03,
+    paddingHorizontal: width * 0.04,
+    paddingVertical: height * 0.015,
+    marginBottom: height * 0.02,
     color: "#000",
+    fontSize: width * 0.045,
   },
   registerButton: {
     backgroundColor: "#000",
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: height * 0.02,
+    borderRadius: width * 0.03,
     width: "100%",
     alignItems: "center",
-    marginTop: 15,
+    marginTop: height * 0.03,
   },
   registerButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: width * 0.045,
   },
 });
 
