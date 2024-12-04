@@ -1,17 +1,34 @@
 import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "./app/screens/FriendModeScreen";
-import PremiumScreen from "./app/screens/PremiumScreen";
-import SettingsScreen from "./app/screens/SettingScreen";
-import ProfileScreen from "./app/screens/ProfileScreen";
-import ChangePasswordScreen from "./app/screens/ChangePassword";
-import LoadingScreen from "./app/screens/LoadingScreen";
 import FriendModeScreen from "./app/screens/FriendModeScreen";
-import PostCaptureScreen from "./app/screens/PostCaptureScreen";
-import ChatScreen from "./app/screens/ChatScreen";
-const Stack = createStackNavigator();
-const App = () => {
-  return <ChatScreen />;
+
+
+export type StackParamList = {
+  FriendModeScreen: undefined;
+  PostImage: { imagePath: string };
+};
+
+const Stack = createStackNavigator<StackParamList>();
+
+const App: React.FC = () => {
+  return (
+    <FriendModeScreen />
+    //   <NavigationContainer>
+    //     <Stack.Navigator initialRouteName="FriendModeScreen">
+    //       <Stack.Screen
+    //         name="FriendModeScreen"
+    //         component={FriendModeScreen}
+    //         options={{ headerShown: false }}
+    //       />
+    //       <Stack.Screen
+    //         name="PostImage"
+    //         component={PostImage}
+    //         options={{ headerShown: false }}
+    //       />
+    //     </Stack.Navigator>
+    //   </NavigationContainer>
+  );
 };
 
 export default App;
