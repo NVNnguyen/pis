@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 
 const { width, height } = Dimensions.get("window");
@@ -19,54 +21,56 @@ const RegisterScreen = () => {
   const [rePassword, setRePassword] = useState("");
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar hidden />
-      <View style={styles.registerBox}>
-        <Text style={styles.title}>Register an account</Text>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar hidden />
+        <View style={styles.registerBox}>
+          <Text style={styles.title}>Register an account</Text>
 
-        <Text style={styles.label}>User name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="User name"
-          placeholderTextColor="#bdbdbd"
-          value={username}
-          onChangeText={setUsername}
-        />
+          <Text style={styles.label}>User name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="User name"
+            placeholderTextColor="#bdbdbd"
+            value={username}
+            onChangeText={setUsername}
+          />
 
-        <Text style={styles.label}>Email or Phone number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Email or Phone number"
-          placeholderTextColor="#bdbdbd"
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
-        />
+          <Text style={styles.label}>Email or Phone number</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Email or Phone number"
+            placeholderTextColor="#bdbdbd"
+            value={emailOrPhone}
+            onChangeText={setEmailOrPhone}
+          />
 
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#bdbdbd"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#bdbdbd"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
 
-        <Text style={styles.label}>Re-enter password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Re-enter password"
-          placeholderTextColor="#bdbdbd"
-          secureTextEntry
-          value={rePassword}
-          onChangeText={setRePassword}
-        />
+          <Text style={styles.label}>Re-enter password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Re-enter password"
+            placeholderTextColor="#bdbdbd"
+            secureTextEntry
+            value={rePassword}
+            onChangeText={setRePassword}
+          />
 
-        <TouchableOpacity style={styles.registerButton}>
-          <Text style={styles.registerButtonText}>Register</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <TouchableOpacity style={styles.registerButton}>
+            <Text style={styles.registerButtonText}>Register</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 

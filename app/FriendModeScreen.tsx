@@ -14,7 +14,7 @@ import { toggleCameraFacing, captureImage } from "../utils/friendModeHandel"; //
 
 const { width, height } = Dimensions.get("window");
 
-const LoginScreen = () => {
+const FriendModeScreen = () => {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
@@ -237,4 +237,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default FriendModeScreen;
