@@ -11,6 +11,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/MainStack";
 
 const { width, height } = Dimensions.get("window");
 
@@ -77,7 +80,7 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1c1e21",
+    backgroundColor: "#1C1C1E",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: width * 0.05,

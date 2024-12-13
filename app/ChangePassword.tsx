@@ -13,7 +13,7 @@ import {
 
 const { width, height } = Dimensions.get("window");
 
-const ChangePasswordScreen: React.FC = () => {
+const ChangePasswordScreen = () => {
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [isNewPasswordVisible, setNewPasswordVisible] = useState(false);
 

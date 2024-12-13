@@ -1,10 +1,13 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import LoginNavigation from "./navigation/LoginNavigation";
-import LoginScreen from "./app/LoginScreen";
+import MainStack from "./navigation/MainStack";
 
 const App: React.FC = () => {
-  return <LoginScreen />;
+  return (
+    <NavigationContainer>
+      <MainStack />
+    </NavigationContainer>
+  );
 };
 
 export default App;

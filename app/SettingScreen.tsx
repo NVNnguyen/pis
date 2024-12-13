@@ -17,7 +17,7 @@ import {
 
 const { width, height } = Dimensions.get("window");
 
-const SettingsScreen: React.FC = () => {
+const SettingsScreen = () => {
   return (
     <View style={styles.container}>
       <ScrollView>

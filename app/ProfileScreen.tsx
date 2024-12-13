@@ -12,7 +12,7 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
 
-const ProfileScreen: React.FC = () => {
+const ProfileScreen = () => {
   const categories = [
     { id: "1", icon: "camera", label: "All" },
     { id: "2", icon: "image", label: "Nature" },

@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 
 
-const LoadingScreen: React.FC = () => {
+const LoadingScreen = () => {
   return (
     <View style={styles.container}>
       {/* <SvgLogo width={100} height={100} /> */}

@@ -11,22 +11,20 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { router, useNavigation, useRouter } from "expo-router";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/MainStack";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
-// Loại cụ thể cho Login
-
-// type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "Login">;
-
-const LoginScreen: React.FC = () => {
+const LoginScreen = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList, "Login">>();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [isChecked, setIsChecked] = useState<boolean>(false);
-  //   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const router = useRouter();
+
   const handleLogin = () => {
     if (username && password) {
       Alert.alert("Login Successful", `Welcome ${username}!`);
@@ -90,7 +88,9 @@ const LoginScreen: React.FC = () => {
           <Text style={styles.buttonText}>Sign in</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ForgotPasswordSelection")}
+        >
           <Text style={styles.forgotPassword}>Forgot password?</Text>
         </TouchableOpacity>
 
@@ -106,9 +106,7 @@ const LoginScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          onPress={() => router.push("/screens/RegisterScreen")}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>Register an account</Text>
         </TouchableOpacity>
       </View>

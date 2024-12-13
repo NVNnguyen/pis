@@ -14,7 +14,7 @@ interface FeatureItemProps {
   description: string;
 }
 
-const PremiumScreen: React.FC = () => {
+const PremiumScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>So much fun!</Text>
