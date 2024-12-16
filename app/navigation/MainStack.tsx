@@ -1,8 +1,8 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import LoginScreen from "../app/LoginScreen";
-import RegisterScreen from "../app/RegisterScreen";
-import ForgotPasswordSelectionScreen from "@/app/ForgotPasswordSelectionScreen";
+import LoginScreen from "../screens/LoginScreen";
+import RegisterScreen from "../screens/RegisterScreen";
+import ForgotPasswordSelectionScreen from "@/app/screens/ForgotPasswordSelectionScreen";
 
 export type RootStackParamList = {
   Login: undefined;
