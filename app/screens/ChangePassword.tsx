@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { backgroundColor, Color, fontWeight } from "../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -108,14 +109,14 @@ const ChangePasswordScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: backgroundColor,
     paddingHorizontal: width * 0.05,
     justifyContent: "center",
   },
   headerText: {
     fontSize: width * 0.06,
-    color: "#fff",
-    fontWeight: "bold",
+    color: Color,
+    fontWeight: fontWeight,
     textAlign: "center",
     marginBottom: height * 0.04,
   },
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: width * 0.045,
-    color: "#fff",
+    color: Color,
     marginBottom: height * 0.01,
   },
   inputWrapper: {
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.04,
     paddingVertical: height * 0.015,
   },
@@ -159,9 +160,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveButtonText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.045,
-    fontWeight: "bold",
+    fontWeight: fontWeight,
   },
 });
 

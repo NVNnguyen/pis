@@ -7,6 +7,7 @@ import {
   Dimensions,
   GestureResponderEvent,
 } from "react-native";
+import { Color } from "../styles/color";
 
 interface FeatureItemProps {
   icon: string;
@@ -91,13 +92,13 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: width * 0.06,
-    color: "#fff",
+    color: Color,
     fontWeight: "bold",
     marginBottom: height * 0.01,
   },
   premiumText: {
     fontSize: width * 0.09,
-    color: "#fff",
+    color: Color,
     fontWeight: "bold",
     marginBottom: height * 0.03,
   },
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: width * 0.07,
-    color: "#fff",
+    color: Color,
     marginRight: width * 0.04,
   },
   textContainer: {
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: width * 0.045,
-    color: "#fff",
+    color: Color,
     fontWeight: "bold",
   },
   featureDescription: {
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   },
   upgradeText: {
     fontSize: width * 0.045,
-    color: "#fff",
+    color: Color,
     fontWeight: "bold",
   },
   noThanksText: {

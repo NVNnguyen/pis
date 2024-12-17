@@ -11,6 +11,7 @@ import {
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import { FontAwesome, MaterialIcons, Feather } from "@expo/vector-icons";
 import { toggleCameraFacing, captureImage } from "../utils/friendModeHandel"; // Import functions
+import { backgroundColor, Color, fontWeight } from "../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -80,7 +81,7 @@ const FriendModeScreen = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.notification}>
-            <FontAwesome name="bell" size={width * 0.06} color="#fff" />
+            <FontAwesome name="bell" size={width * 0.06} color={Color} />
             <Text style={styles.notificationBadge}>4</Text>
           </TouchableOpacity>
         </View>
@@ -95,7 +96,7 @@ const FriendModeScreen = () => {
               <MaterialIcons
                 name="flip-camera-ios"
                 size={width * 0.08}
-                color="#fff"
+                color={Color}
               />
             </TouchableOpacity>
           </CameraView>
@@ -104,7 +105,7 @@ const FriendModeScreen = () => {
         {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity style={styles.iconButton}>
-            <Feather name="mic" size={width * 0.08} color="#fff" />
+            <Feather name="mic" size={width * 0.08} color={Color} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.captureButton}
@@ -113,7 +114,7 @@ const FriendModeScreen = () => {
             <View style={styles.captureInner}></View>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
-            <Feather name="image" size={width * 0.08} color="#fff" />
+            <Feather name="image" size={width * 0.08} color={Color} />
           </TouchableOpacity>
         </View>
 
@@ -129,7 +130,7 @@ const FriendModeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: backgroundColor,
   },
   container: {
     flex: 1,
@@ -162,14 +163,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   toggleText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.04,
   },
   activeButton: {
-    backgroundColor: "#fff",
+    backgroundColor: Color,
   },
   activeText: {
-    color: "#121212",
+    color: backgroundColor,
   },
   notification: {
     position: "relative",
@@ -179,11 +180,11 @@ const styles = StyleSheet.create({
     top: -5,
     right: -5,
     backgroundColor: "#f00",
-    color: "#fff",
+    color: Color,
     borderRadius: 10,
     paddingHorizontal: width * 0.01,
     fontSize: width * 0.03,
-    fontWeight: "bold",
+    fontWeight: fontWeight,
   },
   cameraContainer: {
     flex: 1,
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     width: width * 0.18,
     height: width * 0.18,
     borderRadius: width * 0.09,
-    backgroundColor: "#fff",
+    backgroundColor: Color,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     padding: height * 0.01,
   },
   memoriesText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.045,
   },
 });

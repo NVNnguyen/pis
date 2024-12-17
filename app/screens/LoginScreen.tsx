@@ -14,6 +14,7 @@ import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/MainStack";
+import { backgroundColor, Color, fontWeight } from "../styles/color";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
@@ -73,12 +74,12 @@ const LoginScreen = () => {
           onPress={() => setIsChecked(!isChecked)}
         >
           {isChecked ? (
-            <MaterialIcons name="check-box" size={24} color="#FFF" />
+            <MaterialIcons name="check-box" size={24} color={Color} />
           ) : (
             <MaterialIcons
               name="check-box-outline-blank"
               size={24}
-              color="#FFF"
+              color={Color}
             />
           )}
           <Text style={styles.checkboxText}>Remember me</Text>
@@ -97,11 +98,11 @@ const LoginScreen = () => {
         <Text style={styles.signInWith}>Sign in with</Text>
         <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="apple" size={20} color="#FFF" />
+            <FontAwesome name="apple" size={20} color={Color} />
             <Text style={styles.socialText}>Apple ID</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="google" size={20} color="#FFF" />
+            <FontAwesome name="google" size={20} color={Color} />
             <Text style={styles.socialText}>Google</Text>
           </TouchableOpacity>
         </View>
@@ -117,19 +118,19 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1C1C1E",
+    backgroundColor: backgroundColor,
     padding: width * 0.05, // Dynamic padding based on screen width
     justifyContent: "center",
     alignItems: "center",
   },
   title: {
     fontSize: width * 0.08, // Dynamic font size
-    color: "#FFF",
+    color: Color,
     marginBottom: height * 0.02,
-    fontWeight: "bold",
+    fontWeight: fontWeight,
   },
   label: {
-    color: "#FFF",
+    color: Color,
     alignSelf: "flex-start",
     marginLeft: width * 0.05,
     marginBottom: height * 0.01,
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     height: height * 0.065,
     borderRadius: 10,
     paddingHorizontal: 15,
-    color: "#FFF",
+    color: Color,
     marginBottom: height * 0.02,
   },
   passwordContainer: {
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   },
   inputPassword: {
     flex: 1,
-    color: "#FFF",
+    color: Color,
   },
   checkboxContainer: {
     flexDirection: "row",
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
   },
   checkboxText: {
-    color: "#FFF",
+    color: Color,
     marginLeft: width * 0.02,
     fontSize: width * 0.04,
   },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.02,
   },
   buttonText: {
-    color: "#FFF",
+    color: Color,
     fontSize: width * 0.05,
     fontWeight: "bold",
   },
@@ -208,12 +209,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: width * 0.07,
   },
   socialText: {
-    color: "#FFF",
+    color: Color,
     marginLeft: width * 0.02,
     fontSize: width * 0.04,
   },
   registerText: {
-    color: "#FFF",
+    color: Color,
     fontSize: width * 0.04,
     textDecorationLine: "underline",
   },

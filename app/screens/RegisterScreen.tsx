@@ -14,6 +14,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/MainStack";
+import { Color } from "../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   registerBox: {
     width: "100%",
     maxWidth: width * 0.85,
-    backgroundColor: "#fff",
+    backgroundColor: Color,
     borderRadius: width * 0.05,
     padding: width * 0.05,
     alignItems: "center",
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     marginTop: height * 0.03,
   },
   registerButtonText: {
-    color: "#fff",
+    color: Color,
     fontWeight: "bold",
     fontSize: width * 0.045,
   },

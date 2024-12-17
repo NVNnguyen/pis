@@ -1,7 +1,3 @@
-export const colors = {
-    background: '#121212',
-    primary: '#fff',
-    secondary: '#1e1e1e',
-    danger: '#f00',
-  };
-  
+export const backgroundColor = "#121212";
+export const fontWeight = "bold";
+export const Color = "#FFF";

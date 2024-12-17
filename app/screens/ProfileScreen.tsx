@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { backgroundColor, fontWeight, Color } from "../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -44,7 +45,7 @@ const ProfileScreen = () => {
       <FontAwesome
         name={item.icon as keyof typeof FontAwesome.glyphMap}
         size={width * 0.06}
-        color="#fff"
+        color={Color}
       />
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
@@ -61,7 +62,7 @@ const ProfileScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity>
-          <Ionicons name="arrow-back" size={width * 0.06} color="#fff" />
+          <Ionicons name="arrow-back" size={width * 0.06} color={Color} />
         </TouchableOpacity>
         <View style={styles.toggleButtons}>
           <TouchableOpacity style={[styles.toggleButton, styles.activeButton]}>
@@ -73,7 +74,7 @@ const ProfileScreen = () => {
         </View>
         <View>
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={24} color="#fff" />
+            <Ionicons name="settings-outline" size={24} color={Color} />
           </TouchableOpacity>
         </View>
       </View>
@@ -86,7 +87,7 @@ const ProfileScreen = () => {
         />
         <Text style={styles.profileName}>Thomas</Text>
         <TouchableOpacity style={styles.addFriendButton}>
-          <FontAwesome name="user-plus" size={width * 0.05} color="#fff" />
+          <FontAwesome name="user-plus" size={width * 0.05} color={Color} />
           <Text style={styles.addFriendText}> Add Friend</Text>
         </TouchableOpacity>
       </View>
@@ -117,7 +118,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: backgroundColor,
   },
   header: {
     flexDirection: "row",
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
   },
   toggleText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.035,
   },
   profileSection: {
@@ -154,8 +155,8 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: width * 0.05,
-    color: "#fff",
-    fontWeight: "bold",
+    color: Color,
+    fontWeight: fontWeight,
     marginBottom: height * 0.01,
   },
   addFriendButton: {
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: width * 0.05,
   },
   addFriendText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.035,
     marginLeft: width * 0.02,
   },
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     marginHorizontal: width * 0.03,
   },
   categoryText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.03,
     marginTop: height * 0.005,
   },

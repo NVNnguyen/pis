@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { Color } from "../styles/color";
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
 
@@ -23,12 +24,12 @@ const NewCredentialsScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton}>
-        <MaterialIcons name="arrow-back-ios" size={24} color="#FFF" />
+        <MaterialIcons name="arrow-back-ios" size={24} color={Color} />
       </TouchableOpacity>
 
       {/* Icon and Title */}
       <View style={styles.iconContainer}>
-        <MaterialIcons name="lock-outline" size={80} color="#FFF" />
+        <MaterialIcons name="lock-outline" size={80} color={Color} />
       </View>
       <Text style={styles.title}>New Credentials</Text>
       <Text style={styles.subtitle}>
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.07, // Responsive font size
-    color: "#FFF",
+    color: Color,
     fontWeight: "bold",
     textAlign: "center",
     marginTop: height * 0.02,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     marginTop: height * 0.03,
   },
   updateButtonText: {
-    color: "#FFF",
+    color: Color,
     fontSize: width * 0.045,
     fontWeight: "bold",
   },

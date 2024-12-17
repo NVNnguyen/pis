@@ -7,6 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { backgroundColor, Color, fontWeight } from "../styles/color";
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
 const ForgotPasswordSelectionScreen = () => {
@@ -41,13 +42,13 @@ const ForgotPasswordSelectionScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212", // Dark background
+    backgroundColor: backgroundColor, // Dark background
     padding: width * 0.05, // Responsive padding
   },
   title: {
     fontSize: width * 0.07, // Responsive font size
-    color: "#FFF",
-    fontWeight: "bold",
+    color: Color,
+    fontWeight: fontWeight,
     textAlign: "center",
     marginTop: height * 0.15,
   },

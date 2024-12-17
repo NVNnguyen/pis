@@ -10,6 +10,7 @@ import {
   FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { Color } from "../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -69,7 +70,7 @@ const PostCaptureScreen = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.downloadIcon}>
-            <MaterialIcons name="download" size={width * 0.07} color="#fff" />
+            <MaterialIcons name="download" size={width * 0.07} color={Color} />
           </TouchableOpacity>
         </View>
 
@@ -87,16 +88,16 @@ const PostCaptureScreen = () => {
         {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity style={styles.cancelButton}>
-            <FontAwesome name="close" size={width * 0.08} color="#fff" />
+            <FontAwesome name="close" size={width * 0.08} color={Color} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.sendButton}>
-            <FontAwesome name="send" size={width * 0.08} color="#fff" />
+            <FontAwesome name="send" size={width * 0.08} color={Color} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.arButton}>
             <MaterialIcons
               name="center-focus-strong"
               size={width * 0.08}
-              color="#fff"
+              color={Color}
             />
           </TouchableOpacity>
         </View>
@@ -157,11 +158,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   toggleText: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.04,
   },
   activeButton: {
-    backgroundColor: "#fff",
+    backgroundColor: Color,
   },
   activeText: {
     color: "#121212",
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   caption: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.05,
     textAlign: "center",
   },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   friendName: {
-    color: "#fff",
+    color: Color,
     fontSize: width * 0.035,
     textAlign: "center",
   },
