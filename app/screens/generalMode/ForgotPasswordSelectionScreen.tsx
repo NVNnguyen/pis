@@ -7,7 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { backgroundColor, Color, fontWeight } from "../styles/color";
+import { backgroundColor, Color, fontWeight } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
 const ForgotPasswordSelectionScreen = () => {

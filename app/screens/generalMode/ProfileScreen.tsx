@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { backgroundColor, fontWeight, Color } from "../styles/color";
+import { backgroundColor, fontWeight, Color } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window");
 

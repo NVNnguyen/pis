@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import { FontAwesome, MaterialIcons, Feather } from "@expo/vector-icons";
-import { toggleCameraFacing, captureImage } from "../utils/friendModeHandel"; // Import functions
-import { backgroundColor, Color, fontWeight } from "../styles/color";
+import { toggleCameraFacing, captureImage } from "../../../utils/friendModeHandel"; // Import functions
+import { backgroundColor, Color, fontWeight } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: backgroundColor,
+    marginTop: height * 0.1,
   },
   container: {
     flex: 1,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     position: "absolute",
-    top: height * 0.1,
+    top: height * 0.01,
     right: width * 0.05,
   },
   footer: {

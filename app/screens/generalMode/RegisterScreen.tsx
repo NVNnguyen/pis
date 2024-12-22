@@ -11,10 +11,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/MainStack";
-import { Color } from "../styles/color";
+import { Color } from "../../../styles/color";
+import CustomAlert from "@/components/alert/CustomAlert";
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,6 +21,59 @@ const RegisterScreen = () => {
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+
+  const handleLogin = () => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const emailRegex =
+      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+    if (username.trim() === "") {
+      setAlertMessage("Username cannot be empty!");
+      setAlertVisible(true);
+      return;
+    }
+
+    if (emailOrPhone.trim() === "") {
+      setAlertMessage("Please enter email or phone number!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!emailRegex.test(emailOrPhone.trim())) {
+      setAlertMessage("Invalid email format! Please enter a valid email.");
+      setAlertVisible(true);
+      return;
+    }
+
+    if (!passwordRegex.test(password)) {
+      setAlertMessage(
+        "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
+      );
+      setAlertVisible(true);
+      return;
+    }
+    if (password.trim() === "") {
+      setAlertMessage("Please enter password!");
+      setAlertVisible(true);
+      return;
+    }
+    if (rePassword.trim() === null) {
+      setAlertMessage("Please enter re-enter password!");
+      setAlertVisible(true);
+      return;
+    }
+    if (rePassword != password) {
+      setAlertMessage("Passwords do not match! Please re-enter!");
+      setAlertVisible(true);
+      return;
+    }
+  };
+  const handleOnConfirm = () => {
+    setAlertVisible(false);
+    // Cho phép tiếp tục nhập thông tin
+    console.log("User confirmed the alert!");
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -69,9 +120,16 @@ const RegisterScreen = () => {
             onChangeText={setRePassword}
           />
 
-          <TouchableOpacity style={styles.registerButton}>
+          <TouchableOpacity style={styles.registerButton} onPress={handleLogin}>
             <Text style={styles.registerButtonText}>Register</Text>
           </TouchableOpacity>
+          {/* Custom Alert */}
+          <CustomAlert
+            visible={alertVisible}
+            title="Error"
+            message={alertMessage}
+            onConfirm={handleOnConfirm}
+          />
         </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>

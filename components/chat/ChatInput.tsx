@@ -17,6 +17,7 @@ import {
   FontAwesome6,
   Ionicons,
 } from "@expo/vector-icons";
+import { Color } from "@/styles/color";
 
 const { width, height } = Dimensions.get("window"); // Lấy chiều rộng màn hình
 
@@ -43,21 +44,21 @@ const ChatInput = () => {
           {/* Dãy biểu tượng - Chỉ hiển thị khi message rỗng */}
           {message.trim().length != 0 ? (
             <TouchableOpacity onPress={() => setMessage("")}>
-              <AntDesign name="right" size={24} color="white" />
+              <AntDesign name="right" size={24} color={Color} />
             </TouchableOpacity>
           ) : (
             <View style={styles.iconsContainer}>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome name="plus-circle" size={24} color="white" />
+                <FontAwesome name="plus-circle" size={24} color={Color} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <Entypo name="camera" size={24} color="white" />
+                <Entypo name="camera" size={24} color={Color} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome6 name="image" size={24} color="white" />
+                <FontAwesome6 name="image" size={24} color={Color} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome name="microphone" size={24} color="white" />
+                <FontAwesome name="microphone" size={24} color={Color} />
               </TouchableOpacity>
             </View>
           )}
@@ -72,7 +73,7 @@ const ChatInput = () => {
               onChangeText={(text) => setMessage(text)} // Cập nhật state khi nhập
             />
             <TouchableOpacity>
-              <FontAwesome name="smile-o" size={24} color="white" />
+              <FontAwesome name="smile-o" size={24} color={Color} />
             </TouchableOpacity>
           </View>
 
@@ -82,9 +83,9 @@ const ChatInput = () => {
             onPress={handleSendMessage}
           >
             {message.trim().length > 0 ? (
-              <Ionicons name="send" size={24} color="white" />
+              <Ionicons name="send" size={24} color={Color} />
             ) : (
-              <FontAwesome name="thumbs-up" size={24} color="white" />
+              <FontAwesome name="thumbs-up" size={24} color={Color} />
             )}
           </TouchableOpacity>
         </View>
@@ -123,12 +124,12 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: "#FFF",
+    color: Color,
     paddingVertical: height * 0.005,
   },
   likeButton: {
-    paddingVertical: height * 0.005,
-    paddingHorizontal: width * 0.005,
+    paddingVertical: height * 0.01,
+    paddingHorizontal: width * 0.01,
   },
 });
 

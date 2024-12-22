@@ -10,7 +10,7 @@ import {
   FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { Color } from "../styles/color";
+import { Color } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window");
 

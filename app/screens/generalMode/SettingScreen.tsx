@@ -14,7 +14,7 @@ import {
   FontAwesome,
   Feather,
 } from "@expo/vector-icons";
-import { Color, fontWeight } from "../styles/color";
+import { Color, fontWeight } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window");
 

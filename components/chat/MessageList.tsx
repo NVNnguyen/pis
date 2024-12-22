@@ -1,3 +1,4 @@
+import { Color } from "@/styles/color";
 import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
   myMessage: {
     alignSelf: "flex-end",
     backgroundColor: "#007AFF",
-    color: "#fff",
+    color: Color,
   },
   theirMessage: {
     alignSelf: "flex-start",

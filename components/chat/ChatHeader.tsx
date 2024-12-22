@@ -1,3 +1,4 @@
+import { backgroundColor, Color, fontWeight } from "@/styles/color";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -16,7 +17,7 @@ const ChatHeader = () => {
     <View style={styles.header}>
       <View style={styles.backIcon}>
         <TouchableOpacity>
-          <Ionicons name="chevron-back-sharp" size={24} color="white" />
+          <Ionicons name="chevron-back-sharp" size={24} color={Color} />
         </TouchableOpacity>
       </View>
       <View style={styles.avatarContainer}>
@@ -32,10 +33,10 @@ const ChatHeader = () => {
 
       <View style={styles.callIcons}>
         <View style={styles.audioIcon}>
-          <Ionicons name="call" size={24} color="white" />
+          <Ionicons name="call" size={24} color={Color} />
         </View>
         <View style={styles.videoIcon}>
-          <FontAwesome name="video-camera" size={24} color="white" />
+          <FontAwesome name="video-camera" size={24} color={Color} />
         </View>
       </View>
     </View>
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     height: height * 0.05,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#121212",
+    backgroundColor: backgroundColor,
     marginTop: height * 0.05,
   },
   backIcon: {},
@@ -61,15 +62,15 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   name: {
-    fontWeight: "bold",
+    fontWeight: fontWeight,
     fontSize: 16,
-    color: "white",
+    color: Color,
   },
   textView: {},
   status: {
     color: "green",
     marginLeft: 10,
-    fontWeight: "bold",
+    fontWeight: fontWeight,
   },
   callIcons: {
     flexDirection: "row",

@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Dimensions,
   Keyboard,
   TouchableWithoutFeedback,
@@ -13,32 +12,56 @@ import {
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/MainStack";
-import { backgroundColor, Color, fontWeight } from "../styles/color";
+import { RootStackParamList } from "../../../navigation/MainStack";
+import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import CustomAlert from "@/components/alert/CustomAlert";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
 const LoginScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList, "Login">>();
+
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [isChecked, setIsChecked] = useState<boolean>(false);
 
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+
   const handleLogin = () => {
-    if (username && password) {
-      Alert.alert("Login Successful", `Welcome ${username}!`);
-    } else {
-      Alert.alert("Error", "Please fill in all fields.");
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+    if (username.trim() === "") {
+      setAlertMessage("Username cannot be empty!");
+      setAlertVisible(true);
+      return;
     }
+
+    if (!passwordRegex.test(password)) {
+      setAlertMessage(
+        "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
+      );
+      setAlertVisible(true);
+      return;
+    }
+
+    // Mock login success
+    console.log("Login successful!");
+  };
+  const handleOnConfirm = () => {
+    setAlertVisible(false);
+    // Cho phép tiếp tục nhập thông tin
+    console.log("User confirmed the alert!");
   };
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
 
-        <Text style={styles.label}>User name</Text>
+        <Text style={styles.label}>Username</Text>
         <TextInput
           style={styles.input}
           placeholder="User name"
@@ -68,7 +91,6 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Updated Checkbox */}
         <TouchableOpacity
           style={styles.checkboxContainer}
           onPress={() => setIsChecked(!isChecked)}
@@ -110,6 +132,14 @@ const LoginScreen = () => {
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>Register an account</Text>
         </TouchableOpacity>
+
+        {/* Custom Alert */}
+        <CustomAlert
+          visible={alertVisible}
+          title="Error"
+          message={alertMessage}
+          onConfirm={handleOnConfirm}
+        />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -119,7 +149,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: backgroundColor,
-    padding: width * 0.05, // Dynamic padding based on screen width
+    padding: width * 0.05,
     justifyContent: "center",
     alignItems: "center",
   },
