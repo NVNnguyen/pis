@@ -28,7 +28,7 @@ const LoadingScreen = () => {
     <View style={styles.container}>
       {/* Logo với hiệu ứng nhấp nháy */}
       <Animated.Image
-        source={require("../../assets/images/logo.png")} // Thay đường dẫn bằng đường dẫn ảnh của bạn
+        source={require("../../../assets/images/logo.png")} // Thay đường dẫn bằng đường dẫn ảnh của bạn
         style={[styles.logo, { opacity: fadeAnim }]}
         resizeMode="contain"
       />

@@ -82,10 +82,10 @@ const RegisterScreen = () => {
         <View style={styles.registerBox}>
           <Text style={styles.title}>Register an account</Text>
 
-          <Text style={styles.label}>User name</Text>
+          <Text style={styles.label}>Username</Text>
           <TextInput
             style={styles.input}
-            placeholder="User name"
+            placeholder="Username"
             placeholderTextColor="#bdbdbd"
             value={username}
             onChangeText={setUsername}

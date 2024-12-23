@@ -8,6 +8,7 @@ import {
   Dimensions,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -15,6 +16,9 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/MainStack";
 import { backgroundColor, Color, fontWeight } from "../../../styles/color";
 import CustomAlert from "@/components/alert/CustomAlert";
+import { login } from "@/api/authAPI/loginAPI";
+import { saveToken } from "@/utils/storage";
+import LoadingScreen from "./LoadingScreen";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
@@ -29,8 +33,8 @@ const LoginScreen = () => {
 
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
-
-  const handleLogin = () => {
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async () => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -47,9 +51,21 @@ const LoginScreen = () => {
       setAlertVisible(true);
       return;
     }
+    setLoading(true);
+    try {
+      const credentials = { username, password };
+      const response = await login(credentials);
 
-    // Mock login success
-    console.log("Login successful!");
+      // Lưu token vào AsyncStorage
+      // await saveToken(response.token);
+      navigation.replace("FriendMode"); 
+      // Điều hướng đến trang chủ
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
   };
   const handleOnConfirm = () => {
     setAlertVisible(false);
@@ -64,7 +80,7 @@ const LoginScreen = () => {
         <Text style={styles.label}>Username</Text>
         <TextInput
           style={styles.input}
-          placeholder="User name"
+          placeholder="Username"
           value={username}
           onChangeText={setUsername}
           placeholderTextColor="#9E9E9E"
@@ -140,6 +156,7 @@ const LoginScreen = () => {
           message={alertMessage}
           onConfirm={handleOnConfirm}
         />
+        {loading ? <LoadingScreen /> : null}
       </View>
     </TouchableWithoutFeedback>
   );

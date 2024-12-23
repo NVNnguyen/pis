@@ -19,7 +19,7 @@ const App: React.FC = () => {
     <NavigationContainer>
       <MainStack />
     </NavigationContainer>
-    // <BlockedAccountListScreen />
+    // <FriendModeScreen />
   );
 };
 
