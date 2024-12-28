@@ -53,12 +53,12 @@ const LoginScreen = () => {
     }
     setLoading(true);
     try {
-      const credentials = { username, password };
-      const response = await login(credentials);
+      // const credentials = { username, password };
+      // const response = await login(credentials);
 
-      // Lưu token vào AsyncStorage
-      // await saveToken(response.token);
-      navigation.replace("FriendMode"); 
+      // // Lưu token vào AsyncStorage
+      // // await saveToken(response.token);
+      navigation.replace("FriendMode");
       // Điều hướng đến trang chủ
     } catch (error) {
       console.error(error);

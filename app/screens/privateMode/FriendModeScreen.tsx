@@ -15,6 +15,7 @@ import {
   captureImage,
 } from "../../../utils/friendModeHandel"; // Import functions
 import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 
 const { width, height } = Dimensions.get("window");
 
@@ -22,7 +23,7 @@ const FriendModeScreen = () => {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-  const [toggleOption, setToggleOption] = useState("Friends");
+
 
   useEffect(() => {
     if (!permission) {
@@ -38,7 +39,7 @@ const FriendModeScreen = () => {
     return <Text>Camera permissions are required to use this app.</Text>;
   }
 
-  const handleToggle = (option: string) => setToggleOption(option);
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -49,40 +50,7 @@ const FriendModeScreen = () => {
             source={{ uri: "https://via.placeholder.com/40" }}
             style={styles.avatar}
           />
-          <View style={styles.toggleSwitch}>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                toggleOption === "Friends" && styles.activeButton,
-              ]}
-              onPress={() => handleToggle("Friends")}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  toggleOption === "Friends" && styles.activeText,
-                ]}
-              >
-                Friends
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                toggleOption === "Public" && styles.activeButton,
-              ]}
-              onPress={() => handleToggle("Public")}
-            >
-              <Text
-                style={[
-                  styles.toggleText,
-                  toggleOption === "Public" && styles.activeText,
-                ]}
-              >
-                Public
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <PublicOrPrivate/>
           <TouchableOpacity style={styles.notification}>
             <FontAwesome name="bell" size={width * 0.06} color={Color} />
             <Text style={styles.notificationBadge}>4</Text>
@@ -151,29 +119,6 @@ const styles = StyleSheet.create({
     width: width * 0.1,
     height: width * 0.1,
     borderRadius: width * 0.05,
-  },
-  toggleSwitch: {
-    flexDirection: "row",
-    backgroundColor: "#1e1e1e",
-    borderRadius: 16,
-    paddingHorizontal: width * 0.02,
-    paddingVertical: height * 0.005,
-    alignItems: "center",
-  },
-  toggleButton: {
-    paddingHorizontal: width * 0.03,
-    paddingVertical: height * 0.01,
-    borderRadius: 12,
-  },
-  toggleText: {
-    color: Color,
-    fontSize: width * 0.04,
-  },
-  activeButton: {
-    backgroundColor: Color,
-  },
-  activeText: {
-    color: backgroundColor,
   },
   notification: {
     position: "relative",

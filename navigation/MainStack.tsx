@@ -6,6 +6,7 @@ import RegisterScreen from "../app/screens/generalMode/RegisterScreen";
 import ForgotPasswordSelectionScreen from "@/app/screens/generalMode/ForgotPasswordSelectionScreen";
 import { Color, fontWeight } from "../styles/color";
 import FriendModeScreen from "@/app/screens/privateMode/FriendModeScreen";
+import PublicModeScreen from "@/app/screens/publicMode/PublicModeScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -13,6 +14,7 @@ export type RootStackParamList = {
   ForgotPasswordSelection: undefined;
   NewCredentials: undefined; // Add ForgotNavigation as a route
   FriendMode: undefined;
+  PublicMode: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,6 +51,11 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="FriendMode"
         component={FriendModeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PublicMode"
+        component={PublicModeScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

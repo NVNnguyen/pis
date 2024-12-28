@@ -13,7 +13,7 @@ import {
 const { width, height } = Dimensions.get("window");
 
 const BlockedAccountListScreen = () => {
-  const [userLocks, setUserLocks] = useState({}); // Store lock state for each user
+  const [userLocks, setUserLocks] = useState<{ [key: string]: boolean }>({}); // Store lock state for each user
 
   const toggleLock = (userId: string) => {
     setUserLocks((prevLocks) => ({
