@@ -6,14 +6,16 @@ import {
   FlatList,
   TextInput,
   Dimensions,
-  Modal,
-  TouchableOpacity,
-  Image,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import { EvilIcons } from "@expo/vector-icons";
+import { EvilIcons, Ionicons } from "@expo/vector-icons";
 import UserItem from "@/components/public/UserItem"; // Import UserItem
 import { Color, fontWeight } from "@/styles/color";
+import ModelUnFollow from "@/components/public/ModelUnFollow";
+import { useNavigation } from "expo-router";
+import { mockUsers } from "@/utils/mockAPI";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProps {
   id: string;
@@ -25,84 +27,13 @@ interface UserProps {
 
 const { width, height } = Dimensions.get("window");
 
-const SearchScreen: React.FC = () => {
-  const mockUsers: UserProps[] = [
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "1",
-      username: "trttanh_",
-      name: "Tu Anh",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "2",
-      username: "trtt.mgr0204",
-      name: "Яюта Еиомото",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "3",
-      username: "trt.tanjil",
-      name: "Tanjil Rahman",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "4",
-      username: "trtt87",
-      name: "Simone Gaspari",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: false,
-    },
-    {
-      id: "5",
-      username: "vanessaaraujo_trtt",
-      name: "Vanessa Araujo",
-      avatar: "https://via.placeholder.com/40",
-      isFollowing: true,
-    },
-  ];
-
+const SearchScreen = () => {
+  const navigation = useNavigation();
   const [users, setUsers] = useState<UserProps[]>([]);
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProps | null>(null);
+  const [isFocus, setIsFocus] = useState(false);
 
   useEffect(() => {
     setUsers(mockUsers);
@@ -122,6 +53,9 @@ const SearchScreen: React.FC = () => {
     setSelectedUser(user || null);
     setModalVisible(true);
   };
+  const handleModelVisible = () => {
+    setModalVisible(false);
+  };
 
   const filteredUsers = users.filter(
     (user) =>
@@ -130,18 +64,30 @@ const SearchScreen: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.searchText}>Search</Text>
-
+    <SafeAreaView style={styles.container}>
+      {!isFocus && (
+        <View>
+          <Text style={styles.searchText}>Search</Text>
+        </View>
+      )}
       <View style={styles.searchContainer}>
-        <EvilIcons name="search" size={24} color="grey" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          placeholderTextColor="#808080"
-          value={search}
-          onChangeText={setSearch}
-        />
+        {isFocus && (
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={24} color="white" />
+          </TouchableOpacity>
+        )}
+        <View style={styles.searchBox}>
+          <EvilIcons name="search" size={24} color="grey" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#808080"
+            value={search}
+            onChangeText={setSearch}
+            onFocus={() => setIsFocus(true)}
+            onBlur={() => setIsFocus(false)}
+          />
+        </View>
       </View>
 
       <ScrollView>
@@ -167,38 +113,14 @@ const SearchScreen: React.FC = () => {
       </ScrollView>
 
       {selectedUser && (
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Image
-                source={{ uri: selectedUser.avatar }}
-                style={styles.avatar}
-              />
-              <Text style={styles.modalText}>
-                Unfollow {selectedUser.username}?
-              </Text>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.unfollowButton]}
-                onPress={() => toggleFollow(selectedUser.id)}
-              >
-                <Text style={styles.modalButtonText}>Unfollow</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+        <ModelUnFollow
+          selectedUser={selectedUser}
+          handleModelVisible={handleModelVisible}
+          modalVisible={modalVisible}
+          toggleFollow={toggleFollow}
+        />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -218,6 +140,12 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-around",
+    marginRight: 0,
+  },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#202020",
     borderRadius: 10,
     paddingHorizontal: 10,
@@ -225,7 +153,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: "#FFFFFF",
+    color: Color,
     fontSize: 16,
     paddingVertical: 10,
   },
@@ -235,50 +163,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   searchResultText: {
-    color: "#FFFFFF",
+    color: Color,
     fontSize: 16,
     marginLeft: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: "80%",
-    backgroundColor: "#202020",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 15,
-  },
-  modalText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    marginBottom: 20,
-  },
-  modalButton: {
-    width: "100%",
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  unfollowButton: {
-    backgroundColor: "#FF3B30",
-  },
-  cancelButton: {
-    backgroundColor: "#404040",
-  },
-  modalButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
   },
 });
 

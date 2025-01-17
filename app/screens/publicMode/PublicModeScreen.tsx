@@ -1,73 +1,105 @@
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet, FlatList, Dimensions, Animated } from "react-native";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import PostItem from "@/components/public/PostItems";
 import TabBar from "@/components/public/TabBar";
-import React from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import { backgroundColor } from "@/styles/color";
+import Home from "@/components/public/Home";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
+
+const { width, height } = Dimensions.get("window");
 
 const PublicModeScreen = () => {
-  const posts = [
-    {
-      id: "1",
-      user: {
-        username: "20thang7_n",
-        time: "11h",
-        avatar: "https://via.placeholder.com/40",
-      },
-      caption: "Dear 2025 i am ready. 🌸",
-      images: [
-        "https://via.placeholder.com/300",
-        "https://via.placeholder.com/300",
-      ],
-      likes: 80,
-      comments: 4,
-      shares: 1,
-    },
-    {
-      id: "2",
-      user: {
-        username: "user_2",
-        time: "10h",
-        avatar: "https://via.placeholder.com/40",
-      },
-      caption: "A new day, a new beginning. ☀️",
-      images: [
-        "https://via.placeholder.com/300",
-        "https://via.placeholder.com/300",
-      ],
-      likes: 120,
-      comments: 10,
-      shares: 5,
-    },
-    // Thêm nhiều bài viết hơn nếu cần
-  ];
+  const tabBarTranslateY = useRef(new Animated.Value(0)).current; // Giá trị dịch chuyển TabBar
+  const currentTranslateY = useRef(0); // Lưu giá trị hiện tại của TabBar
+  const lastScrollY = useRef(0); // Lưu vị trí cuộn trước đó
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+  useEffect(() => {
+    // Lắng nghe thay đổi giá trị Animated.Value
+    const listener = tabBarTranslateY.addListener((value) => {
+      currentTranslateY.current = value.value; // Cập nhật giá trị hiện tại vào ref
+    });
+
+    return () => {
+      // Hủy listener khi component unmount
+      tabBarTranslateY.removeListener(listener);
+    };
+  }, [tabBarTranslateY]);
+
+  const handleScroll = (event: any) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y;
+    const scrollDifference = currentScrollY - lastScrollY.current;
+
+    if (scrollDifference > 0) {
+      // Cuộn xuống (ẩn dần TabBar)
+      const newTranslateY = Math.min(
+        height * 0.09,
+        currentTranslateY.current + scrollDifference / 2
+      );
+      Animated.timing(tabBarTranslateY, {
+        toValue: newTranslateY,
+        duration: 50,
+        useNativeDriver: true,
+      }).start();
+    } else if (scrollDifference < 0) {
+      // Cuộn lên (hiện dần TabBar)
+      const newTranslateY = Math.max(
+        0,
+        currentTranslateY.current + scrollDifference / 2
+      );
+      Animated.timing(tabBarTranslateY, {
+        toValue: newTranslateY,
+        duration: 50,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    lastScrollY.current = currentScrollY; // Cập nhật vị trí cuộn hiện tại
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.toggleContainer}>
         <PublicOrPrivate />
       </View>
-      <FlatList
-        data={posts} // Dữ liệu danh sách
-        keyExtractor={(item) => item.id} // Khóa duy nhất cho mỗi bài viết
-        renderItem={({ item }) => <PostItem {...item} />} // Hiển thị bài viết
-        showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
-      />
-      <TabBar />
-    </View>
+      <Home handleScroll={handleScroll} />
+      <Animated.View
+        style={[
+          styles.tabBar,
+          { transform: [{ translateY: tabBarTranslateY }] },
+        ]}
+      >
+        <TabBar />
+      </Animated.View>
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#181818",
-    padding: 10,
-  },
-  toggleContainer: {
-    alignItems: "center", // Căn giữa theo chiều ngang
-    justifyContent: "center", // Căn giữa theo chiều dọc
-    marginBottom: 20, // Thêm khoảng cách với nội dung phía dưới
-    marginTop: 30,
-  },
-});
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background, // Màu nền
+    },
+    toggleContainer: {
+      alignItems: "center", // Căn giữa theo chiều ngang
+      justifyContent: "center", // Căn giữa theo chiều dọc
+      paddingTop: height * 0.04, // Responsive padding (2% chiều cao)
+      paddingBottom: height * 0.02, // Responsive padding (1% chiều cao)
+    },
+    tabBar: {
+      backgroundColor: backgroundColor, // Màu nền
+      position: "absolute", // Đặt TabBar cố định
+      bottom: 0,
+      left: 0,
+      right: 0,
+      overflow: "hidden", // Ẩn phần nội dung vượt quá chiều cao
+    },
+  });
 
 export default PublicModeScreen;

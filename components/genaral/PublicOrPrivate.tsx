@@ -9,53 +9,45 @@ import {
   Dimensions,
 } from "react-native";
 import { RootStackParamList } from "@/navigation/MainStack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
 const PublicOrPrivate = () => {
-  const [toggleOption, setToggleOption] = useState<string>("Friends");
+  const [toggleOption, setToggleOption] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  useEffect(() => {
+    // Lấy trạng thái từ AsyncStorage
+    const loadToggleOption = async () => {
+      const savedOption = await AsyncStorage.getItem("toggleOption");
+      if (savedOption !== null) {
+        setToggleOption(JSON.parse(savedOption));
+      }
+    };
+    loadToggleOption();
+  }, []);
 
-  const handleToggle = (option: string) => {
-    setToggleOption(option); // Cập nhật trạng thái
-    if (toggleOption === "Public") {
-      navigation.navigate("PublicMode");
-    } else if (toggleOption === "Friends") {
-      navigation.navigate("FriendMode");
-    }
+  const handleToggle = async (option: boolean) => {
+    setToggleOption(option);
+    await AsyncStorage.setItem("toggleOption", JSON.stringify(option)); // Lưu trạng thái
+    navigation.navigate(option ? "PublicMode" : "FriendMode");
   };
 
   return (
     <View style={styles.toggleSwitch}>
       <TouchableOpacity
-        style={[
-          styles.toggleButton,
-          toggleOption === "Friends" && styles.activeButton,
-        ]}
-        onPress={() => handleToggle("Friends")}
+        style={[styles.toggleButton, !toggleOption && styles.activeButton]}
+        onPress={() => handleToggle(false)}
       >
-        <Text
-          style={[
-            styles.toggleText,
-            toggleOption === "Friends" && styles.activeText,
-          ]}
-        >
+        <Text style={[styles.toggleText, !toggleOption && styles.activeText]}>
           Friends
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[
-          styles.toggleButton,
-          toggleOption === "Public" && styles.activeButton,
-        ]}
-        onPress={() => handleToggle("Public")}
+        style={[styles.toggleButton, toggleOption && styles.activeButton]}
+        onPress={() => handleToggle(true)}
       >
-        <Text
-          style={[
-            styles.toggleText,
-            toggleOption === "Public" && styles.activeText,
-          ]}
-        >
+        <Text style={[styles.toggleText, toggleOption && styles.activeText]}>
           Public
         </Text>
       </TouchableOpacity>

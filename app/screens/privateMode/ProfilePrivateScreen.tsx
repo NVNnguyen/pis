@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   FlatList,
   Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { backgroundColor, fontWeight, Color } from "../../../styles/color";
 
 const { width, height } = Dimensions.get("window");
 
-const ProfileScreen = () => {
+const ProfilePrivateScreen = () => {
   const categories = [
     { id: "1", icon: "camera", label: "All" },
     { id: "2", icon: "image", label: "Nature" },
@@ -58,7 +59,7 @@ const ProfileScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity>
@@ -111,7 +112,7 @@ const ProfileScreen = () => {
         contentContainerStyle={styles.gridContainer}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -201,4 +202,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen;
+export default ProfilePrivateScreen;

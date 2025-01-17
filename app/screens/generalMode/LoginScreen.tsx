@@ -16,8 +16,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../navigation/MainStack";
 import { backgroundColor, Color, fontWeight } from "../../../styles/color";
 import CustomAlert from "@/components/alert/CustomAlert";
-import { login } from "@/api/authAPI/loginAPI";
-import { saveToken } from "@/utils/storage";
+
 import LoadingScreen from "./LoadingScreen";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions

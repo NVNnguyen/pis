@@ -7,7 +7,9 @@ import ForgotPasswordSelectionScreen from "@/app/screens/generalMode/ForgotPassw
 import { Color, fontWeight } from "../styles/color";
 import FriendModeScreen from "@/app/screens/privateMode/FriendModeScreen";
 import PublicModeScreen from "@/app/screens/publicMode/PublicModeScreen";
-
+import SearchScreen from "@/app/screens/publicMode/SearchScreen";
+import TabBar from "@/components/public/TabBar";
+import ProfilePublicScreen from "@/app/screens/publicMode/ProfilePublicScreen";
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -15,6 +17,9 @@ export type RootStackParamList = {
   NewCredentials: undefined; // Add ForgotNavigation as a route
   FriendMode: undefined;
   PublicMode: undefined;
+  Search: undefined;
+  TabBar: undefined;
+  ProfilePublic: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -22,7 +27,7 @@ const { width, height } = Dimensions.get("window");
 const MainStack: React.FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName="PublicMode"
       screenOptions={{
         headerTitle: () => (
           <Image
@@ -42,9 +47,9 @@ const MainStack: React.FC = () => {
         headerTitleAlign: "center", // Canh giữa tiêu đề
       }}
     >
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen
+      {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
+      {/* <Stack.Screen name="Register" component={RegisterScreen} /> */}
+      {/* <Stack.Screen
         name="ForgotPasswordSelection"
         component={ForgotPasswordSelectionScreen}
       />
@@ -52,10 +57,25 @@ const MainStack: React.FC = () => {
         name="FriendMode"
         component={FriendModeScreen}
         options={{ headerShown: false }}
-      />
+      /> */}
       <Stack.Screen
         name="PublicMode"
         component={PublicModeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TabBar"
+        component={TabBar}
+        options={{ headerShown: false }} // Ẩn header cho TabBar
+      />
+      <Stack.Screen
+        name="ProfilePublic"
+        component={ProfilePublicScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
