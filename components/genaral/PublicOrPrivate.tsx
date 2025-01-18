@@ -10,12 +10,18 @@ import {
 } from "react-native";
 import { RootStackParamList } from "@/navigation/MainStack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
 
 const { width, height } = Dimensions.get("window");
 
 const PublicOrPrivate = () => {
   const [toggleOption, setToggleOption] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+
   useEffect(() => {
     // Lấy trạng thái từ AsyncStorage
     const loadToggleOption = async () => {
@@ -55,30 +61,33 @@ const PublicOrPrivate = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  toggleSwitch: {
-    flexDirection: "row",
-    backgroundColor: "#1e1e1e",
-    borderRadius: 16,
-    paddingHorizontal: width * 0.02,
-    paddingVertical: height * 0.005,
-    alignItems: "center",
-  },
-  toggleButton: {
-    paddingHorizontal: width * 0.03,
-    paddingVertical: height * 0.01,
-    borderRadius: 12,
-  },
-  toggleText: {
-    color: Color,
-    fontSize: width * 0.04,
-  },
-  activeButton: {
-    backgroundColor: Color,
-  },
-  activeText: {
-    color: backgroundColor,
-  },
-});
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    toggleSwitch: {
+      flexDirection: "row",
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
+      borderRadius: 16,
+      paddingHorizontal: width * 0.02,
+      paddingVertical: height * 0.005,
+      alignItems: "center",
+    },
+    toggleButton: {
+      paddingHorizontal: width * 0.03,
+      paddingVertical: height * 0.01,
+      borderRadius: 12,
+    },
+    toggleText: {
+      color: Color,
+      fontSize: width * 0.04,
+    },
+    activeButton: {
+      backgroundColor: Color,
+    },
+    activeText: {
+      color: backgroundColor,
+    },
+  });
 
 export default PublicOrPrivate;
