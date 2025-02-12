@@ -3,7 +3,7 @@ export const userInfo = [
       "id": "1",
       "username": "jisoo__",
       "name": "Jisoo",
-      "avatar": "https://cdn.tuoitre.vn/471584752817336320/2023/2/8/screenshot-2023-02-08-182112-1675855285668750085556.png",
+      "avatar": "https://pisnewcontainer.blob.core.windows.net/image/mqttx.png",
       "isFollowing": false,
       "followers": "1950000" 
     },
@@ -94,11 +94,11 @@ export const userInfo = [
       "images": [
         {
           "id": 26,
-          "link": "https://wallpapers.com/images/high/maine-coon-pictures-1gvehsa3whsqcnge.webp",
+          "link": "https://pisnewcontainer.blob.core.windows.net/image/mqttx.png",
         },
         {
           "id": 70,
-          "link": "https://wallpapers.com/images/high/grey-cat-pictures-6dx2806bvd25h13j.webp",
+          "link": "https://pisnewcontainer.blob.core.windows.net/image/60174219-7374-4590-a418-b9e1466f0d8a-zalo.png",
         },
         {
           "id": 91,

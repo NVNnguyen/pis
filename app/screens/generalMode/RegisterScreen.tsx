@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import {
   View,
   Text,
@@ -10,49 +12,50 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { Color } from "../../../styles/color";
 import CustomAlert from "@/components/alert/CustomAlert";
+import authApi from "@/api/authAPI/authAPI";
+import { RootStackParamList } from "@/navigation/MainStack";
 
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = () => {
-  const [username, setUsername] = useState("");
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
 
-  const handleLogin = () => {
+  const handelRegister = async () => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     const emailRegex =
       /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
-    if (username.trim() === "") {
-      setAlertMessage("Username cannot be empty!");
-      setAlertVisible(true);
-      return;
-    }
 
-    if (emailOrPhone.trim() === "") {
+    if (email.trim() === "") {
       setAlertMessage("Please enter email or phone number!");
       setAlertVisible(true);
       return;
     }
-    if (!emailRegex.test(emailOrPhone.trim())) {
+    if (!emailRegex.test(email.toLowerCase().trim())) {
       setAlertMessage("Invalid email format! Please enter a valid email.");
       setAlertVisible(true);
       return;
     }
 
-    if (!passwordRegex.test(password)) {
-      setAlertMessage(
-        "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
-      );
-      setAlertVisible(true);
-      return;
-    }
+    // if (!passwordRegex.test(password)) {
+    //   setAlertMessage(
+    //     "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
+    //   );
+    //   setAlertVisible(true);
+    //   return;
+    // }
     if (password.trim() === "") {
       setAlertMessage("Please enter password!");
       setAlertVisible(true);
@@ -68,7 +71,21 @@ const RegisterScreen = () => {
       setAlertVisible(true);
       return;
     }
+    try {
+      const response = await authApi.register(
+        email,
+        firstName,
+        lastName,
+        password
+      );
+      Alert.alert("Register successfully", "Please login to continue!");
+      navigation.navigate("Login"); // Chuyển hướng sau khi đăng ký thành công
+    } catch (error) {
+      Alert.alert("Register error", "Email or password is incorrect!");
+      console.log(error);
+    }
   };
+
   const handleOnConfirm = () => {
     setAlertVisible(false);
     // Cho phép tiếp tục nhập thông tin
@@ -77,52 +94,66 @@ const RegisterScreen = () => {
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <StatusBar hidden />
         <View style={styles.registerBox}>
           <Text style={styles.title}>Register an account</Text>
+          <ScrollView
+            style={{ width: "100%" }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#bdbdbd"
+              value={email.trim()}
+              onChangeText={setEmail}
+            />
+            <Text style={styles.label}>First name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="First name"
+              placeholderTextColor="#bdbdbd"
+              value={firstName.trim()}
+              onChangeText={setFirstName}
+            />
+            <Text style={styles.label}>Last name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Last name"
+              placeholderTextColor="#bdbdbd"
+              value={lastName.trim()}
+              onChangeText={setLastName}
+            />
 
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            placeholderTextColor="#bdbdbd"
-            value={username}
-            onChangeText={setUsername}
-          />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#bdbdbd"
+              secureTextEntry
+              value={password.trim()}
+              onChangeText={setPassword}
+            />
 
-          <Text style={styles.label}>Email or Phone number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Email or Phone number"
-            placeholderTextColor="#bdbdbd"
-            value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
-          />
+            <Text style={styles.label}>Re-enter password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Re-enter password"
+              placeholderTextColor="#bdbdbd"
+              secureTextEntry
+              value={rePassword.trim()}
+              onChangeText={setRePassword}
+            />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#bdbdbd"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <Text style={styles.label}>Re-enter password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Re-enter password"
-            placeholderTextColor="#bdbdbd"
-            secureTextEntry
-            value={rePassword}
-            onChangeText={setRePassword}
-          />
-
-          <TouchableOpacity style={styles.registerButton} onPress={handleLogin}>
-            <Text style={styles.registerButtonText}>Register</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handelRegister}
+            >
+              <Text style={styles.registerButtonText}>Register</Text>
+            </TouchableOpacity>
+          </ScrollView>
           {/* Custom Alert */}
           <CustomAlert
             visible={alertVisible}
@@ -131,7 +162,7 @@ const RegisterScreen = () => {
             onConfirm={handleOnConfirm}
           />
         </View>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

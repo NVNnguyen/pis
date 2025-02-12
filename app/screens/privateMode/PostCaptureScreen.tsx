@@ -17,7 +17,11 @@ const { width, height } = Dimensions.get("window");
 const PostCaptureScreen = () => {
   const [toggleOption, setToggleOption] = useState("Friends");
   const friends = [
-    { id: "1", name: "Ali", avatar: "https://via.placeholder.com/40" },
+    {
+      id: "1",
+      name: "Ali",
+      avatar: "https://pisnewcontainer.blob.core.windows.net/image/mqttx.png",
+    },
     { id: "2", name: "Jessica", avatar: "https://via.placeholder.com/40" },
     { id: "3", name: "Mary", avatar: "https://via.placeholder.com/40" },
     { id: "4", name: "Sarah", avatar: "https://via.placeholder.com/40" },

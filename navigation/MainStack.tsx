@@ -1,33 +1,33 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Dimensions, Image, StyleSheet } from "react-native";
-import LoginScreen from "../app/screens/generalMode/LoginScreen";
-import RegisterScreen from "../app/screens/generalMode/RegisterScreen";
+import LoginScreen from "@/app/screens/generalMode/LoginScreen";
+import RegisterScreen from "@/app/screens/generalMode/RegisterScreen";
 import ForgotPasswordSelectionScreen from "@/app/screens/generalMode/ForgotPasswordSelectionScreen";
-import { Color, fontWeight } from "../styles/color";
 import FriendModeScreen from "@/app/screens/privateMode/FriendModeScreen";
 import PublicModeScreen from "@/app/screens/publicMode/PublicModeScreen";
 import SearchScreen from "@/app/screens/publicMode/SearchScreen";
-import TabBar from "@/components/public/TabBar";
 import ProfilePublicScreen from "@/app/screens/publicMode/ProfilePublicScreen";
+import TabBar from "@/components/public/TabBar";
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPasswordSelection: undefined;
-  NewCredentials: undefined; // Add ForgotNavigation as a route
   FriendMode: undefined;
   PublicMode: undefined;
   Search: undefined;
+  ProfilePublic: { id: string }; // Profile có id
   TabBar: undefined;
-  ProfilePublic: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const { width, height } = Dimensions.get("window");
+
 const MainStack: React.FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="PublicMode"
+      initialRouteName="Login"
       screenOptions={{
         headerTitle: () => (
           <Image
@@ -35,21 +35,15 @@ const MainStack: React.FC = () => {
             style={styles.logo}
           />
         ),
-        headerStyle: {
-          backgroundColor: "#1C1C1E",
-        },
-        headerShown: true,
-        headerTintColor: Color,
-        headerTitleStyle: {
-          fontWeight: fontWeight,
-          fontSize: 20,
-        },
-        headerTitleAlign: "center", // Canh giữa tiêu đề
+        headerStyle: { backgroundColor: "#1C1C1E" },
+        headerTintColor: "white",
+        headerTitleStyle: { fontWeight: "bold", fontSize: 20 },
+        headerTitleAlign: "center",
       }}
     >
-      {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
-      {/* <Stack.Screen name="Register" component={RegisterScreen} /> */}
-      {/* <Stack.Screen
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen
         name="ForgotPasswordSelection"
         component={ForgotPasswordSelectionScreen}
       />
@@ -57,7 +51,7 @@ const MainStack: React.FC = () => {
         name="FriendMode"
         component={FriendModeScreen}
         options={{ headerShown: false }}
-      /> */}
+      />
       <Stack.Screen
         name="PublicMode"
         component={PublicModeScreen}
@@ -69,13 +63,13 @@ const MainStack: React.FC = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="TabBar"
-        component={TabBar}
-        options={{ headerShown: false }} // Ẩn header cho TabBar
-      />
-      <Stack.Screen
         name="ProfilePublic"
         component={ProfilePublicScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="TabBar"
+        component={TabBar}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
@@ -84,9 +78,9 @@ const MainStack: React.FC = () => {
 
 const styles = StyleSheet.create({
   logo: {
-    width: 100, // Chiều rộng của logo
-    height: 60, // Chiều cao của logo
-    resizeMode: "contain", // Đảm bảo logo không bị méo
+    width: 100,
+    height: 60,
+    resizeMode: "contain",
   },
 });
 

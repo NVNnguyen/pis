@@ -1,5 +1,5 @@
 import { backgroundColor, Color } from "@/styles/color";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import {
   View,
@@ -33,11 +33,14 @@ const PublicOrPrivate = () => {
     loadToggleOption();
   }, []);
 
-  const handleToggle = async (option: boolean) => {
-    setToggleOption(option);
-    await AsyncStorage.setItem("toggleOption", JSON.stringify(option)); // Lưu trạng thái
-    navigation.navigate(option ? "PublicMode" : "FriendMode");
-  };
+  const handleToggle = useCallback(
+    async (option: boolean) => {
+      setToggleOption(option);
+      await AsyncStorage.setItem("toggleOption", JSON.stringify(option)); // Lưu trạng thái
+      navigation.navigate(option ? "PublicMode" : "FriendMode");
+    },
+    [navigation]
+  );
 
   return (
     <View style={styles.toggleSwitch}>
@@ -45,7 +48,14 @@ const PublicOrPrivate = () => {
         style={[styles.toggleButton, !toggleOption && styles.activeButton]}
         onPress={() => handleToggle(false)}
       >
-        <Text style={[styles.toggleText, !toggleOption && styles.activeText]}>
+        <Text
+          style={[
+            styles.toggleText,
+            !toggleOption
+              ? styles.activeText
+              : { color: isDarkMode ? "black" : Color },
+          ]}
+        >
           Friends
         </Text>
       </TouchableOpacity>
@@ -53,7 +63,14 @@ const PublicOrPrivate = () => {
         style={[styles.toggleButton, toggleOption && styles.activeButton]}
         onPress={() => handleToggle(true)}
       >
-        <Text style={[styles.toggleText, toggleOption && styles.activeText]}>
+        <Text
+          style={[
+            styles.toggleText,
+            toggleOption
+              ? styles.activeText
+              : { color: isDarkMode ? "black" : Color },
+          ]}
+        >
           Public
         </Text>
       </TouchableOpacity>
@@ -83,10 +100,12 @@ const getStyles = (isDarkMode: any) =>
       fontSize: width * 0.04,
     },
     activeButton: {
-      backgroundColor: Color,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
     },
     activeText: {
-      color: backgroundColor,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });
 

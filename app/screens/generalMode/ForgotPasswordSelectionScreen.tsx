@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,9 +8,33 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { TextInput } from "react-native-gesture-handler";
+import CustomAlert from "@/components/alert/CustomAlert";
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
+
 const ForgotPasswordSelectionScreen = () => {
+  const [email, setEmail] = useState<string>("");
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+
+  const handleVerifyEmail = () => {
+    const emailRegex =
+      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+
+    if (email.trim() === "") {
+      setAlertMessage("Please enter email!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!emailRegex.test(email.toLowerCase().trim())) {
+      setAlertMessage("Invalid email format! Please enter a valid email.");
+      setAlertVisible(true);
+      return;
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Title */}
@@ -21,20 +45,23 @@ const ForgotPasswordSelectionScreen = () => {
         Select which contact detail should we use to reset your password?
       </Text>
 
-      {/* SMS Option */}
-      <TouchableOpacity style={styles.optionButton}>
-        <FontAwesome name="phone" size={24} color="#000" />
-        <Text style={styles.optionText}>SMS: +8450538024</Text>
-      </TouchableOpacity>
-
       {/* Email Option */}
       <TouchableOpacity
         style={styles.optionButton}
         // onPress={() => navigation.navigate("NewCredentials")}
       >
         <MaterialIcons name="email" size={24} color="#000" />
-        <Text style={styles.optionText}>Email: Susami@gmail.com</Text>
+        <TextInput style={styles.optionText} placeholder="Enter email!" />
       </TouchableOpacity>
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertVisible}
+        title="Error"
+        message={alertMessage}
+        onConfirm={() => {
+          setAlertVisible(false);
+        }}
+      />
     </View>
   );
 };

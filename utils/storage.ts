@@ -4,24 +4,18 @@ interface paramType{
     token: String
 }
 
-export const saveToken = async ({token}: paramType): Promise<void> => {
-  try {
-    await AsyncStorage.setItem('authToken', token);
-  } catch (error) {
-    console.error('Error saving token:', error);
-  }
-};
 
-export const getToken = async ():  Promise<string | null> => {
+export const getToken = async () => {
   try {
-    return await AsyncStorage.getItem('authToken');
+    const token = await AsyncStorage.getItem('token');
+    return token;
   } catch (error) {
     console.error('Error getting token:', error);
     return null;
   }
 };
 
-export const removeToken = async (): Promise<void> => {
+export const removeToken = async () => {
   try {
     await AsyncStorage.removeItem('authToken');
   } catch (error) {

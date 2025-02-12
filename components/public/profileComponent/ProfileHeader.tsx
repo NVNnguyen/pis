@@ -1,7 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign, FontAwesome6, MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -13,11 +13,13 @@ import {
 import ModelUnFollow from "../ModelUnFollow";
 import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNmber";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
-const ProfileHeader = () => {
+const ProfileHeader = (userIdProp: number) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
+  const [userId, setUserId] = useState<number>(0);
   const [profile, setProfile] = useState({
     name: "Lê Trung Thành",
     id: "erikthanh_",
@@ -29,7 +31,15 @@ const ProfileHeader = () => {
     isVerified: false,
     isMyProfile: false,
   });
-
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const decodedToken = await AsyncStorage.getItem("userID");
+      const userID = Number(decodedToken);
+      setUserId(userID);
+      console.log("User ID:", userId);
+    };
+    fetchUserId();
+  }, []);
   const handleFollowStatus = () => {
     if (profile.isFollowing) {
       setIsModalVisible(true); // Hiển thị modal nếu đang "Following"
@@ -99,7 +109,7 @@ const ProfileHeader = () => {
             )}
           </View>
         )}
-        {profile.avatar.length == 0 && profile.isMyProfile && (
+        {profile.avatar.length == 0 && userId === userIdProp && (
           <View style={styles.avatarIconContainer}>
             <TouchableOpacity style={styles.avatarIcon}>
               <AntDesign
@@ -112,7 +122,7 @@ const ProfileHeader = () => {
             </TouchableOpacity>
           </View>
         )}
-        {profile.avatar.length == 0 && !profile.isMyProfile && (
+        {profile.avatar.length == 0 && userId !== userIdProp && (
           <View style={styles.noAvatarContainer}>
             <TouchableOpacity style={styles.avatarIcon}>
               <FontAwesome6
@@ -141,7 +151,7 @@ const ProfileHeader = () => {
         </TouchableOpacity>
       </View>
       {/* Action Buttons */}
-      {profile.isMyProfile && (
+      {userId === userIdProp && (
         <View style={styles.myProfile}>
           <TouchableOpacity style={styles.editProfileButton}>
             <Text style={styles.editProfileButtonText}>Edit profile</Text>
@@ -151,7 +161,7 @@ const ProfileHeader = () => {
           </TouchableOpacity>
         </View>
       )}
-      {!profile.isMyProfile && (
+      {userId !== userIdProp && (
         <View
           style={[
             styles.followingSectionButton,

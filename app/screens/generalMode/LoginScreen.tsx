@@ -18,6 +18,7 @@ import { backgroundColor, Color, fontWeight } from "../../../styles/color";
 import CustomAlert from "@/components/alert/CustomAlert";
 
 import LoadingScreen from "./LoadingScreen";
+import authApi from "@/api/authAPI/authAPI";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
@@ -25,7 +26,7 @@ const LoginScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList, "Login">>();
 
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [isChecked, setIsChecked] = useState<boolean>(false);
@@ -37,33 +38,33 @@ const LoginScreen = () => {
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    if (username.trim() === "") {
-      setAlertMessage("Username cannot be empty!");
+    const emailRegex =
+      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+
+    if (email.toLocaleLowerCase().trim() === "") {
+      setAlertMessage("Please enter email or phone number!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!emailRegex.test(email.toLowerCase().trim())) {
+      setAlertMessage("Invalid email format! Please enter a valid email.");
       setAlertVisible(true);
       return;
     }
 
-    if (!passwordRegex.test(password)) {
-      setAlertMessage(
-        "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
-      );
-      setAlertVisible(true);
-      return;
-    }
+    // if (!passwordRegex.test(password)) {
+    //   setAlertMessage(
+    //     "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
+    //   );
+    //   setAlertVisible(true);
+    //   return;
+    // }
     setLoading(true);
     try {
-      // const credentials = { username, password };
-      // const response = await login(credentials);
-
-      // // Lưu token vào AsyncStorage
-      // // await saveToken(response.token);
-      navigation.replace("FriendMode");
-      // Điều hướng đến trang chủ
+      const response = await authApi.login(email, password);
+      navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Invalid email or password");
-    } finally {
-      setLoading(false);
+      Alert.alert("Login error", "Email or password is incorrect!");
     }
   };
   const handleOnConfirm = () => {
@@ -71,17 +72,18 @@ const LoginScreen = () => {
     // Cho phép tiếp tục nhập thông tin
     console.log("User confirmed the alert!");
   };
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
 
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
           placeholderTextColor="#9E9E9E"
         />
 
@@ -106,7 +108,7 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.checkboxContainer}
           onPress={() => setIsChecked(!isChecked)}
         >
@@ -120,19 +122,18 @@ const LoginScreen = () => {
             />
           )}
           <Text style={styles.checkboxText}>Remember me</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Sign in</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => navigation.navigate("ForgotPasswordSelection")}
         >
           <Text style={styles.forgotPassword}>Forgot password?</Text>
         </TouchableOpacity>
 
-        <Text style={styles.signInWith}>Sign in with</Text>
+        {/* <Text style={styles.signInWith}>Sign in with</Text>
         <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton}>
             <FontAwesome name="apple" size={20} color={Color} />
@@ -142,7 +143,7 @@ const LoginScreen = () => {
             <FontAwesome name="google" size={20} color={Color} />
             <Text style={styles.socialText}>Google</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>Register an account</Text>

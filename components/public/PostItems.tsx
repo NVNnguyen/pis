@@ -23,36 +23,39 @@ import { darkTheme, lightTheme } from "@/utils/themes";
 import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNmber";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AudioPlayer from "./AudioPlayer";
 
 const { width, height } = Dimensions.get("window");
 
 interface PostItemProps {
-  user: {
-    avatar: string;
+  userPostResponse: {
     username: string;
-    isFollowing: boolean;
+    avatar: string;
+    follow: boolean;
   };
   caption: string;
-  images: { id: number; link: string }[];
+  images: {
+    url: string;
+    id: number;
+  }[];
   likes: number;
   comments: number;
-  shares: number;
-  time: string;
-  retweet: number;
+  type: string;
+  like: number;
+  createTime: string;
 }
 const PostItem = ({
-  user,
+  userPostResponse,
   caption,
   images,
   likes,
   comments,
-  shares,
-  time,
-  retweet,
+  type,
+  createTime,
 }: PostItemProps) => {
   const [like, setLikes] = useState(likes);
   const [isLiked, setIsLiked] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(user.isFollowing);
+  const [isFollowing, setIsFollowing] = useState(userPostResponse.follow);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -77,7 +80,7 @@ const PostItem = ({
   };
 
   const handleFollowing = () => {
-    Alert.alert(`Follow  ${user.username}?`, "", [
+    Alert.alert(`Follow  ${userPostResponse.username}?`, "", [
       {
         text: "Cancel",
         style: "cancel",
@@ -94,7 +97,10 @@ const PostItem = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          <Image
+            source={{ uri: userPostResponse.avatar }}
+            style={styles.avatar}
+          />
           {!isFollowing && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
@@ -107,9 +113,9 @@ const PostItem = ({
         </View>
         <View style={styles.userInfo}>
           <View style={styles.userRow}>
-            <Text style={styles.username}>{user.username}</Text>
+            <Text style={styles.username}>{userPostResponse.username}</Text>
             <MaterialIcons name="verified" style={styles.verifiedText} />
-            <Text style={styles.time}>{time}</Text>
+            <Text style={styles.time}>{createTime}</Text>
           </View>
           <Text style={styles.caption}>
             {caption}{" "}
@@ -128,28 +134,31 @@ const PostItem = ({
           />
         </TouchableOpacity>
       </View>
-
-      {/* Image Gallery */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.imageContainer}
-      >
-        <FlatList
-          data={images}
-          keyExtractor={(image) => image.id.toString()}
+      {type === "Voice" && images.length > 0 && images[0].url && (
+        <AudioPlayer audioUri={images[0].url} />
+      )}
+      {type === "Image" && images.length > 0 && (
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              key={item.id} // Thêm key ở đúng vị trí
-              onPress={() => showModal(item.id)}
-            >
-              <Image source={{ uri: item.link }} style={styles.image} />
-            </TouchableOpacity>
-          )}
-        />
-      </ScrollView>
+          style={styles.imageContainer}
+        >
+          <FlatList
+            data={images}
+            keyExtractor={(image) => image.id.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                key={item.id} // Thêm key ở đúng vị trí
+                onPress={() => showModal(item.id)}
+              >
+                <Image source={{ uri: item.url }} style={styles.image} />
+              </TouchableOpacity>
+            )}
+          />
+        </ScrollView>
+      )}
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -170,18 +179,6 @@ const PostItem = ({
             style={styles.icon}
           />
           <Text style={styles.iconText}>{formatNumber(comments)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconContainer}>
-          <EvilIcons name="retweet" size={height * 0.03} style={styles.icon} />
-          <Text style={styles.iconText}>{formatNumber(retweet)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconContainer}>
-          <Ionicons
-            name="share-outline"
-            size={height * 0.02}
-            style={styles.icon}
-          />
-          <Text style={styles.iconText}>{formatNumber(shares)}</Text>
         </TouchableOpacity>
       </View>
 
@@ -206,7 +203,7 @@ const PostItem = ({
             />
           </TouchableOpacity>
           <ImageViewer
-            imageUrls={images.map((image) => ({ url: image.link }))}
+            imageUrls={images.map((image) => ({ url: image.url }))}
             index={currentIndex} // Sử dụng index thay vì id
             onSwipeDown={() => {
               setModalVisible(false);
@@ -225,8 +222,8 @@ const getStyles = (isDarkMode: boolean) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      marginBottom: height * 0.01,
-      paddingVertical: height * 0.01,
+      // marginBottom: height * 0.01,
+      paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
       borderBottomWidth: 1,
       borderBottomColor: "grey",

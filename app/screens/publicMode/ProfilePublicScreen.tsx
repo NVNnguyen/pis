@@ -7,28 +7,21 @@ import { posts } from "@/utils/mockAPI";
 import { darkTheme, lightTheme } from "@/utils/themes";
 
 const { width, height } = Dimensions.get("window");
-
+interface HomeProps {
+  handleScroll: (event: any) => void;
+}
 const ProfilePublicScreen = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
 
   return (
     <FlatList
-      data={posts}
-      renderItem={({ item }) => (
-        <PostItem
-          user={{ avatar: item.user.avatar, username: item.user.username }}
-          caption={item.caption}
-          images={item.images}
-          likes={item.likes}
-          comments={item.comments}
-          shares={item.shares}
-          time={item.time}
-        />
-      )}
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={<ProfileHeader />} // Add the ProfileHeader as the list header
-      contentContainerStyle={styles.container}
+      data={posts} // Dữ liệu danh sách
+      keyExtractor={(item) => item.id} // Khóa duy nhất cho mỗi bài viết
+      renderItem={({ item }) => <PostItem {...item} />} // Hiển thị bài viết
+      showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
+      scrollEventThrottle={20} // Tần suất sự kiện cuộn (16ms = 60FPS)
+      ListHeaderComponent={<ProfileHeader userId={1} />}
     />
   );
 };
