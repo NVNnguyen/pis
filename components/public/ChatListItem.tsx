@@ -1,0 +1,139 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { backgroundColor, fontWeight } from "@/styles/color";
+
+const { width, height } = Dimensions.get("window");
+interface Chat {
+  id: number;
+  avatar: string;
+  username: string;
+  lastMsg: string;
+  lastMsgTime: string;
+  read: boolean;
+}
+
+interface ChatListItemProps {
+  chat: Chat;
+  navigation: any; // Nhận navigation từ ChatListScreen
+}
+
+const ChatListItem: React.FC<ChatListItemProps> = ({ chat, navigation }) => {
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("ProfilePublic", { userId: chat?.id })
+        }
+      >
+        {/* Avatar */}
+        <Image source={{ uri: chat?.avatar }} style={styles.avatar} />
+      </TouchableOpacity>
+      {/* Chat Info */}
+      <TouchableOpacity
+        style={styles.messageCtn}
+        onPress={() => navigation.navigate("Messages", { userId: chat?.id })}
+      >
+        <View style={styles.chatInfo}>
+          <Text style={styles.username}>{chat?.username}</Text>
+          {!chat?.read && (
+            <View style={styles.lastMessageContainer}>
+              <Text style={styles.lastMessageUnRead}>{chat?.lastMsg}</Text>
+              <Text style={styles.lastMsgTimeUnRead}>
+                . {chat?.lastMsgTime}
+              </Text>
+            </View>
+          )}
+          {chat?.read && (
+            <View style={styles.lastMessageContainer}>
+              <Text style={styles.lastMessageRead}>{chat?.lastMsg}</Text>
+              <Text style={styles.lastMsgTimeRead}>. {chat?.lastMsgTime}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Arrow Icon */}
+        {/* <View>
+          <Ionicons
+            name="chevron-forward"
+            size={height * 0.03}
+            color={isDarkMode ? darkTheme.text : lightTheme.text}
+          />
+        </View> */}
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+// Dynamic Styles
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: width * 0.04,
+      borderBottomWidth: 1,
+      borderBottomColor: "#A0A0A0",
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+    },
+    avatar: {
+      width: height * 0.08,
+      height: height * 0.08,
+      borderRadius: height * 0.04,
+      borderWidth: 2,
+      borderColor: "#A0A0A0",
+    },
+    chatInfo: {
+      flex: 1,
+      marginLeft: width * 0.04,
+    },
+    username: {
+      fontSize: width * 0.045,
+      fontWeight: "bold",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    messageCtn: {
+      flexDirection: "row",
+    },
+    lastMessageContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    lastMessageUnRead: {
+      fontSize: width * 0.045,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontWeight: fontWeight,
+    },
+    lastMessageRead: {
+      fontSize: width * 0.045,
+      color: "#A0A0A0",
+      fontWeight: fontWeight,
+    },
+    lastMsgTimeUnRead: {
+      fontSize: width * 0.035,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontWeight: fontWeight,
+    },
+    lastMsgTimeRead: {
+      fontSize: width * 0.035,
+      color: "#A0A0A0",
+      fontWeight: fontWeight,
+    },
+  });
+
+export default ChatListItem;

@@ -25,5 +25,6 @@ export const getDecodedToken = async () => {
     const decodedToken = await getDecodedToken();
     const userID = Number(decodedToken?.userId);
     await AsyncStorage.setItem("userID", userID.toString()); // Đợi token từ AsyncStorage
+    console.log("User ID token:", userID);
     return userID;
   };    

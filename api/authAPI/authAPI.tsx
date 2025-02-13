@@ -28,7 +28,7 @@ const authApi = {
 
       // Lưu token vào AsyncStorage
       await AsyncStorage.setItem("token", token);
-
+      console.log(await AsyncStorage.getItem("token"));
       return response.data; // Trả về dữ liệu đăng nhập
     } catch (error) {
       console.error("Error", error);

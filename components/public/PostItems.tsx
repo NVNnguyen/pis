@@ -24,15 +24,19 @@ import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNmber";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AudioPlayer from "./AudioPlayer";
+import { useNavigation } from "@react-navigation/native";
+import { posts } from "@/utils/mockAPI";
 
 const { width, height } = Dimensions.get("window");
 
 interface PostItemProps {
   userPostResponse: {
+    userId: number;
     username: string;
     avatar: string;
     follow: boolean;
   };
+  id: number;
   caption: string;
   images: {
     url: string;
@@ -43,15 +47,18 @@ interface PostItemProps {
   type: string;
   like: number;
   createTime: string;
+  navigation: any;
 }
 const PostItem = ({
   userPostResponse,
+  id,
   caption,
   images,
   likes,
   comments,
   type,
   createTime,
+  navigation,
 }: PostItemProps) => {
   const [like, setLikes] = useState(likes);
   const [isLiked, setIsLiked] = useState(false);
@@ -97,10 +104,19 @@ const PostItem = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image
-            source={{ uri: userPostResponse.avatar }}
-            style={styles.avatar}
-          />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ProfilePublic", {
+                userId: userPostResponse.userId,
+              })
+            }
+          >
+            <Image
+              source={{ uri: userPostResponse.avatar }}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
+
           {!isFollowing && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
@@ -113,7 +129,15 @@ const PostItem = ({
         </View>
         <View style={styles.userInfo}>
           <View style={styles.userRow}>
-            <Text style={styles.username}>{userPostResponse.username}</Text>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ProfilePublic", {
+                  userId: userPostResponse.userId,
+                })
+              }
+            >
+              <Text style={styles.username}>{userPostResponse.username}</Text>
+            </TouchableOpacity>
             <MaterialIcons name="verified" style={styles.verifiedText} />
             <Text style={styles.time}>{createTime}</Text>
           </View>
@@ -172,7 +196,15 @@ const PostItem = ({
           />
           <Text style={styles.iconText}>{formatNumber(like)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconContainer}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() => {
+            navigation.navigate("Comments", {
+              postId: id,
+              userId: userPostResponse.userId,
+            });
+          }}
+        >
           <Ionicons
             name="chatbubble-outline"
             size={height * 0.02}

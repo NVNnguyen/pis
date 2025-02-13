@@ -18,7 +18,7 @@ const { width, height } = Dimensions.get("window");
 
 interface UserProps {
   selectedUser: {
-    id: string;
+    id: number;
     username: string;
     avatar: string;
   };
@@ -54,7 +54,7 @@ const ModelUnFollow: React.FC<UserProps> = (props) => {
               {/* Unfollow Button */}
               <TouchableOpacity
                 style={[styles.modalButton]}
-                onPress={() => props.toggleFollow(props.selectedUser.id)}
+                onPress={() => props.toggleFollow(props.selectedUser.id.toString())}
               >
                 <Text style={styles.modalButtonTextUnFollow}>Unfollow</Text>
               </TouchableOpacity>

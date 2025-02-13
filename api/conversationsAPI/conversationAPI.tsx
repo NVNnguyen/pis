@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "@/utils/API";
 
-const BASE_URL_POSTS = `${BASE_URL}/posts`;
+const BASE_URL_CONVERSATIONS = `${BASE_URL}/conversations`;
 const TIMEOUT = 10000;
 
 // **Hàm lấy token từ AsyncStorage**
@@ -20,7 +20,7 @@ const getAuthToken = async () => {
 const createAxiosInstance = async () => {
   const token = await getAuthToken();
   return axios.create({
-    baseURL: BASE_URL_POSTS,
+    baseURL: BASE_URL_CONVERSATIONS,
     timeout: TIMEOUT,
     headers: {
       Authorization: token, // Truyền token đúng format
@@ -30,24 +30,23 @@ const createAxiosInstance = async () => {
 };
 
 // **API với token**
-const postApi = {
-  posts: async (id: number) => {
+const conversationAPI = {
+  conversations: async (id: number) => {
     try {
       const api = await createAxiosInstance();
-      const response = await api.get(`${BASE_URL_POSTS}/${id}`);
+      const response = await api.get(`${BASE_URL_CONVERSATIONS}/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching user info:", error);
       throw error;
     }
   },
-  comment: async (userId: number, postId: number) => {
+  messages: async (ownerId: number, otherId: number) => {
     try {
-      const response = await axios.post(`${BASE_URL_POSTS}/comments/level1`, {
-        userId: userId,
-        postId: postId,
-      });
-
+      const api = await createAxiosInstance();
+      const response = await api.get(
+        `${BASE_URL_CONVERSATIONS}/messages/${ownerId}/${otherId}`
+      );
       console.log(response);
       return response.data;
     } catch (error) {
@@ -55,27 +54,6 @@ const postApi = {
       throw error;
     }
   },
-  postsPublic: async (id: number) => {
-    try {
-      const api = await createAxiosInstance();
-      const response = await api.get(`${BASE_URL_POSTS}/${id}/public`);
-      console.log(response);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      throw error;
-    }
-  },
-  postsPrivate: async (id: number) => {
-    try {
-      const api = await createAxiosInstance();
-      const response = await api.get(`${BASE_URL_POSTS}/private/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      throw error;
-    }
-  },
 };
 
-export default postApi;
+export default conversationAPI;

@@ -8,15 +8,29 @@ import Home from "@/components/public/Home";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
+import { useNavigation } from "@react-navigation/native";
+import { getUserId } from "@/utils/decodeToken";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
 const PublicModeScreen = () => {
+  const [userId, setUserId] = useState<number>(0);
   const tabBarTranslateY = useRef(new Animated.Value(0)).current; // Giá trị dịch chuyển TabBar
   const currentTranslateY = useRef(0); // Lưu giá trị hiện tại của TabBar
   const lastScrollY = useRef(0); // Lưu vị trí cuộn trước đó
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+  const navigation = useNavigation();
+  useEffect(() => {
+    const fetchUserId = async () => {
+      await getUserId();
+      const decodedToken = await AsyncStorage.getItem("userID");
+      setUserId(Number(decodedToken));
+      console.log("User ID:", userId);
+    };
+    fetchUserId();
+  }, []);
   useEffect(() => {
     // Lắng nghe thay đổi giá trị Animated.Value
     const listener = tabBarTranslateY.addListener((value) => {
@@ -65,14 +79,18 @@ const PublicModeScreen = () => {
       <View style={styles.toggleContainer}>
         <PublicOrPrivate />
       </View>
-      <Home handleScroll={handleScroll} />
+      <Home
+        handleScroll={handleScroll}
+        navigation={navigation}
+        userIdProp={userId}
+      />
       <Animated.View
         style={[
           styles.tabBar,
           { transform: [{ translateY: tabBarTranslateY }] },
         ]}
       >
-        <TabBar />
+        <TabBar navigation={navigation} />
       </Animated.View>
     </SafeAreaView>
   );

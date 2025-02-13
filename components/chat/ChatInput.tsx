@@ -21,8 +21,11 @@ import { Color } from "@/styles/color";
 
 const { width, height } = Dimensions.get("window"); // Lấy chiều rộng màn hình
 
+interface chatInpuProp {
+  handleSendMessage: () => void;
+}
 const ChatInput = () => {
-  const [message, setMessage] = useState(""); // State lưu nội dung tin nhắn
+  const [message, setMessage] = useState(""); // State lưu nội dung tino nhắn
 
   const handleSendMessage = () => {
     if (message.trim().length > 0) {

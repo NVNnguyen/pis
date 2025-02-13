@@ -41,6 +41,16 @@ const infoAPI = {
       throw error;
     }
   },
+  userFollow: async (id: number) => {
+    try {
+      const api = await createAxiosInstance();
+      const response = await api.get(`/follow/${id}`);
+      return response?.data;
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+      throw error;
+    }
+  },
 };
 
 export default infoAPI;

@@ -4,23 +4,20 @@ import ChatHeader from "../../../components/chat/ChatHeader";
 import MessageList from "../../../components/chat/MessageList";
 import ChatInput from "../../../components/chat/ChatInput";
 import { backgroundColor } from "../../../styles/color";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 const ChatScreen = () => {
-  const [messages, setMessages] = useState([
-    { sender: "me", text: "Hello!" },
-    { sender: "other", text: "Hi, how are you?" },
-  ]);
-
-  const handleSendMessage = (text) => {
-    setMessages((prev) => [...prev, { sender: "me", text }]);
-  };
-
+  const route = useRoute();
+  const userIdProp = route.params as { userId: number }; // Nhận userId từ navigation params
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
-      <ChatHeader />
-      <MessageList messages={messages} />
-      <ChatInput onSend={handleSendMessage} />
+      {userIdProp.userId !== null && (
+        <ChatHeader navigation={navigation} userIdProp={userIdProp.userId} />
+      )}
+      <MessageList userIdProp={userIdProp.userId} />
+      <ChatInput />
     </View>
   );
 };

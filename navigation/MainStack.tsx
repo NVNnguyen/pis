@@ -9,6 +9,9 @@ import PublicModeScreen from "@/app/screens/publicMode/PublicModeScreen";
 import SearchScreen from "@/app/screens/publicMode/SearchScreen";
 import ProfilePublicScreen from "@/app/screens/publicMode/ProfilePublicScreen";
 import TabBar from "@/components/public/TabBar";
+import CommentScreen from "@/components/public/CommentScreen";
+import ChatScreen from "@/app/screens/generalMode/ChatScreen";
+import ChatListScreen from "@/app/screens/generalMode/ChatListScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -19,6 +22,9 @@ export type RootStackParamList = {
   Search: undefined;
   ProfilePublic: { id: string }; // Profile có id
   TabBar: undefined;
+  Comments: { id: number; userId: number };
+  ChatList: undefined;
+  Messages: { userId: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -65,11 +71,26 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="ProfilePublic"
         component={ProfilePublicScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true }}
       />
       <Stack.Screen
         name="TabBar"
         component={TabBar}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Comments"
+        component={CommentScreen}
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="ChatList"
+        component={ChatListScreen}
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={ChatScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

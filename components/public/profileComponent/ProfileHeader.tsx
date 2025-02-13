@@ -14,49 +14,101 @@ import ModelUnFollow from "../ModelUnFollow";
 import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNmber";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import infoAPI from "@/api/userAPI/infoAPI";
+import { getUserId } from "@/utils/decodeToken";
+
 
 const { width, height } = Dimensions.get("window");
-
-const ProfileHeader = (userIdProp: number) => {
+interface ProfileProps {
+  userPostResponse: {
+    id: number;
+    username: string;
+    avatar: string;
+    follow: boolean;
+  };
+  caption: string;
+  images: {
+    url: string;
+    id: number;
+  }[];
+  likes: number;
+  comments: number;
+  type: string;
+  like: number;
+  createTime: string;
+}
+const ProfileHeader = ({
+  userIdProp,
+  setSelectedTab,
+}: {
+  userIdProp: number;
+  setSelectedTab: (tab: "public" | "private") => void;
+}) => {
   const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
   const [userId, setUserId] = useState<number>(0);
-  const [profile, setProfile] = useState({
-    name: "Lê Trung Thành",
-    id: "erikthanh_",
-    bio: "booking@officialerik.com",
-    followers: 302000,
-    youtube: "youtube/viF5dsRX5kE",
-    avatar: "",
-    isFollowing: true,
-    isVerified: false,
-    isMyProfile: false,
-  });
+  const [userInfo, setUserInfo] = useState<any>();
+  const [follower, setFollower] = useState<number>();
+  const [following, setFollowing] = useState<number>();
+  const [selectedTab, setTab] = useState<"public" | "private">("public");
+  // const [selectedTab, setSelectedTab] = useState<"public" | "private">(
+  //   "public"
+  // );
+  const { isDarkMode } = useTheme();
+
+  const styles = getStyles(isDarkMode, selectedTab);
+
   useEffect(() => {
     const fetchUserId = async () => {
+      await getUserId();
       const decodedToken = await AsyncStorage.getItem("userID");
-      const userID = Number(decodedToken);
-      setUserId(userID);
+      setUserId(Number(decodedToken));
       console.log("User ID:", userId);
     };
     fetchUserId();
   }, []);
+
+  useEffect(() => {
+    console.log("useridprop", userIdProp);
+    if (!userIdProp) return; // Không gọi API nếu `userIdProp` không tồn tại
+
+    const userInfoApi = async () => {
+      try {
+        const response = await infoAPI.userInfo(userIdProp);
+        if (response?.data) {
+          setUserInfo(response?.data);
+          console.log("User Info:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+    userInfoApi();
+  }, [userIdProp]); // Gọi API lại khi `userIdProp` thay đổi
+  useEffect(() => {
+    console.log("userIdprop", userIdProp);
+    if (!userIdProp) return; // Không gọi API nếu `userIdProp` không tồn tại
+    const userInfoFollow = async () => {
+      try {
+        const response = await infoAPI.userFollow(userIdProp);
+        if (response?.data) {
+          setFollower(response?.data?.followers ?? 0);
+          setFollowing(response?.data?.followingNumber);
+          console.log("User Info:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+    userInfoFollow();
+  }, [userIdProp]);
+  const toggleFollow = () => {
+    setIsModalVisible(false); // Đóng modal
+  };
   const handleFollowStatus = () => {
-    if (profile.isFollowing) {
+    if (userInfo?.userPostResponse.follow) {
       setIsModalVisible(true); // Hiển thị modal nếu đang "Following"
     } else {
-      setProfile((prevProfile) => ({
-        ...prevProfile,
-        isFollowing: !profile.isFollowing, // Thay đổi trạng thái thành "Following"
-      }));
     }
-  };
-
-  const toggleFollow = () => {
-    setProfile((prevProfile) => ({
-      ...prevProfile,
-      isFollowing: false, // Chuyển trạng thái thành "Unfollow"
-    }));
-    setIsModalVisible(false); // Đóng modal
   };
   const getColor = (
     isFollowing: boolean,
@@ -81,35 +133,37 @@ const ProfileHeader = (userIdProp: number) => {
         : darkTheme.background;
     }
   };
+  if (selectedTab === "public") {
+    useEffect(() => {});
+    [];
+  }
 
-  const { isDarkMode } = useTheme();
-  const styles = getStyles(isDarkMode);
   return (
     <View style={styles.container}>
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.idName}>{profile.id}</Text>
+          <Text style={styles.name}>{userInfo?.username}</Text>
+          <Text style={styles.idName}>{userInfo?.username}</Text>
         </View>
         {/* Avatar */}
-        {profile.avatar.length > 0 && (
+        {userInfo?.avatar?.length > 0 && (
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Image
-                source={{ uri: profile.avatar }}
+                source={{ uri: userInfo.avatar }}
                 style={styles.avatarImg}
               />
             </View>
 
-            {profile.isVerified && (
+            {/* {profile.isVerified && (
               <View style={styles.verifiedBadge}>
                 <MaterialIcons name="verified" style={styles.verifiedText} />
               </View>
-            )}
+            )} */}
           </View>
         )}
-        {profile.avatar.length == 0 && userId === userIdProp && (
+        {userInfo?.avatar?.length === 0 && userId === userIdProp && (
           <View style={styles.avatarIconContainer}>
             <TouchableOpacity style={styles.avatarIcon}>
               <AntDesign
@@ -122,7 +176,7 @@ const ProfileHeader = (userIdProp: number) => {
             </TouchableOpacity>
           </View>
         )}
-        {profile.avatar.length == 0 && userId !== userIdProp && (
+        {userInfo?.avatar?.length === 0 && userId === userIdProp && (
           <View style={styles.noAvatarContainer}>
             <TouchableOpacity style={styles.avatarIcon}>
               <FontAwesome6
@@ -136,17 +190,22 @@ const ProfileHeader = (userIdProp: number) => {
         )}
       </View>
       {/* Contact Details */}
-      {profile.bio.length > 0 && (
+      {/* {profile.bio.length > 0 && (
         <View style={styles.bio}>
           <Text style={styles.bioContent}>{profile.bio}</Text>
         </View>
-      )}
+      )} */}
 
       {/* Followers and Link */}
       <View style={styles.followersSection}>
         <TouchableOpacity>
           <Text style={styles.followers}>
-            {formatNumber(profile.followers)} followers
+            {formatNumber(follower ?? 0)} followers
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.followers}>
+            {formatNumber(following ?? 0)} following
           </Text>
         </TouchableOpacity>
       </View>
@@ -167,7 +226,7 @@ const ProfileHeader = (userIdProp: number) => {
             styles.followingSectionButton,
             {
               backgroundColor: getColor(
-                profile.isFollowing,
+                userInfo?.follow ?? false,
                 isDarkMode,
                 "background"
               ),
@@ -182,21 +241,62 @@ const ProfileHeader = (userIdProp: number) => {
               style={[
                 styles.followingButtonText,
                 {
-                  color: getColor(profile.isFollowing, isDarkMode, "text"),
+                  color: getColor(
+                    userInfo?.follow ?? false,
+                    isDarkMode,
+                    "text"
+                  ),
                 },
               ]}
             >
-              {profile.isFollowing ? "Following" : "Follow"}
+              {userInfo?.follow ? "Following" : "Follow"}
             </Text>
           </TouchableOpacity>
           {/* ModelUnFollow */}
         </View>
       )}
+      <View style={styles.postContainer}>
+        {/* Public Posts */}
+        <TouchableOpacity
+          style={[
+            styles.postsBtn,
+            selectedTab === "public" && styles.selectedBtn,
+          ]}
+          onPress={() => setSelectedTab("public")}
+        >
+          <Text
+            style={[
+              styles.postsTxt,
+              selectedTab === "public" && styles.selectedTxt,
+            ]}
+          >
+            Public posts
+          </Text>
+        </TouchableOpacity>
+
+        {/* Private Posts */}
+        <TouchableOpacity
+          style={[
+            styles.postsBtn,
+            selectedTab === "private" && styles.selectedBtn,
+          ]}
+          onPress={() => setSelectedTab("private")}
+        >
+          <Text
+            style={[
+              styles.postsTxt,
+              selectedTab === "private" && styles.selectedTxt,
+            ]}
+          >
+            Private posts
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ModelUnFollow
         selectedUser={{
-          id: profile.id,
-          username: profile.name,
-          avatar: profile.avatar,
+          id: userInfo?.id ?? 0,
+          username: userInfo?.username ?? "",
+          avatar: userInfo?.avatar ?? "",
         }}
         handleModelVisible={() => setIsModalVisible(false)} // Đóng modal
         modalVisible={isModalVisible}
@@ -206,7 +306,7 @@ const ProfileHeader = (userIdProp: number) => {
   );
 };
 
-const getStyles = (isDarkMode: boolean) =>
+const getStyles = (isDarkMode: boolean, selectedTab: string) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -215,6 +315,7 @@ const getStyles = (isDarkMode: boolean) =>
         : lightTheme.background,
       paddingTop: height * 0.08,
       paddingHorizontal: width * 0.02, // Responsive padding
+      borderBottomColor: "#A0A0A0",
     },
     header: {
       flexDirection: "row",
@@ -306,11 +407,14 @@ const getStyles = (isDarkMode: boolean) =>
     },
     followersSection: {
       marginTop: height * 0.015,
+      flexDirection: "row",
+      justifyContent: "space-around",
     },
     followers: {
       fontSize: width * 0.04,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: 5,
+      marginLeft: 10,
     },
     followingSectionButton: {
       flexDirection: "row",
@@ -360,6 +464,29 @@ const getStyles = (isDarkMode: boolean) =>
     },
     shareProfileButtonText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    postContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: width * 0.01,
+      marginTop: height * 0.03,
+    },
+    postsBtn: {
+      paddingVertical: height * 0.015,
+      paddingHorizontal: width * 0.05,
+      borderBottomWidth: 1,
+      borderBottomColor: "transparent",
+    },
+    postsTxt: {
+      fontSize: width * 0.04,
+      fontWeight: "bold",
+      color: "#A0A0A0", // Màu mặc định là xám
+    },
+    selectedBtn: {
+      borderBottomColor: isDarkMode ? darkTheme.text : lightTheme.text, // Gạch chân khi được chọn
+    },
+    selectedTxt: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text, // Màu trắng khi được chọn
     },
   });
 

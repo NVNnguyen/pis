@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   FontAwesome,
@@ -6,27 +6,33 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserId } from "@/utils/decodeToken";
 
 const { width, height } = Dimensions.get("window");
 
-const TabBar = () => {
+const TabBar = ({ navigation }: { navigation: any }) => {
   const { isDarkMode } = useTheme();
-  const navigation = useNavigation(); // Fix lỗi navigation
-  
-
+  const [userId, setUserId] = useState<number>(0);
   // Điều hướng tới màn hình tương ứng
-  const navigateToScreen = (screen: string) => {
-    navigation.navigate(screen as never);
-  };
+  useEffect(() => {
+    const fetchUserId = async () => {
+      await getUserId();
+      const decodedToken = await AsyncStorage.getItem("userID");
+      setUserId(Number(decodedToken));
+      console.log("User ID:", userId);
+    };
+    fetchUserId();
+  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.bottomNav}>
         <TouchableOpacity
-          onPress={() => navigateToScreen("Home")}
+          onPress={() => navigation.navigate("Home")}
           style={styles.navItem}
         >
           <MaterialCommunityIcons
@@ -37,14 +43,14 @@ const TabBar = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigateToScreen("Search")}
+          onPress={() => navigation.navigate("Search")}
           style={styles.navItem}
         >
           <Ionicons name="search" size={height * 0.03} color="grey" />
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigateToScreen("Register")}
+          onPress={() => navigation.navigate("Register")}
           style={styles.navItem}
         >
           <View style={styles.addButton}>
@@ -53,14 +59,20 @@ const TabBar = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigateToScreen("Favorites")}
+          onPress={() => navigation.navigate("ChatList")}
           style={styles.navItem}
         >
-          <FontAwesome name="heart-o" size={height * 0.03} color="grey" />
+          <Ionicons
+            name="chatbubble-outline"
+            size={height * 0.03}
+            color="grey"
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigateToScreen("ProfilePublic")}
+          onPress={() =>
+            navigation.navigate("ProfilePublic", { userId: userId })
+          }
           style={styles.navItem}
         >
           <Ionicons name="person-outline" size={height * 0.03} color="grey" />

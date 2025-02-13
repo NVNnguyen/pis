@@ -182,7 +182,7 @@ const getStyles = (isDarkMode: boolean) =>
     },
     input: {
       flex: 1,
-      color: Colors,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: height * 0.016,
     },
     actionRow: {

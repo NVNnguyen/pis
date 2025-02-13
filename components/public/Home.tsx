@@ -6,69 +6,77 @@ import NewPost from "./NewPost";
 import { getDecodedToken, getUserId } from "@/utils/decodeToken";
 import postApi from "@/api/postsAPI/postsApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 interface HomeProps {
   handleScroll: (event: any) => void;
+  navigation: ReturnType<typeof useNavigation>;
+  userIdProp: number;
 }
 
-const Home = ({ handleScroll }: HomeProps) => {
+const Home = ({ handleScroll, navigation, userIdProp }: HomeProps) => {
   const [userId, setUserId] = useState<number>(0);
   const [avatar, setAvatar] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
-
+  const [posts, setPosts] = useState<any[]>([]);
   // Hàm lấy token và giải mã
 
   useEffect(() => {
     const fetchUserId = async () => {
+      await getUserId();
       const decodedToken = await AsyncStorage.getItem("userID");
-      const userID = Number(decodedToken);
-      setUserId(userID);
+      setUserId(Number(decodedToken));
       console.log("User ID:", userId);
     };
     fetchUserId();
   }, []);
-  const userInfoApi = async () => {
-    try {
-      console.log("User ID:", userId);
-      const response = await infoAPI.userInfo(userId);
-      setAvatar(response.data?.avatar);
-      setFirstName(response.data?.firstName);
-      setLastName(response.data?.lastName);
-      console.log("Avatar:", avatar);
-      console.log("First Name:", firstName);
-      console.log("Last Name:", lastName);
-      console.log("Response:", response);
-      return response;
-    } catch (error) {
-      console.error("Error call api", error);
-    }
-  };
-  userInfoApi();
-  const [posts, setPosts] = useState<any[]>([]);
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        if (!userId || userId === 0) {
+          console.warn("User ID không hợp lệ:", userId);
+          return;
+        }
 
-  const postsApi = async () => {
-    try {
-      const response = await postApi.posts(userId);
-      setPosts(response.data);
-      console.log("Posts:", response);
-      return response;
-    } catch (error) {
-      console.error("Error call api", error);
-    }
-  };
+        console.log("📡 Fetching user info for User ID:", userId);
+        const responseUser = await infoAPI.userInfo(userId);
+
+        if (!responseUser.data) {
+          console.warn(" Không tìm thấy thông tin user!");
+          return;
+        }
+
+        setAvatar(responseUser.data?.avatar || "");
+        setFirstName(responseUser.data?.firstName || "Unknown");
+        setLastName(responseUser.data?.lastName || "User");
+
+        console.log(" User Info Fetched:", responseUser.data);
+      } catch (error) {
+        console.error(" Error fetching user info:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, [userId]); // Thêm userId vào dependency để đảm bảo nó được cập nhật đúng
 
   useEffect(() => {
-    postsApi();
-  }, [userId]);
-
+    const fetchPosts = async () => {
+      const responsePosts = await postApi.posts(userId);
+      setPosts(responsePosts.data);
+      console.log(responsePosts.data);
+    };
+    fetchPosts();
+  }, []);
   return (
     <View style={styles.container}>
       <FlatList
         data={posts} // Dữ liệu danh sách
         keyExtractor={(item) => item.id} // Khóa duy nhất cho mỗi bài viết
-        renderItem={({ item }) => <PostItem {...item} />} // Hiển thị bài viết
-        showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
+        renderItem={({ item }) => (
+          <PostItem {...item} navigation={navigation} />
+        )} // Hiển thị bài viết
+        showsVerticalScrollIndicator={false} // Ẩn thanh cuộn  dọc
         onScroll={handleScroll} // Bắt sự kiện cuộn
         scrollEventThrottle={20} // Tần suất sự kiện cuộn (16ms = 60FPS)
         ListHeaderComponent={
