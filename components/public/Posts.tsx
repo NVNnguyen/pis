@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -21,13 +21,13 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { fontWeight } from "@/styles/color";
-import { formatNumber } from "@/utils/formatNmber";
+import { formatNumber } from "@/utils/formatNumber";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
-import { posts } from "@/utils/mockAPI";
-
-const { width, height } = Dimensions.get("window");
+import { NavigationProp } from "@react-navigation/native";
+import { GetMyUserId } from "@/hooks/GetMyUserID";
+import postsAPI from "@/api/postsAPI";
 
 interface PostItemProps {
   userPostResponse: {
@@ -45,10 +45,16 @@ interface PostItemProps {
   likes: number;
   comments: number;
   type: string;
-  like: number;
+  like: boolean;
   createTime: string;
-  navigation: any;
 }
+
+interface navigationProp extends NavigationProp<any> {
+  page: string;
+  id: number;
+}
+
+const { width, height } = Dimensions.get("window");
 const PostItem = ({
   userPostResponse,
   id,
@@ -57,17 +63,17 @@ const PostItem = ({
   likes,
   comments,
   type,
+  like,
   createTime,
-  navigation,
 }: PostItemProps) => {
-  const [like, setLikes] = useState(likes);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(like);
   const [isFollowing, setIsFollowing] = useState(userPostResponse.follow);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [isModalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-
+  const navigation = useNavigation<navigationProp>();
+  const myUserId = GetMyUserId();
   // Tìm index từ id
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);
@@ -80,10 +86,33 @@ const PostItem = ({
       setModalVisible(true);
     }
   };
+  const handleLike = async () => {
+    if (!myUserId) {
+      console.error("User ID is undefined or null");
+      return;
+    }
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes((prevLikes) => (isLiked ? prevLikes - 1 : prevLikes + 1));
+    try {
+      console.log("Like API Call with:", myUserId, id);
+      let response;
+
+      if (isLiked) {
+        response = await postsAPI.dislike(myUserId, id);
+      } else {
+        response = await postsAPI.like(myUserId, id);
+      }
+
+      if (
+        response?.message === "Like Success" ||
+        response?.message === "Dislike Success"
+      ) {
+        setIsLiked(!isLiked);
+      } else {
+        console.error("Unexpected API response:", response);
+      }
+    } catch (error) {
+      console.error("API error:", error);
+    }
   };
 
   const handleFollowing = () => {
@@ -111,10 +140,18 @@ const PostItem = ({
               })
             }
           >
-            <Image
-              source={{ uri: userPostResponse.avatar }}
-              style={styles.avatar}
-            />
+            {userPostResponse.avatar != null && (
+              <Image
+                source={{ uri: userPostResponse.avatar }}
+                style={styles.avatar}
+              />
+            )}
+            {userPostResponse.avatar == null && (
+              <Image
+                source={require("../../assets/images/userAvatar.png")}
+                style={styles.avatar}
+              />
+            )}
           </TouchableOpacity>
 
           {!isFollowing && (
@@ -194,7 +231,7 @@ const PostItem = ({
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
           />
-          <Text style={styles.iconText}>{formatNumber(like)}</Text>
+          <Text style={styles.iconText}>{formatNumber(likes)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconContainer}

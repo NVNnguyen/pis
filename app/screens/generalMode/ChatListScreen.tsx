@@ -1,5 +1,5 @@
-import conversationAPI from "@/api/conversationsAPI/conversationAPI";
-import ChatListItem from "@/components/public/ChatListItem";
+import conversationAPI from "@/api/conversationAPI";
+import ChatListItem from "@/components/public/ChatList";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";

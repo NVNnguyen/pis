@@ -1,86 +1,93 @@
-import { FlatList, View, StyleSheet, Alert } from "react-native";
-import PostItem from "./PostItems";
-import { useEffect, useState } from "react";
-import infoAPI from "@/api/userAPI/infoAPI";
-import NewPost from "./NewPost";
-import { getDecodedToken, getUserId } from "@/utils/decodeToken";
-import postApi from "@/api/postsAPI/postsApi";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FlatList, View, StyleSheet } from "react-native";
+import PostItem from "./Posts";
 import { useNavigation } from "@react-navigation/native";
+import NewPost from "./NewPost";
+import { useQuery } from "@tanstack/react-query";
+import infoAPI from "@/api/infoAPI";
+import Loading from "../genaral/loading/Loading";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
+import postsAPI from "@/api/postsAPI";
 
 interface HomeProps {
   handleScroll: (event: any) => void;
-  navigation: ReturnType<typeof useNavigation>;
   userIdProp: number;
 }
 
-const Home = ({ handleScroll, navigation, userIdProp }: HomeProps) => {
-  const [userId, setUserId] = useState<number>(0);
-  const [avatar, setAvatar] = useState<string>("");
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [posts, setPosts] = useState<any[]>([]);
-  // Hàm lấy token và giải mã
+const Home = ({ handleScroll, userIdProp }: HomeProps) => {
+  const navigation = useNavigation();
 
+  // Fetch user info
+  const {
+    data: userInfo,
+    isLoading: isUserLoading,
+    error: userError,
+  } = useQuery({
+    queryKey: ["userInfo", userIdProp],
+    queryFn: async () => {
+      if (!userIdProp) throw new Error("User ID invalid!");
+      console.log("📡 Fetching user info for User ID:", userIdProp);
+      const response = await infoAPI.userInfo(userIdProp);
+      if (!response.data) throw new Error("UserIfo not found!");
+      return response.data;
+    },
+    enabled: !!userIdProp,
+    staleTime: 1000 * 60 * 3,
+  });
   useEffect(() => {
-    const fetchUserId = async () => {
-      await getUserId();
-      const decodedToken = await AsyncStorage.getItem("userID");
-      setUserId(Number(decodedToken));
-      console.log("User ID:", userId);
-    };
-    fetchUserId();
-  }, []);
-  useEffect(() => {
-    const fetchUserInfo = async () => {
+    const saveUserId = async () => {
+      if (!userInfo?.id) return; // Kiểm tra userId có giá trị không
+
       try {
-        if (!userId || userId === 0) {
-          console.warn("User ID không hợp lệ:", userId);
-          return;
-        }
-
-        console.log("📡 Fetching user info for User ID:", userId);
-        const responseUser = await infoAPI.userInfo(userId);
-
-        if (!responseUser.data) {
-          console.warn(" Không tìm thấy thông tin user!");
-          return;
-        }
-
-        setAvatar(responseUser.data?.avatar || "");
-        setFirstName(responseUser.data?.firstName || "Unknown");
-        setLastName(responseUser.data?.lastName || "User");
-
-        console.log(" User Info Fetched:", responseUser.data);
+        await AsyncStorage.setItem("userID", userInfo?.id.toString());
+        console.log("✅ Save userId success");
       } catch (error) {
-        console.error(" Error fetching user info:", error);
+        console.error("❌ Error saving userID:", error);
       }
     };
 
-    fetchUserInfo();
-  }, [userId]); // Thêm userId vào dependency để đảm bảo nó được cập nhật đúng
+    saveUserId(); // Gọi hàm ngay lập tức khi `userId` thay đổi
+  }, [userInfo?.id]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const responsePosts = await postApi.posts(userId);
-      setPosts(responsePosts.data);
-      console.log(responsePosts.data);
-    };
-    fetchPosts();
-  }, []);
+  // Fetch posts
+  const {
+    data: posts,
+    isLoading: isPostsLoading,
+    error: postsError,
+  } = useQuery({
+    queryKey: ["posts", userIdProp],
+    queryFn: async () => {
+      const response = await postsAPI.posts(userIdProp);
+      return response.data;
+    },
+    enabled: !!userIdProp,
+    staleTime: 1000 * 60 * 3,
+  });
+
   return (
     <View style={styles.container}>
+      {isUserLoading ||
+        (userError && <Loading isLoading={isUserLoading} error={userError} />)}
+      {isPostsLoading ||
+        (postsError && <Loading isLoading={isUserLoading} error={userError} />)}
       <FlatList
-        data={posts} // Dữ liệu danh sách
-        keyExtractor={(item) => item.id} // Khóa duy nhất cho mỗi bài viết
+        data={posts}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <PostItem {...item} navigation={navigation} />
-        )} // Hiển thị bài viết
-        showsVerticalScrollIndicator={false} // Ẩn thanh cuộn  dọc
-        onScroll={handleScroll} // Bắt sự kiện cuộn
-        scrollEventThrottle={20} // Tần suất sự kiện cuộn (16ms = 60FPS)
+        )}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={20}
         ListHeaderComponent={
-          <NewPost userInfo={{ avatar, firstName, lastName }} />
+          <NewPost
+            userInfo={{
+              avatar: userInfo?.avatar,
+              firstName: userInfo?.firstName,
+              lastName: userInfo?.lastName,
+              userId: userIdProp,
+            }}
+          />
         }
       />
     </View>
@@ -90,6 +97,20 @@ const Home = ({ handleScroll, navigation, userIdProp }: HomeProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
   },
 });
 

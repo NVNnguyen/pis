@@ -1,4 +1,4 @@
-import infoAPI from "@/api/userAPI/infoAPI";
+import infoAPI from "@/api/infoAPI";
 import { backgroundColor, Color, fontWeight } from "@/styles/color";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";

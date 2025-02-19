@@ -1,5 +1,5 @@
 import { backgroundColor, Color } from "@/styles/color";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import {
   View,
@@ -8,14 +8,15 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { RootStackParamList } from "@/navigation/MainStack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
+import { RootStackParamList } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
 
 const PublicOrPrivate = () => {
+  const toggleOptionRef = useRef<boolean>(false); // Tránh re-render
   const [toggleOption, setToggleOption] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -23,11 +24,11 @@ const PublicOrPrivate = () => {
   const styles = getStyles(isDarkMode);
 
   useEffect(() => {
-    // Lấy trạng thái từ AsyncStorage
     const loadToggleOption = async () => {
       const savedOption = await AsyncStorage.getItem("toggleOption");
       if (savedOption !== null) {
-        setToggleOption(JSON.parse(savedOption));
+        toggleOptionRef.current = JSON.parse(savedOption);
+        setToggleOption(toggleOptionRef.current);
       }
     };
     loadToggleOption();
@@ -35,8 +36,10 @@ const PublicOrPrivate = () => {
 
   const handleToggle = useCallback(
     async (option: boolean) => {
+      if (toggleOptionRef.current === option) return; // Ngăn chặn cập nhật trùng lặp
+      toggleOptionRef.current = option;
       setToggleOption(option);
-      await AsyncStorage.setItem("toggleOption", JSON.stringify(option)); // Lưu trạng thái
+      await AsyncStorage.setItem("toggleOption", JSON.stringify(option));
       navigation.navigate(option ? "PublicMode" : "FriendMode");
     },
     [navigation]
@@ -44,21 +47,6 @@ const PublicOrPrivate = () => {
 
   return (
     <View style={styles.toggleSwitch}>
-      <TouchableOpacity
-        style={[styles.toggleButton, !toggleOption && styles.activeButton]}
-        onPress={() => handleToggle(false)}
-      >
-        <Text
-          style={[
-            styles.toggleText,
-            !toggleOption
-              ? styles.activeText
-              : { color: isDarkMode ? "black" : Color },
-          ]}
-        >
-          Friends
-        </Text>
-      </TouchableOpacity>
       <TouchableOpacity
         style={[styles.toggleButton, toggleOption && styles.activeButton]}
         onPress={() => handleToggle(true)}
@@ -72,6 +60,21 @@ const PublicOrPrivate = () => {
           ]}
         >
           Public
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.toggleButton, !toggleOption && styles.activeButton]}
+        onPress={() => handleToggle(false)}
+      >
+        <Text
+          style={[
+            styles.toggleText,
+            !toggleOption
+              ? styles.activeText
+              : { color: isDarkMode ? "black" : Color },
+          ]}
+        >
+          Friends
         </Text>
       </TouchableOpacity>
     </View>

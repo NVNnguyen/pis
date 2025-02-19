@@ -13,6 +13,7 @@ export const getDecodedToken = async () => {
       }
       const decodedToken: DecodedToken = jwtDecode(token);
       console.log("Decoded Token:", decodedToken);
+      await AsyncStorage.setItem("userID", decodedToken?.userId.toString()); // Đợi token từ AsyncStorage
       return decodedToken;
     } catch (error) {
       console.error("Decode token fail:", error);
@@ -20,11 +21,3 @@ export const getDecodedToken = async () => {
     }
   };
 
-
-  export const getUserId = async () => { 
-    const decodedToken = await getDecodedToken();
-    const userID = Number(decodedToken?.userId);
-    await AsyncStorage.setItem("userID", userID.toString()); // Đợi token từ AsyncStorage
-    console.log("User ID token:", userID);
-    return userID;
-  };    

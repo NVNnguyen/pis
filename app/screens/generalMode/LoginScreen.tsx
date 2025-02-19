@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,65 +10,63 @@ import {
   TouchableWithoutFeedback,
   Alert,
 } from "react-native";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../../navigation/MainStack";
-import { backgroundColor, Color, fontWeight } from "../../../styles/color";
-import CustomAlert from "@/components/alert/CustomAlert";
-
-import LoadingScreen from "./LoadingScreen";
-import authApi from "@/api/authAPI/authAPI";
+import { fontWeight } from "../../../styles/color";
+import CustomAlert from "@/components/genaral/alert/CustomAlert";
+import { emailRegex } from "@/utils/regex";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RootStackParamList } from "@/utils/types/MainStackType";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
+import { useMutation } from "@tanstack/react-query";
+import { FontAwesome } from "@expo/vector-icons";
+import { grey } from "@/utils/colorPrimary";
+import authAPI from "@/api/authAPI";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
 const LoginScreen = () => {
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList, "Login">>();
-
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
-  const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const trimmedEmail = email.toLowerCase().trim();
 
-    const emailRegex =
-      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
-
-    if (email.toLocaleLowerCase().trim() === "") {
-      setAlertMessage("Please enter email or phone number!");
-      setAlertVisible(true);
+    if (!trimmedEmail) {
+      showAlert("Please enter email or phone number!");
       return;
     }
-    if (!emailRegex.test(email.toLowerCase().trim())) {
-      setAlertMessage("Invalid email format! Please enter a valid email.");
-      setAlertVisible(true);
+    if (!emailRegex.test(trimmedEmail)) {
+      showAlert("Invalid email format! Please enter a valid email.");
       return;
     }
 
-    // if (!passwordRegex.test(password)) {
-    //   setAlertMessage(
-    //     "Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character!"
-    //   );
-    //   setAlertVisible(true);
-    //   return;
-    // }
-    setLoading(true);
-    try {
-      const response = await authApi.login(email, password);
-      navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
-    } catch (error) {
-      Alert.alert("Login error", "Email or password is incorrect!");
-    }
+    loginMutation.mutate({ email: trimmedEmail, password });
   };
-  const handleOnConfirm = () => {
-    setAlertVisible(false);
-    // Cho phép tiếp tục nhập thông tin
-    console.log("User confirmed the alert!");
+
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      return await authAPI.login(credentials.email, credentials.password);
+    },
+    onSuccess: async (response) => {
+      await AsyncStorage.setItem("token", response?.data?.token);
+      console.log("login successfully!");
+      navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
+    },
+    onError: () => {
+      showAlert("Email or password is incorrect!");
+    },
+  });
+  const showAlert = (message: string) => {
+    setAlertMessage(message);
+    setAlertVisible(true);
   };
 
   return (
@@ -82,7 +80,7 @@ const LoginScreen = () => {
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
-          placeholderTextColor="#9E9E9E"
+          placeholderTextColor={grey}
         />
 
         <Text style={styles.label}>Password</Text>
@@ -93,7 +91,7 @@ const LoginScreen = () => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!isPasswordVisible}
-            placeholderTextColor="#9E9E9E"
+            placeholderTextColor={grey}
           />
           <TouchableOpacity
             onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -101,7 +99,7 @@ const LoginScreen = () => {
             <FontAwesome
               name={isPasswordVisible ? "eye" : "eye-slash"}
               size={20}
-              color="#9E9E9E"
+              color={grey}
             />
           </TouchableOpacity>
         </View>
@@ -125,9 +123,7 @@ const LoginScreen = () => {
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Sign in</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ForgotPasswordSelection")}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgotPassword}>Forgot password?</Text>
         </TouchableOpacity>
 
@@ -152,117 +148,121 @@ const LoginScreen = () => {
           visible={alertVisible}
           title="Error"
           message={alertMessage}
-          onConfirm={handleOnConfirm}
+          onConfirm={() => setAlertVisible(false)}
         />
-        {loading ? <LoadingScreen /> : null}
       </View>
     </TouchableWithoutFeedback>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: backgroundColor,
-    padding: width * 0.05,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: width * 0.08, // Dynamic font size
-    color: Color,
-    marginBottom: height * 0.02,
-    fontWeight: fontWeight,
-  },
-  label: {
-    color: Color,
-    alignSelf: "flex-start",
-    marginLeft: width * 0.05,
-    marginBottom: height * 0.01,
-    fontSize: width * 0.045,
-  },
-  input: {
-    backgroundColor: "#2C2C2E",
-    width: "100%",
-    height: height * 0.065,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    color: Color,
-    marginBottom: height * 0.02,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2C2C2E",
-    width: "100%",
-    height: height * 0.065,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: height * 0.02,
-  },
-  inputPassword: {
-    flex: 1,
-    color: Color,
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: height * 0.02,
-  },
-  checkboxText: {
-    color: Color,
-    marginLeft: width * 0.02,
-    fontSize: width * 0.04,
-  },
-  button: {
-    backgroundColor: "#000",
-    width: "100%",
-    height: height * 0.065,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: height * 0.02,
-  },
-  buttonText: {
-    color: Color,
-    fontSize: width * 0.05,
-    fontWeight: "bold",
-  },
-  forgotPassword: {
-    color: "#9E9E9E",
-    marginBottom: height * 0.03,
-    fontSize: width * 0.04,
-    textDecorationLine: "underline",
-  },
-  signInWith: {
-    color: "#9E9E9E",
-    fontSize: width * 0.045,
-    marginBottom: height * 0.01,
-  },
-  socialButtons: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginBottom: height * 0.02,
-  },
-  socialButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#000",
-    borderRadius: 10,
-    padding: width * 0.03,
-    paddingHorizontal: width * 0.07,
-  },
-  socialText: {
-    color: Color,
-    marginLeft: width * 0.02,
-    fontSize: width * 0.04,
-  },
-  registerText: {
-    color: Color,
-    fontSize: width * 0.04,
-    textDecorationLine: "underline",
-  },
-});
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      padding: width * 0.05,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    title: {
+      fontSize: width * 0.08, // Dynamic font size
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginBottom: height * 0.02,
+      fontWeight: fontWeight,
+    },
+    label: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      alignSelf: "flex-start",
+      marginLeft: width * 0.05,
+      marginBottom: height * 0.01,
+      fontSize: width * 0.045,
+    },
+    input: {
+      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
+      width: "100%",
+      height: height * 0.065,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginBottom: height * 0.02,
+    },
+    passwordContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
+      width: "100%",
+      height: height * 0.065,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      marginBottom: height * 0.02,
+    },
+    inputPassword: {
+      flex: 1,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    checkboxContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: height * 0.02,
+    },
+    checkboxText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginLeft: width * 0.02,
+      fontSize: width * 0.04,
+    },
+    button: {
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
+      width: "100%",
+      height: height * 0.065,
+      borderRadius: 10,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: height * 0.02,
+    },
+    buttonText: {
+      color: isDarkMode ? lightTheme.text : darkTheme.text,
+      fontSize: width * 0.05,
+      fontWeight: "bold",
+    },
+    forgotPassword: {
+      color: grey,
+      marginBottom: height * 0.03,
+      fontSize: width * 0.04,
+      textDecorationLine: "underline",
+    },
+    signInWith: {
+      color: grey,
+      fontSize: width * 0.045,
+      marginBottom: height * 0.01,
+    },
+    socialButtons: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      width: "100%",
+      marginBottom: height * 0.02,
+    },
+    socialButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#000",
+      borderRadius: 10,
+      padding: width * 0.03,
+      paddingHorizontal: width * 0.07,
+    },
+    socialText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginLeft: width * 0.02,
+      fontSize: width * 0.04,
+    },
+    registerText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: width * 0.04,
+      textDecorationLine: "underline",
+    },
+  });
 
 export default LoginScreen;

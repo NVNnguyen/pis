@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
-import ChatHeader from "../../../components/chat/ChatHeader";
-import MessageList from "../../../components/chat/MessageList";
-import ChatInput from "../../../components/chat/ChatInput";
+import ChatHeader from "../../../components/genaral/chat/ChatHeader";
+import MessageList from "../../../components/genaral/chat/MessageList";
+import ChatInput from "../../../components/genaral/chat/ChatInput";
 import { backgroundColor } from "../../../styles/color";
 import { useNavigation, useRoute } from "@react-navigation/native";
 

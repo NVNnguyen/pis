@@ -10,33 +10,21 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import ModelUnFollow from "../ModelUnFollow";
+import ModelUnFollow from "../Modals/ModelUnFollow";
 import { fontWeight } from "@/styles/color";
-import { formatNumber } from "@/utils/formatNmber";
+import { formatNumber } from "@/utils/formatNumber";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import infoAPI from "@/api/userAPI/infoAPI";
-import { getUserId } from "@/utils/decodeToken";
-
+import infoAPI from "@/api/infoAPI";
+import { getDecodedToken } from "@/utils/decodeToken";
+import { GetMyUserId } from "@/hooks/GetMyUserID";
+import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
+import useUserInfo from "@/hooks/useUserInfoHook";
+import useUserFollowInfo from "@/hooks/useUserFollowInfo";
+import useProfileActions from "@/hooks/useProfileActions";
+import ImagePickerModal from "../Modals/ImagePickerModal";
 
 const { width, height } = Dimensions.get("window");
-interface ProfileProps {
-  userPostResponse: {
-    id: number;
-    username: string;
-    avatar: string;
-    follow: boolean;
-  };
-  caption: string;
-  images: {
-    url: string;
-    id: number;
-  }[];
-  likes: number;
-  comments: number;
-  type: string;
-  like: number;
-  createTime: string;
-}
+
 const ProfileHeader = ({
   userIdProp,
   setSelectedTab,
@@ -44,72 +32,23 @@ const ProfileHeader = ({
   userIdProp: number;
   setSelectedTab: (tab: "public" | "private") => void;
 }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái modal
-  const [userId, setUserId] = useState<number>(0);
-  const [userInfo, setUserInfo] = useState<any>();
-  const [follower, setFollower] = useState<number>();
-  const [following, setFollowing] = useState<number>();
   const [selectedTab, setTab] = useState<"public" | "private">("public");
   // const [selectedTab, setSelectedTab] = useState<"public" | "private">(
   //   "public"
   // );
   const { isDarkMode } = useTheme();
-
+  // console.log("My userId", myUserId);
   const styles = getStyles(isDarkMode, selectedTab);
+  const myUserId = GetMyUserId();
+  const userInfo = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
+  const { follower, following } = useUserFollowInfo(userIdProp);
+  const {
+    isModalVisible,
+    setIsModalVisible,
+    toggleFollow,
+    handleFollowStatus,
+  } = useProfileActions(userInfo);
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      await getUserId();
-      const decodedToken = await AsyncStorage.getItem("userID");
-      setUserId(Number(decodedToken));
-      console.log("User ID:", userId);
-    };
-    fetchUserId();
-  }, []);
-
-  useEffect(() => {
-    console.log("useridprop", userIdProp);
-    if (!userIdProp) return; // Không gọi API nếu `userIdProp` không tồn tại
-
-    const userInfoApi = async () => {
-      try {
-        const response = await infoAPI.userInfo(userIdProp);
-        if (response?.data) {
-          setUserInfo(response?.data);
-          console.log("User Info:", response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-    userInfoApi();
-  }, [userIdProp]); // Gọi API lại khi `userIdProp` thay đổi
-  useEffect(() => {
-    console.log("userIdprop", userIdProp);
-    if (!userIdProp) return; // Không gọi API nếu `userIdProp` không tồn tại
-    const userInfoFollow = async () => {
-      try {
-        const response = await infoAPI.userFollow(userIdProp);
-        if (response?.data) {
-          setFollower(response?.data?.followers ?? 0);
-          setFollowing(response?.data?.followingNumber);
-          console.log("User Info:", response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-    userInfoFollow();
-  }, [userIdProp]);
-  const toggleFollow = () => {
-    setIsModalVisible(false); // Đóng modal
-  };
-  const handleFollowStatus = () => {
-    if (userInfo?.userPostResponse.follow) {
-      setIsModalVisible(true); // Hiển thị modal nếu đang "Following"
-    } else {
-    }
-  };
   const getColor = (
     isFollowing: boolean,
     isDarkMode: boolean,
@@ -137,13 +76,15 @@ const ProfileHeader = ({
     useEffect(() => {});
     [];
   }
-
+  const { image, openImagePicker } = useImagePickerSelectionOne();
   return (
     <View style={styles.container}>
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{userInfo?.username}</Text>
+          <Text style={styles.name}>
+            {userInfo?.firstName} {userInfo?.lastName}
+          </Text>
           <Text style={styles.idName}>{userInfo?.username}</Text>
         </View>
         {/* Avatar */}
@@ -156,16 +97,19 @@ const ProfileHeader = ({
               />
             </View>
 
-            {/* {profile.isVerified && (
+            {(follower ?? 0) > 100000 && (
               <View style={styles.verifiedBadge}>
                 <MaterialIcons name="verified" style={styles.verifiedText} />
               </View>
-            )} */}
+            )}
           </View>
         )}
-        {userInfo?.avatar?.length === 0 && userId === userIdProp && (
+        {userInfo?.avatar == null && myUserId === userIdProp && (
           <View style={styles.avatarIconContainer}>
-            <TouchableOpacity style={styles.avatarIcon}>
+            <TouchableOpacity
+              style={styles.avatarIcon}
+              onPress={openImagePicker}
+            >
               <AntDesign
                 name="adduser"
                 size={height * 0.04}
@@ -176,7 +120,7 @@ const ProfileHeader = ({
             </TouchableOpacity>
           </View>
         )}
-        {userInfo?.avatar?.length === 0 && userId === userIdProp && (
+        {userInfo?.avatar == null && myUserId != userIdProp && (
           <View style={styles.noAvatarContainer}>
             <TouchableOpacity style={styles.avatarIcon}>
               <FontAwesome6
@@ -210,7 +154,7 @@ const ProfileHeader = ({
         </TouchableOpacity>
       </View>
       {/* Action Buttons */}
-      {userId === userIdProp && (
+      {myUserId === userIdProp && (
         <View style={styles.myProfile}>
           <TouchableOpacity style={styles.editProfileButton}>
             <Text style={styles.editProfileButtonText}>Edit profile</Text>
@@ -220,7 +164,7 @@ const ProfileHeader = ({
           </TouchableOpacity>
         </View>
       )}
-      {userId !== userIdProp && (
+      {myUserId !== userIdProp && (
         <View
           style={[
             styles.followingSectionButton,
@@ -301,6 +245,11 @@ const ProfileHeader = ({
         handleModelVisible={() => setIsModalVisible(false)} // Đóng modal
         modalVisible={isModalVisible}
         toggleFollow={toggleFollow} // Thay đổi trạng thái following
+      />
+      <ImagePickerModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        image={image}
       />
     </View>
   );

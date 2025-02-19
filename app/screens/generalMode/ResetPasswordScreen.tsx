@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import {
   View,
@@ -21,34 +20,29 @@ import { emailRegex } from "@/utils/regex";
 import { RootStackParamList } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import authAPI from "@/api/authAPI";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import authApi from "@/api/authAPI";
+
+type RouteParams = {
+  params: {
+    email: string;
+  };
+};
 
 const { width, height } = Dimensions.get("window");
 
-const RegisterScreen = () => {
+const ResetPasswordScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const route = useRoute<RouteProp<RouteParams>>();
+  const emailProp = route.params?.email;
   const { isDarkMode } = useTheme();
-
   const styles = getStyles(isDarkMode);
-  const handelRegister = async () => {
-    if (email.trim() === "") {
-      setAlertMessage("Please enter email or phone number!");
-      setAlertVisible(true);
-      return;
-    }
-    if (!emailRegex.test(email.toLowerCase().trim())) {
-      setAlertMessage("Invalid email format! Please enter a valid email.");
-      setAlertVisible(true);
-      return;
-    }
+  const handleResetPassword = async () => {
     if (password.trim() === "") {
       setAlertMessage("Please enter password!");
       setAlertVisible(true);
@@ -59,23 +53,18 @@ const RegisterScreen = () => {
       setAlertVisible(true);
       return;
     }
-    if (rePassword != password) {
+    if (rePassword.trim() != password.trim()) {
       setAlertMessage("Passwords do not match! Please re-enter!");
       setAlertVisible(true);
       return;
     }
     try {
       if (!isLoading) {
-        const response = await authAPI.register(
-          email,
-          password,
-          firstName,
-          lastName
-        );
+        const response = await authApi.updatePassword(emailProp, password);
         navigation.navigate("Login");
       }
     } catch (error) {
-      setAlertMessage("Register failed!");
+      setAlertMessage("Reset-password failed");
       setAlertVisible(true);
     } finally {
       setIsLoading(false);
@@ -97,26 +86,9 @@ const RegisterScreen = () => {
               style={styles.input}
               placeholder="Email"
               placeholderTextColor="#bdbdbd"
-              value={email.trim()}
-              onChangeText={setEmail}
+              value={emailProp.trim()}
+              editable={false} // Ngăn không cho nhập
             />
-            <Text style={styles.label}>First name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="First name"
-              placeholderTextColor="#bdbdbd"
-              value={firstName.trim()}
-              onChangeText={setFirstName}
-            />
-            <Text style={styles.label}>Last name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Last name"
-              placeholderTextColor="#bdbdbd"
-              value={lastName.trim()}
-              onChangeText={setLastName}
-            />
-
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
@@ -126,7 +98,6 @@ const RegisterScreen = () => {
               value={password.trim()}
               onChangeText={setPassword}
             />
-
             <Text style={styles.label}>Re-enter password</Text>
             <TextInput
               style={styles.input}
@@ -136,12 +107,11 @@ const RegisterScreen = () => {
               value={rePassword.trim()}
               onChangeText={setRePassword}
             />
-
             <TouchableOpacity
               style={styles.registerButton}
-              onPress={handelRegister}
+              onPress={handleResetPassword}
             >
-              <Text style={styles.registerButtonText}>Register</Text>
+              <Text style={styles.registerButtonText}>Next</Text>
             </TouchableOpacity>
           </ScrollView>
           {/* Custom Alert */}
@@ -217,4 +187,4 @@ const getStyles = (isDarkMode: any) =>
     },
   });
 
-export default RegisterScreen;
+export default ResetPasswordScreen;

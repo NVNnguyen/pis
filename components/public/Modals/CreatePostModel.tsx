@@ -10,16 +10,18 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { Colors } from "react-native/Libraries/NewAppScreen";
 import { fontWeight } from "@/styles/color";
+import useImagePicker from "@/hooks/useImagePicker";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreatePostModelProps {
   visible: boolean;
   onClose: () => void;
-  images: string[];
+  imagesProp: string[];
+  removeImageProp: (uri: string) => void;
 }
 
 const { width, height } = Dimensions.get("window");
@@ -27,7 +29,8 @@ const { width, height } = Dimensions.get("window");
 const CreatePostModel: React.FC<CreatePostModelProps> = ({
   visible,
   onClose,
-  images,
+  imagesProp,
+  removeImageProp,
 }) => {
   const [postText, setPostText] = useState("");
   const { isDarkMode } = useTheme();
@@ -35,23 +38,49 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
   const [imageSizes, setImageSizes] = useState<{
     [key: string]: { width: number; height: number };
   }>({});
+  const { images, removeImage, permission, openImagePicker } = useImagePicker();
 
   // Lấy kích thước ảnh khi danh sách `images` thay đổi
-  useEffect(() => {
-    images.forEach((uri) => {
-      Image.getSize(uri, (imgWidth, imgHeight) => {
-        const aspectRatio = imgWidth / imgHeight;
-        setImageSizes((prevSizes) => ({
-          ...prevSizes,
-          [uri]: {
-            width: width * 0.4, // Ảnh chiếm 80% chiều rộng màn hình
-            height: (width * 0.4) / aspectRatio, // Chiều cao theo tỷ lệ gốc
-          },
-        }));
-      });
-    });
-  }, [images]);
 
+  useEffect(() => {
+    if (imagesProp.length > 0) {
+      imagesProp.forEach((uri) => {
+        Image.getSize(uri, (imgWidth, imgHeight) => {
+          const aspectRatio = imgWidth / imgHeight;
+          setImageSizes((prevSizes) => ({
+            ...prevSizes,
+            [uri]: {
+              width: width * 0.4, // Ảnh chiếm 80% chiều rộng màn hình
+              height: (width * 0.4) / aspectRatio, // Chiều cao theo tỷ lệ gốc
+            },
+          }));
+        });
+      });
+    } else if (images.length > 0) {
+      images.forEach((uri) => {
+        Image.getSize(uri, (imgWidth, imgHeight) => {
+          const aspectRatio = imgWidth / imgHeight;
+          setImageSizes((prevSizes) => ({
+            ...prevSizes,
+            [uri]: {
+              width: width * 0.4, // Ảnh chiếm 80% chiều rộng màn hình
+              height: (width * 0.4) / aspectRatio, // Chiều cao theo tỷ lệ gốc
+            },
+          }));
+        });
+      });
+    }
+  }, [imagesProp, images]);
+
+  if (!permission) {
+    return <Text>Requesting camera permissions...</Text>;
+  }
+  if (!permission.granted) {
+    return <Text>Camera permissions are required to use this app.</Text>;
+  }
+  const queryClient = useQueryClient();
+  const userInfo = queryClient.getQueryData<{ avatar: string }>(["userInfo"]); // 1 là userId (thay đổi tùy trường hợp)
+  console.log("user info modal", userInfo);
   return (
     <Modal animationType="slide" transparent visible={visible}>
       <View style={styles.overlay}>
@@ -72,10 +101,9 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
 
           {/* User Info */}
           <View style={styles.userInfo}>
-            <Image
-              source={{ uri: "https://via.placeholder.com/50" }}
-              style={styles.avatar}
-            />
+            {userInfo && (
+              <Image source={{ uri: userInfo.avatar }} style={styles.avatar} />
+            )}
             <TextInput
               style={styles.input}
               placeholder="What's new?"
@@ -87,32 +115,78 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
           </View>
 
           {/* Hiển thị danh sách ảnh */}
-          {images.length > 0 && (
+          {imagesProp.length > 0 && (
             <FlatList
-              data={images}
-              keyExtractor={(item, index) => index.toString()}
+              data={imagesProp}
+              keyExtractor={(index) => index.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
               renderItem={({ item }) => (
-                <Image
-                  source={{ uri: item }}
-                  style={[
-                    styles.image,
-                    imageSizes[item] && {
-                      width: imageSizes[item].width,
-                      height: imageSizes[item].height,
-                    },
-                  ]}
-                />
+                <>
+                  <Image
+                    source={{ uri: item }}
+                    style={[
+                      styles.image,
+                      imageSizes[item] && {
+                        width: imageSizes[item].width,
+                        height: imageSizes[item].height,
+                      },
+                    ]}
+                  />
+                  <TouchableOpacity
+                    style={styles.clearImage}
+                    onPress={() => removeImageProp(item)}
+                  >
+                    <MaterialIcons name="clear" size={24} color="black" />
+                  </TouchableOpacity>
+                </>
+              )}
+            />
+          )}
+          {images.length > 0 && (
+            <FlatList
+              data={images}
+              keyExtractor={(index) => index.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <>
+                  <Image
+                    source={{ uri: item }}
+                    style={[
+                      styles.image,
+                      imageSizes[item] && {
+                        width: imageSizes[item].width,
+                        height: imageSizes[item].height,
+                      },
+                    ]}
+                  />
+                  <TouchableOpacity
+                    style={styles.clearImage}
+                    onPress={() => {
+                      removeImageProp(item);
+                      removeImage(item);
+                    }}
+                  >
+                    <MaterialIcons name="clear" size={24} color="black" />
+                  </TouchableOpacity>
+                </>
               )}
             />
           )}
 
           {/* Action Icons */}
+
           <View style={styles.actionRow}>
-            <Ionicons name="image-outline" size={24} color="#666" />
-            <Ionicons name="camera-outline" size={24} color="#666" />
-            <Ionicons name="mic-outline" size={24} color="#666" />
+            <TouchableOpacity>
+              <SimpleLineIcons name="camera" size={24} color="#9E9E9E" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openImagePicker()}>
+              <Ionicons name="images-outline" size={24} color="#9E9E9E" />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <MaterialIcons name="keyboard-voice" size={24} color="#9E9E9E" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -196,6 +270,13 @@ const getStyles = (isDarkMode: boolean) =>
       margin: 5,
       borderRadius: 10,
       resizeMode: "cover",
+    },
+    clearImage: {
+      position: "absolute",
+      backgroundColor: "#fff",
+      borderRadius: "50%",
+      right: 0,
+      margin: 10,
     },
   });
 

@@ -10,11 +10,10 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
-import UserItem from "@/components/public/UserItem"; // Import UserItem
+import UserItem from "@/components/public/User"; // Import UserItem
 import { Color, fontWeight } from "@/styles/color";
-import ModelUnFollow from "@/components/public/ModelUnFollow";
+import ModelUnFollow from "@/components/public/Modals/ModelUnFollow";
 import { useNavigation } from "expo-router";
-import { mockUsers } from "@/utils/mockAPI";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface UserProps {

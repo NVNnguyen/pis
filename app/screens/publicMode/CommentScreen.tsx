@@ -13,8 +13,10 @@ import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import postApi from "@/api/postsAPI/postsApi";
-import { formatNumber } from "@/utils/formatNmber";
+import { formatNumber } from "@/utils/formatNumber";
+import { useQuery } from "@tanstack/react-query";
+import Loading from "@/components/genaral/loading/Loading";
+import postsAPI from "@/api/postsAPI";
 
 const { width, height } = Dimensions.get("window");
 // Định nghĩa kiểu dữ liệu cho route params
@@ -31,58 +33,60 @@ const CommentScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const route = useRoute<CommentScreenRouteProp>();
   const { postId, userId } = route.params;
-  const [comments, setComments] = useState<any>([]);
-  const [like, setLikes] = useState(comments?.likes);
-  const [isLiked, setIsLiked] = useState(comments?.like);
+
   const openReplies = (comment: any) => {
     setSelectedComment(comment);
     setModalVisible(true);
   };
 
-  useEffect(() => {
-    console.log("✅ Đang nhận userId:", userId, " postId:", postId);
+  // const handleLike = () => {
+  //   setIsLiked(!isLiked);
+  //   setLikes((prevLikes: number) => (isLiked ? prevLikes - 1 : prevLikes + 1));
+  // };
 
-    if (!postId || !userId) return;
-
-    const fetchComments = async () => {
-      try {
-        console.log(
-          "📡 Fetching comments for postId:",
-          postId,
-          " userId:",
-          userId
-        );
-        const response = await postApi.comment(postId, userId);
-        setComments(response.data);
-        console.log("✅ Fetched Comments:", response.data);
-      } catch (error) {
-        console.error("❌ Error fetching comments:", error);
-      }
-    };
-
-    fetchComments();
-  }, [postId, userId]); // ✅ useEffect chỉ chạy lại khi postId hoặc userId thay đổi
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes((prevLikes: number) => (isLiked ? prevLikes - 1 : prevLikes + 1));
-  };
-
+  const {
+    data: comments,
+    isLoading: isLoading,
+    error: error,
+  } = useQuery({
+    queryKey: ["comments", userId, postId],
+    queryFn: async () => {
+      const response = await postsAPI.comments(userId, postId);
+      return response.data;
+    },
+    enabled: !!userId && !!postId,
+    staleTime: 1000 * 60 * 3,
+  });
+  {
+    console.log(comments);
+  }
   return (
     <View style={styles.container}>
-      {(comments === null || comments.length === 0) && (
+      {isLoading || (error && <Loading isLoading={isLoading} error={error} />)}
+      {comments?.length === 0 && (
         <View style={styles.notCommentContainer}>
           <Text style={styles.notCommentTxt}>Not comment yet!</Text>
         </View>
       )}
+
       <FlatList
         data={comments}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.commentContainer}>
-            <Image
-              source={{ uri: item?.userPostResponse?.avatar }}
-              style={styles.avatar}
-            />
+            {item?.userPostResponse?.avatar !== null && (
+              <Image
+                source={{ uri: item?.userPostResponse?.avatar }}
+                style={styles.avatar}
+              />
+            )}
+            {item?.userPostResponse?.avatar === null && (
+              <Image
+                source={require("../../../assets/images/userAvatar.png")}
+                style={styles.avatar}
+              />
+            )}
+
             <View style={styles.commentContent}>
               <Text style={styles.username}>
                 {item?.userPostResponse?.username}
@@ -91,7 +95,7 @@ const CommentScreen = () => {
               <View style={styles.commentActions}>
                 <TouchableOpacity
                   style={styles.actionButton}
-                  onPress={handleLike}
+                  // onPress={handleLike}
                 >
                   <Ionicons
                     name={item.like ? "heart" : "heart-outline"}

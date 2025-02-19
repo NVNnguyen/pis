@@ -13,83 +13,75 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import CreatePostModel from "./CreatePostModel";
-import { useState, useEffect, useRef } from "react";
-import * as ImagePicker from "expo-image-picker";
+import CreatePostModel from "./Modals/CreatePostModel";
+import { useRef, useState } from "react";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { captureImage } from "@/utils/friendModeHandel";
-import { useCameraPermissions } from "expo-camera";
+import useImagePicker from "@/hooks/useImagePicker";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "@/utils/types/MainStackType";
 
-interface createPostProps {
-  userInfo: { avatar: string; lastName: string; firstName: string };
+interface newPostProps {
+  userInfo: {
+    avatar: string;
+    lastName: string;
+    firstName: string;
+    userId: number;
+  };
 }
 
 const { width, height } = Dimensions.get("window");
 
-const NewPost = ({ userInfo }: createPostProps) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [images, setImages] = useState<string[]>([]); // Lưu danh sách ảnh
+const NewPost = ({ userInfo }: newPostProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-
-  useEffect(() => {
-    if (!permission) {
-      requestPermission();
-    }
-  }, [permission, requestPermission]);
-
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const {
+    images,
+    openImagePicker,
+    permission,
+    // isModalVisible,
+    // setIsModalVisible,
+    removeImage,
+  } = useImagePicker();
   if (!permission) {
     return <Text>Requesting camera permissions...</Text>;
   }
-
   if (!permission.granted) {
     return <Text>Camera permissions are required to use this app.</Text>;
   }
 
-  const handleCreatePostModel = () => {
-    setIsModalVisible(true);
-  };
-
-  const openImagePicker = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("You need to enable permission to access images!");
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      allowsMultipleSelection: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImages([...images, ...result.assets.map((asset) => asset.uri)]);
-      setIsModalVisible(true); // Mở modal sau khi chọn ảnh
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.avatarContainer}>
-        {userInfo.avatar == null && (
-          <FontAwesome
-            name="user-o"
-            size={24}
-            color={isDarkMode ? darkTheme.text : lightTheme.text}
-          />
-        )}
-        <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("ProfilePublic", { userId: userInfo.userId })
+          }
+        >
+          {userInfo.avatar == null && (
+            <FontAwesome
+              name="user-o"
+              size={24}
+              color={isDarkMode ? darkTheme.text : lightTheme.text}
+            />
+          )}
+          <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
+        </TouchableOpacity>
       </View>
       <View style={styles.rightContainer}>
-        <Text style={styles.fullName}>
-          {userInfo.firstName} {userInfo.lastName}
-        </Text>
-        <TouchableOpacity onPress={handleCreatePostModel}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("ProfilePublic", { userId: userInfo.userId })
+          }
+        >
+          <Text style={styles.fullName}>
+            {userInfo.lastName} {userInfo.firstName}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsVisible(true)}>
           <Text style={styles.inputCation}>What's new?</Text>
         </TouchableOpacity>
 
@@ -97,7 +89,12 @@ const NewPost = ({ userInfo }: createPostProps) => {
           <TouchableOpacity onPress={() => captureImage(cameraRef)}>
             <SimpleLineIcons name="camera" size={24} color="#9E9E9E" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={openImagePicker}>
+          <TouchableOpacity
+            onPress={() => {
+              setIsVisible(true);
+              openImagePicker();
+            }}
+          >
             <Ionicons name="images-outline" size={24} color="#9E9E9E" />
           </TouchableOpacity>
           <TouchableOpacity>
@@ -108,9 +105,10 @@ const NewPost = ({ userInfo }: createPostProps) => {
 
       {/* Truyền images vào modal */}
       <CreatePostModel
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        images={images}
+        visible={isVisible}
+        onClose={() => setIsVisible(false)}
+        imagesProp={images}
+        removeImageProp={removeImage}
       />
     </View>
   );

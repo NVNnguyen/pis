@@ -2,15 +2,18 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import MainStack from "./navigation/MainStack";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import EnterOtpScreen from "./app/screens/generalMode/EnterOtpScreen";
-import ChatScreen from "./app/screens/generalMode/ChatScreen";
-import ChatListScreen from "./app/screens/generalMode/ChatListScreen";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <NavigationContainer>
-        <MainStack />
-      </NavigationContainer>
+      <QueryClientProvider client={queryClient}>
+        <NavigationContainer>
+          <MainStack />
+        </NavigationContainer>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 };
