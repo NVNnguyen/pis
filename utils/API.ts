@@ -7,7 +7,7 @@ class Http {
 
   constructor(token?: string) {
     this.instance = axios.create({
-      baseURL: "https://bb29-14-184-154-53.ngrok-free.app/api/v1",
+      baseURL: "https://e995-27-69-239-250.ngrok-free.app/api/v1",
       timeout: 10000,
       headers: {
         "Content-Type": "application/json",

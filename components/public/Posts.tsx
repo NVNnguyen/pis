@@ -93,13 +93,14 @@ const PostItem = ({
     }
 
     try {
-      console.log("Like API Call with:", myUserId, id);
       let response;
 
       if (isLiked) {
         response = await postsAPI.dislike(myUserId, id);
+        console.log("Dislike API Call with:", myUserId, id);
       } else {
         response = await postsAPI.like(myUserId, id);
+        console.log("Like API Call with:", myUserId, id);
       }
 
       if (
