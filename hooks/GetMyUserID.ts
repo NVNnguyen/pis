@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 
-export const GetMyUserId = () => {
+export const getMyUserId = () => {
   const [myUserId, setMyUserId] = useState<number | null>(null);
 
   useEffect(() => {

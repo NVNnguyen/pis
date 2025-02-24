@@ -16,12 +16,13 @@ import { formatNumber } from "@/utils/formatNumber";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import infoAPI from "@/api/infoAPI";
 import { getDecodedToken } from "@/utils/decodeToken";
-import { GetMyUserId } from "@/hooks/GetMyUserID";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
 import useUserInfo from "@/hooks/useUserInfoHook";
 import useUserFollowInfo from "@/hooks/useUserFollowInfo";
 import useProfileActions from "@/hooks/useProfileActions";
 import ImagePickerModal from "../Modals/ImagePickerModal";
+import { getMyUserId } from "@/hooks/getMyUserID";
+import { useQuery } from "@tanstack/react-query";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,13 +34,10 @@ const ProfileHeader = ({
   setSelectedTab: (tab: "public" | "private") => void;
 }) => {
   const [selectedTab, setTab] = useState<"public" | "private">("public");
-  // const [selectedTab, setSelectedTab] = useState<"public" | "private">(
-  //   "public"
-  // );
   const { isDarkMode } = useTheme();
   // console.log("My userId", myUserId);
   const styles = getStyles(isDarkMode, selectedTab);
-  const myUserId = GetMyUserId();
+  const myUserId = getMyUserId();
   const userInfo = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
   const { follower, following } = useUserFollowInfo(userIdProp);
   const {
@@ -76,7 +74,25 @@ const ProfileHeader = ({
     useEffect(() => {});
     [];
   }
-  const { image, openImagePicker } = useImagePickerSelectionOne();
+  const { formData, openPickImage } = useImagePickerSelectionOne();
+
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["loadAvatar", userIdProp],
+    queryFn: async () => {
+      if (!formData) {
+        console.warn("⚠️ Không có FormData để upload!");
+        return null;
+      }
+      const response = await infoAPI.uploadAvatar(formData, userIdProp);
+      return response?.data;
+    },
+    enabled: !!userIdProp && !!formData,
+  });
+  console.log("upload avatar new: ", profile);
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -91,12 +107,19 @@ const ProfileHeader = ({
         {userInfo?.avatar?.length > 0 && (
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <Image
-                source={{ uri: userInfo.avatar }}
-                style={styles.avatarImg}
-              />
+              {userInfo?.avatar?.length > 0 && (
+                <Image
+                  source={{ uri: userInfo?.avatar }}
+                  style={styles.avatarImg}
+                />
+              )}
+              {/* {profile?.avatar.length > 0 && (
+                  <Image
+                    source={{ uri: userInfo.avatar }}
+                    style={styles.avatarImg}
+                  />
+                )} */}
             </View>
-
             {(follower ?? 0) > 100000 && (
               <View style={styles.verifiedBadge}>
                 <MaterialIcons name="verified" style={styles.verifiedText} />
@@ -106,10 +129,7 @@ const ProfileHeader = ({
         )}
         {userInfo?.avatar == null && myUserId === userIdProp && (
           <View style={styles.avatarIconContainer}>
-            <TouchableOpacity
-              style={styles.avatarIcon}
-              onPress={openImagePicker}
-            >
+            <TouchableOpacity style={styles.avatarIcon} onPress={openPickImage}>
               <AntDesign
                 name="adduser"
                 size={height * 0.04}
@@ -246,11 +266,11 @@ const ProfileHeader = ({
         modalVisible={isModalVisible}
         toggleFollow={toggleFollow} // Thay đổi trạng thái following
       />
-      <ImagePickerModal
+      {/* <ImagePickerModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         image={image}
-      />
+      /> */}
     </View>
   );
 };

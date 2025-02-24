@@ -1,10 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import {
-  FontAwesome,
-  Ionicons,
-  MaterialIcons,
-  SimpleLineIcons,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import {
   View,
   Image,
@@ -61,11 +56,10 @@ const NewPost = ({ userInfo }: newPostProps) => {
             navigation.navigate("ProfilePublic", { userId: userInfo.userId })
           }
         >
-          {userInfo.avatar == null && (
-            <FontAwesome
-              name="user-o"
-              size={24}
-              color={isDarkMode ? darkTheme.text : lightTheme.text}
+          {userInfo?.avatar?.length == 0 && (
+            <Image
+              source={require("../../assets/images/userAvatar.png")}
+              style={styles.avatar}
             />
           )}
           <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
@@ -122,6 +116,7 @@ const getStyles = (isDarkMode: boolean) =>
       borderBottomWidth: 1,
       borderBottomColor: "#9E9E9E",
       paddingBottom: height * 0.02,
+      marginLeft: width * 0.02,
     },
     avatarContainer: {
       marginRight: width * 0.03,

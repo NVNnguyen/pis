@@ -26,8 +26,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
-import { GetMyUserId } from "@/hooks/GetMyUserID";
 import postsAPI from "@/api/postsAPI";
+import { getMyUserId } from "@/hooks/getMyUserID";
 
 interface PostItemProps {
   userPostResponse: {
@@ -73,7 +73,7 @@ const PostItem = ({
   const [isModalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const navigation = useNavigation<navigationProp>();
-  const myUserId = GetMyUserId();
+  const myUserId = getMyUserId();
   // Tìm index từ id
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);

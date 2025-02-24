@@ -1,63 +1,56 @@
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import { Alert } from "react-native";
 
 const useImagePickerSelectionOne = () => {
   const [image, setImage] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData | null>(null);
+  const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
 
-  // Yêu cầu quyền truy cập thư viện ảnh
-  const requestPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Quyền truy cập bị từ chối",
-        "Vui lòng cấp quyền để chọn ảnh."
-      );
-      return false;
-    }
-    return true;
-  };
-
-  // Mở thư viện ảnh và crop hình tròn
-  const openImagePicker = async () => {
-    try {
-      const hasPermission = await requestPermission();
-      if (!hasPermission) return;
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true, // Cho phép chỉnh sửa
-        aspect: [1, 1], // Giữ tỷ lệ vuông để dễ crop hình tròn
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        const uri = result.assets[0].uri;
-
-        // Crop ảnh thành hình vuông rồi hiển thị với borderRadius
-        const croppedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [{ resize: { width: 400, height: 400 } }], // Resize ảnh về 400x400
-          { format: ImageManipulator.SaveFormat.PNG }
-        );
-
-        setImage(croppedImage.uri);
+  const openPickImage = async () => {
+    if (status?.granted === false) {
+      const permissionResponse = await requestPermission();
+      if (!permissionResponse.granted) {
+        setAlertVisible(true);
+        return;
       }
-    } catch (error) {
-      console.error("Lỗi chọn ảnh:", error);
     }
-  };
 
-  // Xóa ảnh
-  const removeImage = () => {
-    setImage(null);
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const filename = uri.split("/").pop() || "avatar.jpg";
+      const fileType = filename.split(".").pop() || "jpg";
+
+      // Chuyển đổi URI thành Blob
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Tạo FormData
+      const newFormData = new FormData();
+      newFormData.append("file", {
+        uri, // ✅ Quan trọng: Phải dùng `uri` thay vì `blob`
+        name: filename,
+        type: `image/${fileType}`,
+      } as any); // ⚠️ Cần ép kiểu để tránh lỗi TypeScript
+
+      setImage(uri);
+      setFormData(newFormData);
+
+      console.log("📸 File đã chọn:", { filename, fileType, uri });
+      console.log("📂 FormData:", newFormData);
+    }
   };
 
   return {
     image,
-    openImagePicker,
-    removeImage,
+    formData,
+    openPickImage,
   };
 };
 

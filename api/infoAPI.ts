@@ -31,6 +31,25 @@ const infoAPI = {
       throw error;
     }
   },
+  uploadAvatar: async (formData: FormData, id: number) => {
+      try {
+      
+  
+        console.log("🚀 Đang gửi formData:", formData);
+  
+        const response = await http.post(`${BASE_URL_USERS}/avatar/${id}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+  
+        console.log("✅ Kết quả upload:", response.data);
+        return response?.data;
+      } catch (error) {
+        console.error("❌ Error uploading avatar:", error.response?.data || error.message);
+        throw error;
+      }
+    }
 };
 
 export default infoAPI;

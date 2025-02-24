@@ -31,7 +31,6 @@ const Home = ({ handleScroll, userIdProp }: HomeProps) => {
       if (!response.data) throw new Error("UserIfo not found!");
       return response.data;
     },
-    enabled: !!userIdProp,
     staleTime: 1000 * 60 * 3,
   });
   useEffect(() => {

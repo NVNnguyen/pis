@@ -11,7 +11,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ProfilePublicScreen from "./ProfilePublicScreen";
 import { getDecodedToken } from "@/utils/decodeToken";
-import { GetMyUserId } from "@/hooks/GetMyUserID";
+import { getMyUserId } from "@/hooks/getMyUserID";
+
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,7 +25,7 @@ const PublicModeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   console.log(route.name);
-  const myUserId = GetMyUserId() ?? 0; // Ensure myUserId is a number
+  const myUserId = getMyUserId() ?? 0; // Ensure myUserId is a number
   useEffect(() => {
     // Lắng nghe thay đổi giá trị Animated.Value
     const listener = tabBarTranslateY.addListener((value) => {
