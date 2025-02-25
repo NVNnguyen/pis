@@ -16,7 +16,7 @@ const infoAPI = {
   userInfo: async (id: number) => {
     try {
       const response = await http.get(`${BASE_URL_USERS}/${id}`);
-      return response.data;
+      return response?.data;
     } catch (error) {
       console.error("Error fetching user info for :", error);
       throw error;
@@ -46,10 +46,27 @@ const infoAPI = {
         console.log("✅ Kết quả upload:", response.data);
         return response?.data;
       } catch (error) {
-        console.error("❌ Error uploading avatar:", error.response?.data || error.message);
+        const err = error as any;
+        console.error("❌ Error uploading avatar:", err.response?.data || err.message);
         throw error;
       }
-    }
+    },
+    updateProfile: async (id: number, firstName: string, lastName: string, email: string, birthday: Date) => {
+      try {
+        const response = await http.patch(`${BASE_URL_USERS}/${id}`, {
+          firstName,
+          lastName, 
+          email,
+          birthday
+        });
+        console.log("update profile: ",response?.data)
+        return response?.data;
+      } catch (error) {
+        const err = error as any;
+        console.error("Error fetching api update profile:", err.response?.data || err.message);
+        throw error;
+      }
+    },
 };
 
 export default infoAPI;

@@ -22,34 +22,14 @@ interface PostItemProps {
   id: number;
   userPostResponse: {
     userId: number;
-    username: string;
-    avatar: string;
-    follow: boolean;
   };
-  caption: string;
   images: {
     url: string;
     id: number;
   }[];
-  likes: number;
-  comments: number;
-  type: string;
-  like: number;
-  createTime: string;
-  navigation: any;
 }
 
-const GalleryComponent = ({
-  id,
-  userPostResponse,
-  caption,
-  images,
-  likes,
-  comments,
-  type,
-  createTime,
-  navigation,
-}: PostItemProps) => {
+const Gallery = ({ id, images }: PostItemProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [postId, setPostId] = useState<number | null>(null);
@@ -76,7 +56,8 @@ const GalleryComponent = ({
   };
 
   console.log("Post detail:", postDetail);
-
+  console.log("length of images", images?.length);
+  console.log(images);
   return (
     <View style={styles.container}>
       {isLoading && (
@@ -88,21 +69,18 @@ const GalleryComponent = ({
           />
         </View>
       )}
-
-      {/* Image Grid */}
-      <FlatList
-        data={images.length > 0 ? images : []} // Hiển thị tất cả ảnh
-        keyExtractor={(image) => image.id.toString()}
-        numColumns={3} // Hiển thị 3 cột
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.imageContainer}
-            onPress={() => handlePressImage(item.id)} // Gọi API khi nhấn vào ảnh
-          >
-            <Image source={{ uri: item.url }} style={styles.image} />
-          </TouchableOpacity>
-        )}
-      />
+      {images?.length > 0 && (
+        <FlatList
+          data={images} // Hiển thị tất cả ảnh
+          keyExtractor={(image) => image.id.toString()}
+          numColumns={3} // Hiển thị 3 cột
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.imageContainer}>
+              <Image source={{ uri: item.url }} style={styles.image} />
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -137,6 +115,9 @@ const getStyles = (isDarkMode: boolean) =>
       resizeMode: "cover",
       borderRadius: 15,
     },
+    txtNoPosts: {
+      color: "#fff",
+    },
   });
 
-export default GalleryComponent;
+export default Gallery;

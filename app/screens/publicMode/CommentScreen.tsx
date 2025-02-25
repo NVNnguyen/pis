@@ -39,11 +39,6 @@ const CommentScreen = () => {
     setModalVisible(true);
   };
 
-  // const handleLike = () => {
-  //   setIsLiked(!isLiked);
-  //   setLikes((prevLikes: number) => (isLiked ? prevLikes - 1 : prevLikes + 1));
-  // };
-
   const {
     data: comments,
     isLoading: isLoading,

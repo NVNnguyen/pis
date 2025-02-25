@@ -72,7 +72,7 @@ const NewPost = ({ userInfo }: newPostProps) => {
           }
         >
           <Text style={styles.fullName}>
-            {userInfo.lastName} {userInfo.firstName}
+            {userInfo?.firstName} {userInfo?.lastName}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsVisible(true)}>

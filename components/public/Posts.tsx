@@ -155,7 +155,7 @@ const PostItem = ({
             )}
           </TouchableOpacity>
 
-          {!isFollowing && (
+          {!isFollowing && myUserId !== id && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
                 name="add"

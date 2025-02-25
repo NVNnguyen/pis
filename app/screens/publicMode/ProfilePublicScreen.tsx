@@ -1,29 +1,24 @@
 import ProfileHeader from "@/components/public/profileComponent/ProfileHeader";
-import { Alert, Dimensions, FlatList, View } from "react-native";
+import { Dimensions, FlatList, View, Text } from "react-native";
 import { StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
-import { posts } from "@/utils/mockAPI";
-import { darkTheme, lightTheme } from "@/utils/themes";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import GalleryComponent from "@/components/public/Gallery";
 import TabBar from "@/components/public/TabBar/TabBar";
 import { getDecodedToken } from "@/utils/decodeToken";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/genaral/loading/Loading";
 import postsAPI from "@/api/postsAPI";
-
-
+import { darkTheme, lightTheme } from "@/utils/themes";
+import Gallery from "@/components/public/Gallery";
+import { fontWeight } from "@/styles/color";
+import Posts from "@/components/public/Posts";
 
 const { width, height } = Dimensions.get("window");
-interface HomeProps {
-  handleScroll: (event: any) => void;
-}
-
+      
 const ProfilePublicScreen = () => {
   const [userId, setUserId] = useState<number>(0);
-  // 🟢 Thêm state để theo dõi tab được chọn
   const [selectedTab, setSelectedTab] = useState<"public" | "private">(
     "public"
   );
@@ -31,7 +26,8 @@ const ProfilePublicScreen = () => {
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
   const route = useRoute();
-  const userIdProp = route?.params as { userId: number }; // Nhận userId từ navigation params
+  const userIdProp = route?.params as { userId: number };
+
   useEffect(() => {
     const fetchUserId = async () => {
       await getDecodedToken();
@@ -39,43 +35,43 @@ const ProfilePublicScreen = () => {
       setUserId(Number(decodedToken));
     };
     fetchUserId();
-  }, [getDecodedToken]);
-
-  const [posts, setPosts] = useState<any[]>([]);
+  }, []);
 
   const {
-    data: userInfo,
-    isLoading: isLoading,
-    error: error,
+    data: posts,
+    isLoading,
+    error,
   } = useQuery({
-    queryKey: ["profileAPI", userIdProp?.userId],
+    queryKey: ["postsProfile", userIdProp?.userId, selectedTab], // Thêm selectedTab vào queryKey
     queryFn: async () => {
-      const response =
-        selectedTab === "public"
-          ? await postsAPI.postsPublic(userIdProp?.userId)
-          : await postsAPI.postsPrivate(userIdProp?.userId);
-      setPosts(response.data);
-      return response.data;
+      return selectedTab === "public"
+        ? await postsAPI.postsPublic(userIdProp?.userId)
+        : await postsAPI.postsPrivate(userIdProp?.userId);
     },
     enabled: !!userIdProp,
+    staleTime: 60 * 60 * 3,
   });
-
-  console.log("user info ", userInfo);
 
   return (
     <View style={styles.container}>
       {isLoading || (error && <Loading isLoading={isLoading} error={error} />)}
       <FlatList
-        data={posts} // Dữ liệu danh sách
-        keyExtractor={(item) => item.id} // Khóa duy nhất cho mỗi bài viết
-        renderItem={({ item }) => <GalleryComponent {...item} />} // Hiển thị bài viết
-        showsVerticalScrollIndicator={false} // Ẩn thanh cuộn dọc
-        scrollEventThrottle={20} // Tần suất sự kiện cuộn (16ms = 60FPS)
+        data={posts?.data || []}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) =>
+          selectedTab === "public" ? <Posts {...item} /> : <Gallery {...item} />
+        }
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={20}
         ListHeaderComponent={
           <ProfileHeader
             userIdProp={userIdProp.userId}
-            setSelectedTab={setSelectedTab}
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab} // Truyền setSelectedTab xuống ProfileHeader
           />
+        }
+        ListEmptyComponent={
+          <Text style={styles.txtNoPosts}>No posts yet!</Text>
         }
       />
       <TabBar />
@@ -83,7 +79,7 @@ const ProfilePublicScreen = () => {
   );
 };
 
-const getStyles = (isDarkMode: any) =>
+const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -91,5 +87,15 @@ const getStyles = (isDarkMode: any) =>
         ? darkTheme.background
         : lightTheme.background,
     },
+    txtNoPosts: {
+      flex: 1, // Chiếm toàn bộ không gian có sẵn
+      justifyContent: "center", // Căn giữa theo chiều dọc
+      alignItems: "center", // Căn giữa theo chiều ngang
+      textAlign: "center", // Căn giữa chữ
+      color: "#fff",
+      fontSize: width * 0.05,
+      fontWeight: fontWeight, // Tăng kích thước chữ để dễ đọc hơn
+    },
   });
+
 export default ProfilePublicScreen;

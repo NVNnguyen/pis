@@ -40,8 +40,8 @@ const postsAPI = {
   postsPublic: async (id: number) => {
     try {
       const response = await http.get(`${BASE_URL_POSTS}/${id}/public`);
-      console.log(response);
-      return response.data;
+      console.log(response?.data);
+      return response?.data;
     } catch (error) {
       console.error("Error fetching posts public:", error);
       throw error;
@@ -49,8 +49,9 @@ const postsAPI = {
   },
   postsPrivate: async (id: number) => {
     try {
-      const response = await http.get(`${BASE_URL_POSTS}/private/${id}`);
-      return response.data;
+      const response = await http.get(`${BASE_URL_POSTS}/${id}/private`);
+      console.log(response?.data);
+      return response?.data;
     } catch (error) {
       console.error("Error fetching posts private:", error);
       throw error;

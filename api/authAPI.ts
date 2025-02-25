@@ -88,10 +88,13 @@ const authApi = {
   
 
 
-  logout: async () => {
+  logout: async (token: string) => {
     try {
-      await AsyncStorage.removeItem("token");
-      console.log("Logout successfully!");
+      const response  = await http.post( // Đúng endpoint `/forgot-password`
+        `${BASE_URL_AUTH}/logout`,
+        { "token": token })
+        console.log(response?.data)
+        return response?.data
     } catch (error) {
       console.error("Logout error:", error);
     }

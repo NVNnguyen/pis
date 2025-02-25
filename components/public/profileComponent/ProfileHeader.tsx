@@ -1,6 +1,11 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { AntDesign, FontAwesome6, MaterialIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  FontAwesome6,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -10,43 +15,61 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import ModelUnFollow from "../Modals/ModelUnFollow";
 import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNumber";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import infoAPI from "@/api/infoAPI";
-import { getDecodedToken } from "@/utils/decodeToken";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
-import useUserInfo from "@/hooks/useUserInfoHook";
+import useUserInfo from "@/hooks/useUserInfo";
 import useUserFollowInfo from "@/hooks/useUserFollowInfo";
 import useProfileActions from "@/hooks/useProfileActions";
-import ImagePickerModal from "../Modals/ImagePickerModal";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import { useQuery } from "@tanstack/react-query";
+import UnFollowModel from "../Modals/UnFollowModel";
+import EditProfileModal from "../Modals/EditProfileModal";
+import { useNavigation } from "@react-navigation/native";
+import SettingModel from "../Modals/SettingModel";
 
 const { width, height } = Dimensions.get("window");
 
 const ProfileHeader = ({
   userIdProp,
-  setSelectedTab,
+  selectedTab,
+  setSelectedTab, // Nhận setSelectedTab từ ProfilePublicScreen
 }: {
   userIdProp: number;
+  selectedTab: string;
   setSelectedTab: (tab: "public" | "private") => void;
 }) => {
-  const [selectedTab, setTab] = useState<"public" | "private">("public");
+  const [tab, setTab] = useState<"public" | "private">("public");
   const { isDarkMode } = useTheme();
-  // console.log("My userId", myUserId);
-  const styles = getStyles(isDarkMode, selectedTab);
+  const styles = getStyles(isDarkMode, tab);
   const myUserId = getMyUserId();
-  const userInfo = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
+  const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
   const { follower, following } = useUserFollowInfo(userIdProp);
+  const [isVisibleEditModel, setIsVisibleEditModel] = useState<boolean>(false);
+  const [isVisibleSettingModel, setIsVisibleSettingModel] =
+    useState<boolean>(false);
+  const navigation = useNavigation();
   const {
     isModalVisible,
     setIsModalVisible,
     toggleFollow,
     handleFollowStatus,
   } = useProfileActions(userInfo);
-
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setIsVisibleSettingModel(true)}>
+          <Ionicons
+            name="options"
+            size={24}
+            color={isDarkMode ? darkTheme.text : lightTheme.text}
+            style={{ marginRight: 15 }}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, isDarkMode]);
   const getColor = (
     isFollowing: boolean,
     isDarkMode: boolean,
@@ -70,10 +93,6 @@ const ProfileHeader = ({
         : darkTheme.background;
     }
   };
-  if (selectedTab === "public") {
-    useEffect(() => {});
-    [];
-  }
   const { formData, openPickImage } = useImagePickerSelectionOne();
 
   const {
@@ -92,7 +111,6 @@ const ProfileHeader = ({
     },
     enabled: !!userIdProp && !!formData,
   });
-  console.log("upload avatar new: ", profile);
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -113,12 +131,6 @@ const ProfileHeader = ({
                   style={styles.avatarImg}
                 />
               )}
-              {/* {profile?.avatar.length > 0 && (
-                  <Image
-                    source={{ uri: userInfo.avatar }}
-                    style={styles.avatarImg}
-                  />
-                )} */}
             </View>
             {(follower ?? 0) > 100000 && (
               <View style={styles.verifiedBadge}>
@@ -176,7 +188,10 @@ const ProfileHeader = ({
       {/* Action Buttons */}
       {myUserId === userIdProp && (
         <View style={styles.myProfile}>
-          <TouchableOpacity style={styles.editProfileButton}>
+          <TouchableOpacity
+            style={styles.editProfileButton}
+            onPress={() => setIsVisibleEditModel(true)}
+          >
             <Text style={styles.editProfileButtonText}>Edit profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareProfileButton}>
@@ -220,7 +235,6 @@ const ProfileHeader = ({
         </View>
       )}
       <View style={styles.postContainer}>
-        {/* Public Posts */}
         <TouchableOpacity
           style={[
             styles.postsBtn,
@@ -238,7 +252,6 @@ const ProfileHeader = ({
           </Text>
         </TouchableOpacity>
 
-        {/* Private Posts */}
         <TouchableOpacity
           style={[
             styles.postsBtn,
@@ -256,7 +269,7 @@ const ProfileHeader = ({
           </Text>
         </TouchableOpacity>
       </View>
-      <ModelUnFollow
+      <UnFollowModel
         selectedUser={{
           id: userInfo?.id ?? 0,
           username: userInfo?.username ?? "",
@@ -266,11 +279,19 @@ const ProfileHeader = ({
         modalVisible={isModalVisible}
         toggleFollow={toggleFollow} // Thay đổi trạng thái following
       />
-      {/* <ImagePickerModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        image={image}
-      /> */}
+      <EditProfileModal
+        visible={isVisibleEditModel}
+        onClose={() => setIsVisibleEditModel(false)}
+        userIdProp={userIdProp}
+        firstName={userInfo?.firstName ?? ""}
+        lastName={userInfo?.lastName ?? ""}
+        email={userInfo?.email ?? ""}
+        birthday={userInfo?.birthday ?? null}
+      />
+      <SettingModel
+        visible={isVisibleSettingModel}
+        onClose={() => setIsVisibleSettingModel(false)}
+      />
     </View>
   );
 };

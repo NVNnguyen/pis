@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -17,75 +18,34 @@ import useUpdateProfile from "@/hooks/useUpdateProfile";
 import { useQueryClient } from "@tanstack/react-query";
 import { emailRegex } from "@/utils/regex";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
+import { getToken } from "@/utils/storage";
+import useLogout from "@/hooks/useLogout";
 
 const { width, height } = Dimensions.get("window");
 
-interface EditProfileModalProps {
+interface SettingModelProps {
   visible: boolean;
   onClose: () => void;
-  firstName: string;
-  lastName: string;
-  email: string;
-  birthday: Date;
-  userIdProp: number;
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({
-  visible,
-  onClose,
-  firstName,
-  lastName,
-  email,
-  birthday,
-  userIdProp,
-}) => {
-  const [firstNameEdit, setFirstNameEdit] = useState<string>(firstName);
-  const [lastNameEdit, setLastNameEdit] = useState<string>(lastName);
-  const [emailEdit, setEmailEdit] = useState<string>(email);
-  const [birthdayEdit, setBirthdayEdit] = useState<Date | null>(birthday);
+const SettingModel: React.FC<SettingModelProps> = ({ visible, onClose }) => {
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertTitle, setAlertTitle] = useState<string>("");
   const [alertMessage, setAlertMessage] = useState<string>("");
   const { isDarkMode } = useTheme();
   const styles = getStyle(isDarkMode);
-  const onChange = (_event: any, selectedDate: any) => {
-    const currentDate = selectedDate || birthdayEdit;
-    setBirthdayEdit(currentDate);
-  };
-  const updateProfileMutation = useUpdateProfile();
-  const queryClient = useQueryClient();
+  const { logout, isLoading } = useLogout();
 
-  const handleUpdateProfile = () => {
-    updateProfileMutation.mutate(
-      {
-        firstName: firstNameEdit,
-        lastName: lastNameEdit,
-        email: emailEdit,
-        birthday: birthdayEdit || new Date(),
-        userIdProp,
-      },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["userInfo", userIdProp] }); // 🚀 Invalidate userInfo query
-          onClose(); // Đóng modal sau khi cập nhật
-        },
-      }
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", onPress: () => logout() }, // Gọi hàm logout khi nhấn
+      ],
+      { cancelable: true }
     );
-  };
-  useEffect(() => {
-    if (typeof birthdayEdit === "string") {
-      setBirthdayEdit(new Date(birthdayEdit));
-    }
-  }, [birthdayEdit]);
-
-  const handleEnterEmail = () => {
-    if (!emailRegex.test(emailEdit)) {
-      setAlertVisible(true);
-      setAlertTitle("Email invalid!");
-      setAlertMessage("Email invalid! Please enter correct email format!");
-      return false;
-    }
-    return true;
   };
   return (
     <Modal animationType="slide" transparent visible={visible}>
@@ -96,22 +56,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Edit profile</Text>
-            <TouchableOpacity
-              onPress={() => {
-                if (handleEnterEmail()) {
-                  handleUpdateProfile();
-                  onClose();
-                }
-              }}
-            >
+            <Text style={styles.headerTitle}>Setting</Text>
+            <TouchableOpacity>
               <Text style={styles.doneText}>Done</Text>
             </TouchableOpacity>
           </View>
 
           {/* Profile Section */}
           <View style={styles.profileSection}>
-            <View style={styles.inputContainer}>
+            {/* <View style={styles.inputContainer}>
               <Text style={styles.label}>FirstName</Text>
               <TextInput
                 style={styles.input}
@@ -120,39 +73,17 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 placeholder="Enter your firstname!"
                 placeholderTextColor="#999"
               />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>LastName</Text>
-              <TextInput
-                style={styles.input}
-                value={lastNameEdit}
-                onChangeText={(text) => setLastNameEdit(text)}
-                placeholder="Enter your lastname!"
-                placeholderTextColor="#999"
-                multiline
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={emailEdit}
-                onChangeText={(text) => setEmailEdit(text)}
-                placeholder="Enter your email!"
-                placeholderTextColor="#999"
-                multiline
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Birthday</Text>
-              <DateTimePicker
-                value={birthdayEdit || new Date()}
-                mode="date"
-                display="default"
-                onChange={onChange}
-              />
-            </View>
+            </View> */}
+            <TouchableOpacity
+              style={styles.btnLogout}
+              onPress={handleLogout}
+              disabled={isLoading} // Disable khi đang tải
+            >
+              <Text style={styles.txtLogout}>
+                {isLoading ? "Logging out..." : "Logout"}{" "}
+                {/* Hiển thị trạng thái */}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
         <CustomAlert
@@ -221,6 +152,17 @@ const getStyle = (isDarkMode: any) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: height * 0.018,
     },
+    btnLogout: {
+      alignContent: "center",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    txtLogout: {
+      color: "red",
+      fontSize: width * 0.05,
+      fontWeight: fontWeight,
+      textDecorationLine: "underline",
+    },
   });
 
-export default EditProfileModal;
+export default SettingModel;

@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Dimensions, Image, StyleSheet } from "react-native";
+import { Dimensions, Image, StyleSheet, TouchableOpacity } from "react-native";
 import LoginScreen from "@/app/screens/generalMode/LoginScreen";
 import RegisterScreen from "@/app/screens/generalMode/RegisterScreen";
 import FriendModeScreen from "@/app/screens/privateMode/FriendModeScreen";
@@ -19,6 +19,7 @@ import { fontWeight } from "@/styles/color";
 import ForgotPasswordScreen from "@/app/screens/generalMode/ForgotPasswordScreen";
 import OtpScreen from "@/app/screens/generalMode/OtpScreen";
 import ResetPasswordScreen from "@/app/screens/generalMode/ResetPasswordScreen";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 const { width, height } = Dimensions.get("window");
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,7 +75,9 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="ProfilePublic"
         component={ProfilePublicScreen}
-        options={{ headerShown: true }}
+        options={{
+          headerShown: true,
+        }}
       />
       <Stack.Screen
         name="TabBar"

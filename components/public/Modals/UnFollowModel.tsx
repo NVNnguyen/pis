@@ -27,7 +27,7 @@ interface UserProps {
   toggleFollow: (id: string) => void;
 }
 
-const ModelUnFollow: React.FC<UserProps> = (props) => {
+const UnFollowModel: React.FC<UserProps> = (props) => {
   const { isDarkMode } = useTheme();
   // Dynamically generated styles
   const styles = getStyles(isDarkMode);
@@ -54,7 +54,9 @@ const ModelUnFollow: React.FC<UserProps> = (props) => {
               {/* Unfollow Button */}
               <TouchableOpacity
                 style={[styles.modalButton]}
-                onPress={() => props.toggleFollow(props.selectedUser.id.toString())}
+                onPress={() =>
+                  props.toggleFollow(props.selectedUser.id.toString())
+                }
               >
                 <Text style={styles.modalButtonTextUnFollow}>Unfollow</Text>
               </TouchableOpacity>
@@ -123,4 +125,4 @@ const getStyles = (isDarkMode: boolean) =>
     },
   });
 
-export default ModelUnFollow;
+export default UnFollowModel;
