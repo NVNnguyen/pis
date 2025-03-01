@@ -18,15 +18,18 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { Color } from "@/styles/color";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
 
 const { width, height } = Dimensions.get("window"); // Lấy chiều rộng màn hình
 
-interface chatInpuProp {
+interface chatInputProp {
   handleSendMessage: () => void;
 }
 const ChatInput = () => {
   const [message, setMessage] = useState(""); // State lưu nội dung tino nhắn
-
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
   const handleSendMessage = () => {
     if (message.trim().length > 0) {
       console.log("Sent message:", message);
@@ -97,43 +100,46 @@ const ChatInput = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#000", // Màu nền đen
-    width: "100%",
-    paddingVertical: height * 0.01,
-  },
-  iconsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    width: "40%",
-  },
-  iconButton: {
-    paddingHorizontal: width * 0.005,
-    paddingVertical: height * 0.005,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2C2C2C",
-    flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: width * 0.01,
-    marginHorizontal: width * 0.005,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Color,
-    paddingVertical: height * 0.005,
-  },
-  likeButton: {
-    paddingVertical: height * 0.01,
-    paddingHorizontal: width * 0.01,
-  },
-});
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      width: "100%",
+      paddingVertical: height * 0.01,
+    },
+    iconsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+      width: "40%",
+    },
+    iconButton: {
+      paddingHorizontal: width * 0.005,
+      paddingVertical: height * 0.005,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#2C2C2C",
+      flex: 1,
+      borderRadius: 20,
+      paddingHorizontal: width * 0.01,
+      marginHorizontal: width * 0.005,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 16,
+      color: Color,
+      paddingVertical: height * 0.005,
+    },
+    likeButton: {
+      paddingVertical: height * 0.01,
+      paddingHorizontal: width * 0.01,
+    },
+  });
 
 export default ChatInput;

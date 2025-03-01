@@ -2,14 +2,10 @@ import { FlatList, View, StyleSheet } from "react-native";
 import PostItem from "./Posts";
 import { useNavigation } from "@react-navigation/native";
 import NewPost from "./NewPost";
-import { useQuery } from "@tanstack/react-query";
-import Loading from "../genaral/loading/Loading";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect } from "react";
-import postsAPI from "@/api/postsAPI";
+import React, { useEffect } from "react";
 import useUserInfo from "@/hooks/useUserInfo";
 import usePosts from "@/hooks/usePosts";
-
 interface HomeProps {
   handleScroll: (event: any) => void;
   userIdProp: number;
@@ -38,10 +34,6 @@ const Home = ({ handleScroll, userIdProp }: HomeProps) => {
 
   return (
     <View style={styles.container}>
-      {isUserLoading ||
-        (userError && <Loading isLoading={isUserLoading} error={userError} />)}
-      {isPostsLoading ||
-        (postsError && <Loading isLoading={isUserLoading} error={userError} />)}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id.toString()}

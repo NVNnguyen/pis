@@ -8,7 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import CreatePostModel from "./Modals/CreatePostModel";
+import CreatePostModel from "./Modals/CreatePostModal";
 import { useRef, useState } from "react";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { captureImage } from "@/utils/friendModeHandel";

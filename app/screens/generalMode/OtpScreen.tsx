@@ -118,13 +118,13 @@ const getStyles = (isDarkMode: any) =>
       color: isDarkMode ? lightTheme.text : darkTheme.text,
     },
     button: {
-      backgroundColor: buttonBlueColor,
+      backgroundColor: isDarkMode ? darkTheme.text : lightTheme.text,
       paddingVertical: height * 0.01,
       paddingHorizontal: width * 0.05,
       borderRadius: 5,
     },
     buttonText: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? lightTheme.text : lightTheme.text,
       fontSize: width * 0.05,
     },
     suggestTxt: {

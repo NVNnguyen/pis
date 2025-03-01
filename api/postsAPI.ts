@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getToken } from "@/utils/storage";
-import Http from "@/utils/API";
+import Http from "@/utils/Http";
 
 const BASE_URL_POSTS = `/posts`;
 let http: any;
@@ -23,7 +23,7 @@ const postsAPI = {
       throw error;
     }
   },
-  comments: async (userId: number, postId: number) => {
+  commentsLevel1: async (userId: number, postId: number) => {
     try {
       const response = await http.post(`${BASE_URL_POSTS}/comments/level1`, {
         userId: userId,
@@ -33,7 +33,51 @@ const postsAPI = {
       console.log(response);
       return response.data;
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error fetching comments level1:", error);
+      throw error;
+    }
+  },
+  commentsLevel2: async (userId: number, commentId: number) => {
+    try {
+      const response = await http.post(`${BASE_URL_POSTS}/comments/level2`, {
+        userId: userId,
+        commentId: commentId,
+      });
+
+      console.log(response);
+      return response?.data;
+    } catch (error) {
+      console.error("Error fetching comments level2:", error);
+      throw error;
+    }
+  },
+  likeComment: async (userId:number, commentId: number)=>{
+    try {
+      const response = await http.post(`${BASE_URL_POSTS}/comments/like`,
+        {
+          userId: userId,
+          commentId: commentId,
+        }
+      
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching like comment api:", error);
+      throw error;
+    }
+  },
+  dislikeComment: async (userId:number, commentId: number)=>{
+    try {
+      const response = await http.post(`${BASE_URL_POSTS}/comments/dislike`,
+        {
+          userId: userId,
+          commentId: commentId,
+        }
+      
+      );
+      return response?.data;
+    } catch (error) {
+      console.error("Error fetching dislike comment api:", error);
       throw error;
     }
   },
@@ -60,7 +104,7 @@ const postsAPI = {
   postDetails: async (postsId: number)=>{
     try {
       const response = await http.get(`${BASE_URL_POSTS}/detail/${postsId}`);
-      return response.data;
+      return response?.data;
     } catch (error) {
       console.error("Error fetching post detail:", error);
       throw error;

@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getToken } from "@/utils/storage";
-import Http from "@/utils/API";
+import Http from "@/utils/Http";
 
 const BASE_URL_CONVERSATIONS = `/conversations`;
 

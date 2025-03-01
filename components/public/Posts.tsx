@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,51 +8,23 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
-  Modal,
   Alert,
 } from "react-native";
-import {
-  EvilIcons,
-  Ionicons,
-  MaterialIcons,
-  AntDesign,
-} from "@expo/vector-icons";
-import ImageViewer from "react-native-image-zoom-viewer";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { fontWeight } from "@/styles/color";
 import { formatNumber } from "@/utils/formatNumber";
-import { SafeAreaView } from "react-native-safe-area-context";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
 import postsAPI from "@/api/postsAPI";
 import { getMyUserId } from "@/hooks/getMyUserID";
-
-interface PostItemProps {
-  userPostResponse: {
-    userId: number;
-    username: string;
-    avatar: string;
-    follow: boolean;
-  };
-  id: number;
-  caption: string;
-  images: {
-    url: string;
-    id: number;
-  }[];
-  likes: number;
-  comments: number;
-  type: string;
-  like: boolean;
-  createTime: string;
-}
-
-interface navigationProp extends NavigationProp<any> {
-  page: string;
-  id: number;
-}
+import PostImageDetailModal from "./Modals/PostImageDetailModal";
+import { RootStackParamList } from "@/utils/types/MainStackType";
+import { PostItemType } from "@/utils/types/PostItemType";
+import useHandleLikePost from "@/hooks/useHandleLikePost";
+import useHandleFollow from "@/hooks/useHanldeFollow";
 
 const { width, height } = Dimensions.get("window");
 const PostItem = ({
@@ -65,70 +37,35 @@ const PostItem = ({
   type,
   like,
   createTime,
-}: PostItemProps) => {
-  const [isLiked, setIsLiked] = useState(like);
-  const [isFollowing, setIsFollowing] = useState(userPostResponse.follow);
+}: PostItemType) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const [isModalVisible, setModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const navigation = useNavigation<navigationProp>();
-  const myUserId = getMyUserId();
+  const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
+    useState<boolean>(false);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const myUserId = getMyUserId() ?? 0;
   // Tìm index từ id
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);
-
   // Hiển thị modal
   const showModal = (id: number) => {
     const index = getIndexById(id);
     if (index !== -1) {
       setCurrentIndex(index); // Lưu index của ảnh được chọn
-      setModalVisible(true);
+      setIsVisiblePostImageDetail(true); // Mở modal
     }
   };
-  const handleLike = async () => {
-    if (!myUserId) {
-      console.error("User ID is undefined or null");
-      return;
-    }
-
-    try {
-      let response;
-
-      if (isLiked) {
-        response = await postsAPI.dislike(myUserId, id);
-        console.log("Dislike API Call with:", myUserId, id);
-      } else {
-        response = await postsAPI.like(myUserId, id);
-        console.log("Like API Call with:", myUserId, id);
-      }
-
-      if (
-        response?.message === "Like Success" ||
-        response?.message === "Dislike Success"
-      ) {
-        setIsLiked(!isLiked);
-      } else {
-        console.error("Unexpected API response:", response);
-      }
-    } catch (error) {
-      console.error("API error:", error);
-    }
-  };
-
-  const handleFollowing = () => {
-    Alert.alert(`Follow  ${userPostResponse.username}?`, "", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => setIsFollowing(!isFollowing),
-      },
-    ]);
-  };
-
+  const { numberLike, isLiked, handleLike } = useHandleLikePost(
+    myUserId,
+    id,
+    like,
+    likes
+  );
+  const { isFollowing, handleFollowing } = useHandleFollow(
+    userPostResponse?.username,
+    userPostResponse?.follow
+  );
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -155,7 +92,7 @@ const PostItem = ({
             )}
           </TouchableOpacity>
 
-          {!isFollowing && myUserId !== id && (
+          {!isFollowing && myUserId !== userPostResponse?.userId && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
                 name="add"
@@ -213,7 +150,9 @@ const PostItem = ({
             renderItem={({ item }) => (
               <TouchableOpacity
                 key={item.id} // Thêm key ở đúng vị trí
-                onPress={() => showModal(item.id)}
+                onPress={() => {
+                  showModal(item?.id);
+                }}
               >
                 <Image source={{ uri: item.url }} style={styles.image} />
               </TouchableOpacity>
@@ -232,14 +171,15 @@ const PostItem = ({
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
           />
-          <Text style={styles.iconText}>{formatNumber(likes)}</Text>
+          {}
+          <Text style={styles.iconText}>{formatNumber(numberLike)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconContainer}
           onPress={() => {
             navigation.navigate("Comments", {
-              postId: id,
-              userId: userPostResponse.userId,
+              id: id,
+              userId: userPostResponse?.userId,
             });
           }}
         >
@@ -253,35 +193,12 @@ const PostItem = ({
       </View>
 
       {/* Modal hiển thị ảnh toàn màn hình */}
-      <SafeAreaView>
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          style={styles.modalContainer}
-          animationType="fade"
-        >
-          <TouchableOpacity
-            style={styles.closeIcon}
-            onPress={() => {
-              setModalVisible(false);
-            }}
-          >
-            <AntDesign
-              name="close"
-              size={height * 0.024}
-              color={isDarkMode ? darkTheme.text : lightTheme.text}
-            />
-          </TouchableOpacity>
-          <ImageViewer
-            imageUrls={images.map((image) => ({ url: image.url }))}
-            index={currentIndex} // Sử dụng index thay vì id
-            onSwipeDown={() => {
-              setModalVisible(false);
-            }}
-            enableSwipeDown={true} // Kích hoạt vuốt xuống
-          />
-        </Modal>
-      </SafeAreaView>
+      <PostImageDetailModal // Thay đổi thành PostImageDetailModal
+        images={images}
+        currentIndex={currentIndex}
+        isModalVisible={isVisiblePostImageDetail}
+        onClose={() => setIsVisiblePostImageDetail(false)}
+      />
     </View>
   );
 };

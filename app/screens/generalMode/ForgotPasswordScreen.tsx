@@ -48,10 +48,12 @@ const ForgotPasswordScreen = () => {
     try {
       if (!isLoading) {
         const response = await authApi.forgotPassword(
-          email.toLocaleLowerCase()
+          email.trim().toLocaleLowerCase()
         );
         if (response?.data?.existAccount == true) {
-          navigation.navigate("Otp", { email: email.toLocaleLowerCase() });
+          navigation.navigate("Otp", {
+            email: email.trim().toLocaleLowerCase(),
+          });
         }
         if (!response.data)
           throw new Error("This email has not been created account yet");

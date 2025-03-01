@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Http from "@/utils/API";
+import Http from "@/utils/Http";
 
 const BASE_URL_AUTH = `/auth`;
 

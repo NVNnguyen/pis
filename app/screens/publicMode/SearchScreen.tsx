@@ -12,7 +12,7 @@ import {
 import { EvilIcons, Ionicons } from "@expo/vector-icons";
 import UserItem from "@/components/public/User"; // Import UserItem
 import { Color, fontWeight } from "@/styles/color";
-import ModelUnFollow from "@/components/public/Modals/UnFollowModel";
+import ModelUnFollow from "@/components/public/Modals/UnFollowModal";
 import { useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 

@@ -13,27 +13,22 @@ import ProfilePublicScreen from "./ProfilePublicScreen";
 import { getDecodedToken } from "@/utils/decodeToken";
 import { getMyUserId } from "@/hooks/getMyUserID";
 
-
 const { width, height } = Dimensions.get("window");
 
 const PublicModeScreen = () => {
-  const tabBarTranslateY = useRef(new Animated.Value(0)).current; // Giá trị dịch chuyển TabBar
-  const currentTranslateY = useRef(0); // Lưu giá trị hiện tại của TabBar
-  const lastScrollY = useRef(0); // Lưu vị trí cuộn trước đó
+  const tabBarTranslateY = useRef(new Animated.Value(0)).current;
+  const currentTranslateY = useRef(0);
+  const lastScrollY = useRef(0);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation();
   const route = useRoute();
   console.log(route.name);
-  const myUserId = getMyUserId() ?? 0; // Ensure myUserId is a number
+  const myUserId = getMyUserId() ?? 0;
   useEffect(() => {
-    // Lắng nghe thay đổi giá trị Animated.Value
     const listener = tabBarTranslateY.addListener((value) => {
-      currentTranslateY.current = value.value; // Cập nhật giá trị hiện tại vào ref
+      currentTranslateY.current = value.value;
     });
-
     return () => {
-      // Hủy listener khi component unmount
       tabBarTranslateY.removeListener(listener);
     };
   }, [tabBarTranslateY]);

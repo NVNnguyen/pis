@@ -1,47 +1,30 @@
 import conversationAPI from "@/api/conversationAPI";
 import ChatListItem from "@/components/public/ChatList";
+import TabBar from "@/components/public/TabBar/TabBar";
 import { useTheme } from "@/contexts/ThemeContext";
+import { getMyUserId } from "@/hooks/getMyUserID";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, View, Text } from "react-native";
 
 const ChatListScreen = () => {
-  const [userId, setUserId] = useState<number | null>(null);
   const [conversation, setConversation] = useState<any[]>([]);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const fetchUserId = async () => {
-      try {
-        const decodedToken = await AsyncStorage.getItem("userID");
-        if (decodedToken) {
-          setUserId(Number(decodedToken));
-          console.log("User ID:", decodedToken);
-        } else {
-          console.warn("❌ Không tìm thấy userID trong AsyncStorage!");
-        }
-      } catch (error) {
-        console.error("❌ Lỗi khi lấy userID:", error);
-      }
-    };
-    fetchUserId();
-  }, []);
-
+  const myUserId = getMyUserId();
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        if (!userId || userId === 0) {
-          console.warn("❌ User ID không hợp lệ:", userId);
+        if (!myUserId || myUserId === 0) {
+          console.warn("❌ User ID không hợp lệ:", myUserId);
           return;
         }
 
-        console.log("📡 Fetching conversations for User ID:", userId);
+        console.log("📡 Fetching conversations for User ID:", myUserId);
         const conversationResponse = await conversationAPI.conversations(
-          userId
+          myUserId
         );
         setConversation(conversationResponse?.data || []);
         console.log("✅ Conversations fetched:", conversationResponse.data);
@@ -50,10 +33,10 @@ const ChatListScreen = () => {
       }
     };
 
-    if (userId) {
+    if (myUserId) {
       fetchConversations();
     }
-  }, [userId]); // useEffect chỉ chạy khi userId thay đổi
+  }, [myUserId]); // useEffect chỉ chạy khi userId thay đổi
 
   return (
     <View style={styles.container}>
@@ -65,12 +48,11 @@ const ChatListScreen = () => {
         <FlatList
           data={conversation}
           keyExtractor={(chat) => chat.id.toString()}
-          renderItem={({ item }) => (
-            <ChatListItem chat={item} navigation={navigation} />
-          )}
+          renderItem={({ item }) => <ChatListItem chat={item} />}
           contentContainerStyle={styles.listContainer}
         />
       )}
+      <TabBar />
     </View>
   );
 };

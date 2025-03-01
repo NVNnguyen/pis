@@ -1,4 +1,4 @@
-import Http from "@/utils/API";
+import Http from "@/utils/Http";
 import { getToken } from "@/utils/storage";
 
 const BASE_URL_USERS = `/users`;

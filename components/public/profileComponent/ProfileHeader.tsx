@@ -24,10 +24,11 @@ import useUserFollowInfo from "@/hooks/useUserFollowInfo";
 import useProfileActions from "@/hooks/useProfileActions";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import { useQuery } from "@tanstack/react-query";
-import UnFollowModel from "../Modals/UnFollowModel";
+import UnFollowModel from "../Modals/UnFollowModal";
 import EditProfileModal from "../Modals/EditProfileModal";
 import { useNavigation } from "@react-navigation/native";
-import SettingModel from "../Modals/SettingModel";
+import SettingModel from "../Modals/SettingModal";
+import AvatarDetailModal from "../Modals/AvatarDetailModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -48,6 +49,8 @@ const ProfileHeader = ({
   const { follower, following } = useUserFollowInfo(userIdProp);
   const [isVisibleEditModel, setIsVisibleEditModel] = useState<boolean>(false);
   const [isVisibleSettingModel, setIsVisibleSettingModel] =
+    useState<boolean>(false);
+  const [isVisibleAvatarDetail, setIsVisibleAvatarDetail] =
     useState<boolean>(false);
   const navigation = useNavigation();
   const {
@@ -123,21 +126,23 @@ const ProfileHeader = ({
         </View>
         {/* Avatar */}
         {userInfo?.avatar?.length > 0 && (
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              {userInfo?.avatar?.length > 0 && (
-                <Image
-                  source={{ uri: userInfo?.avatar }}
-                  style={styles.avatarImg}
-                />
+          <TouchableOpacity onPress={() => setIsVisibleAvatarDetail(true)}>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                {userInfo?.avatar?.length > 0 && (
+                  <Image
+                    source={{ uri: userInfo?.avatar }}
+                    style={styles.avatarImg}
+                  />
+                )}
+              </View>
+              {(follower ?? 0) > 100000 && (
+                <View style={styles.verifiedBadge}>
+                  <MaterialIcons name="verified" style={styles.verifiedText} />
+                </View>
               )}
             </View>
-            {(follower ?? 0) > 100000 && (
-              <View style={styles.verifiedBadge}>
-                <MaterialIcons name="verified" style={styles.verifiedText} />
-              </View>
-            )}
-          </View>
+          </TouchableOpacity>
         )}
         {userInfo?.avatar == null && myUserId === userIdProp && (
           <View style={styles.avatarIconContainer}>
@@ -282,6 +287,8 @@ const ProfileHeader = ({
       <EditProfileModal
         visible={isVisibleEditModel}
         onClose={() => setIsVisibleEditModel(false)}
+        avatar={userInfo?.avatar ?? ""}
+        follower={follower ?? 0}
         userIdProp={userIdProp}
         firstName={userInfo?.firstName ?? ""}
         lastName={userInfo?.lastName ?? ""}
@@ -291,6 +298,11 @@ const ProfileHeader = ({
       <SettingModel
         visible={isVisibleSettingModel}
         onClose={() => setIsVisibleSettingModel(false)}
+      />
+      <AvatarDetailModal
+        image={userInfo?.avatar ?? ""}
+        visible={isVisibleAvatarDetail}
+        onClose={() => setIsVisibleAvatarDetail(false)}
       />
     </View>
   );

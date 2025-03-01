@@ -7,22 +7,27 @@ import {
   StyleSheet,
   Dimensions,
   Modal,
+  Image,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { OPENSANS_REGULAR } from "@/utils/const";
 import { fontWeight } from "@/styles/color";
 import useUpdateProfile from "@/hooks/useUpdateProfile";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { emailRegex } from "@/utils/regex";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
+import { MaterialIcons } from "@expo/vector-icons";
+import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
+import infoAPI from "@/api/infoAPI";
 
 const { width, height } = Dimensions.get("window");
 
 interface EditProfileModalProps {
   visible: boolean;
   onClose: () => void;
+  avatar: string;
+  follower: number;
   firstName: string;
   lastName: string;
   email: string;
@@ -33,6 +38,8 @@ interface EditProfileModalProps {
 const EditProfileModal: React.FC<EditProfileModalProps> = ({
   visible,
   onClose,
+  avatar,
+  follower,
   firstName,
   lastName,
   email,
@@ -77,7 +84,23 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setBirthdayEdit(new Date(birthdayEdit));
     }
   }, [birthdayEdit]);
-
+  const { formData, openPickImage } = useImagePickerSelectionOne();
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["loadAvatar", userIdProp],
+    queryFn: async () => {
+      if (!formData) {
+        console.warn("⚠️ Không có FormData để upload!");
+        return null;
+      }
+      const response = await infoAPI.uploadAvatar(formData, userIdProp);
+      return response?.data;
+    },
+    enabled: !!userIdProp && !!formData,
+  });
   const handleEnterEmail = () => {
     if (!emailRegex.test(emailEdit)) {
       setAlertVisible(true);
@@ -111,6 +134,32 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
           {/* Profile Section */}
           <View style={styles.profileSection}>
+            {avatar?.length > 0 && (
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatar}>
+                  {avatar?.length > 0 && (
+                    <Image source={{ uri: avatar }} style={styles.avatarImg} />
+                  )}
+                  {avatar?.length === 0 && (
+                    <Image
+                      source={require("@/assets/images/userAvatar.png")}
+                      style={styles.avatarImg}
+                    />
+                  )}
+                </View>
+                {(follower ?? 0) > 100000 && (
+                  <View style={styles.verifiedBadge}>
+                    <MaterialIcons
+                      name="verified"
+                      style={styles.verifiedText}
+                    />
+                  </View>
+                )}
+                <TouchableOpacity onPress={openPickImage}>
+                  <Text style={styles.txtEditAvt}>Edit avatar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>FirstName</Text>
               <TextInput
@@ -220,6 +269,43 @@ const getStyle = (isDarkMode: any) =>
       borderRadius: 8,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: height * 0.018,
+    },
+    avatarContainer: {
+      alignItems: "center",
+      marginBottom: height * 0.015,
+    },
+    avatar: {
+      width: height * 0.07, // Same height as the header
+      height: height * 0.07,
+      position: "relative",
+      borderRadius: (height * 0.07) / 2, // Sửa thành giá trị số
+    },
+    avatarImg: {
+      width: "100%", // Cover the entire container
+      height: "100%",
+      borderRadius: (height * 0.07) / 2, // Sửa thành giá trị số
+      resizeMode: "cover",
+    },
+    verifiedBadge: {
+      position: "absolute",
+      width: width * 0.06, // Badge size relative to screen width
+      height: width * 0.06,
+      borderRadius: width * 0.03, // Sửa thành giá trị số
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      justifyContent: "center",
+      alignItems: "center",
+      bottom: 1,
+    },
+    verifiedText: {
+      color: "#1da1f2",
+      fontSize: 24,
+    },
+    txtEditAvt: {
+      color: "#1da1f2",
+      fontSize: width * 0.04,
+      marginTop: height * 0.01,
     },
   });
 

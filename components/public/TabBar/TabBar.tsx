@@ -6,12 +6,16 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import {
+  useNavigation,
+  NavigationProp,
+  useRoute,
+} from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDecodedToken } from "@/utils/decodeToken";
-import CreatePostModel from "../Modals/CreatePostModel";
+import CreatePostModel from "../Modals/CreatePostModal";
 import { RootStackParamList } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
@@ -22,7 +26,8 @@ const TabBar = () => {
   const [userId, setUserId] = useState<number>(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
+  const route = useRoute();
+  const screenName = route.name;
   useEffect(() => {
     const fetchUserId = async () => {
       await getDecodedToken();
@@ -38,20 +43,36 @@ const TabBar = () => {
       <View style={styles.bottomNav}>
         <TouchableOpacity
           onPress={() => navigation.navigate("PublicMode")}
-          style={styles.navItem}
+          style={[
+            styles.navItem,
+            {
+              borderTopColor: screenName === "PublicMode" ? "#fff" : "grey",
+              borderTopWidth: screenName === "PublicMode" ? 1 : 0,
+            },
+          ]}
         >
-          <MaterialCommunityIcons
-            name="home-variant-outline"
+          <Ionicons
+            name="home"
             size={height * 0.03}
-            color="grey"
+            color={screenName === "PublicMode" ? "#fff" : "grey"}
           />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Search")}
-          style={styles.navItem}
+          style={[
+            styles.navItem,
+            {
+              borderTopColor: screenName === "Search" ? "#fff" : "grey",
+              borderTopWidth: screenName === "Search" ? 1 : 0,
+            },
+          ]}
         >
-          <Ionicons name="search" size={height * 0.03} color="grey" />
+          <FontAwesome
+            name="search"
+            size={height * 0.03}
+            color={screenName === "Search" ? "#fff" : "grey"}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -65,12 +86,18 @@ const TabBar = () => {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("ChatList")}
-          style={styles.navItem}
+          style={[
+            styles.navItem,
+            {
+              borderTopColor: screenName === "ChatList" ? "#fff" : "grey",
+              borderTopWidth: screenName === "ChatList" ? 1 : 0,
+            },
+          ]}
         >
-          <Ionicons
-            name="chatbubble-outline"
+          <MaterialCommunityIcons
+            name="chat"
             size={height * 0.03}
-            color="grey"
+            color={screenName === "ChatList" ? "#fff" : "grey"}
           />
         </TouchableOpacity>
 
@@ -78,9 +105,19 @@ const TabBar = () => {
           onPress={() =>
             navigation.navigate("ProfilePublic", { userId: userId })
           }
-          style={styles.navItem}
+          style={[
+            styles.navItem,
+            {
+              borderTopColor: screenName === "ProfilePublic" ? "#fff" : "grey",
+              borderTopWidth: screenName === "ProfilePublic" ? 1 : 0,
+            },
+          ]}
         >
-          <Ionicons name="person-outline" size={height * 0.03} color="grey" />
+          <FontAwesome
+            name="user"
+            size={height * 0.03}
+            color={screenName === "ProfilePublic" ? "#fff" : "grey"}
+          />
         </TouchableOpacity>
         <CreatePostModel
           visible={isModalVisible}

@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { backgroundColor, fontWeight } from "@/styles/color";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { fontWeight } from "@/styles/color";
+import { RootStackParamList } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
 interface Chat {
@@ -25,13 +25,12 @@ interface Chat {
 
 interface ChatListItemProps {
   chat: Chat;
-  navigation: any; // Nhận navigation từ ChatListScreen
 }
 
-const ChatListItem: React.FC<ChatListItemProps> = ({ chat, navigation }) => {
+const ChatListItem: React.FC<ChatListItemProps> = ({ chat }) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -40,7 +39,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ chat, navigation }) => {
         }
       >
         {/* Avatar */}
-        <Image source={{ uri: chat?.avatar }} style={styles.avatar} />
+        {chat?.avatar === null ? (
+          <Image
+            source={require("../../assets/images/userAvatar.png")}
+            style={styles.avatar}
+          />
+        ) : (
+          <Image source={{ uri: chat?.avatar }} style={styles.avatar} />
+        )}
       </TouchableOpacity>
       {/* Chat Info */}
       <TouchableOpacity
@@ -64,15 +70,6 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ chat, navigation }) => {
             </View>
           )}
         </View>
-
-        {/* Arrow Icon */}
-        {/* <View>
-          <Ionicons
-            name="chevron-forward"
-            size={height * 0.03}
-            color={isDarkMode ? darkTheme.text : lightTheme.text}
-          />
-        </View> */}
       </TouchableOpacity>
     </View>
   );

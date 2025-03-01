@@ -1,6 +1,9 @@
 import infoAPI from "@/api/infoAPI";
-import { backgroundColor, Color, fontWeight } from "@/styles/color";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Color, fontWeight } from "@/styles/color";
+import { darkTheme, lightTheme } from "@/utils/themes";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,19 +11,20 @@ import {
   Image,
   StyleSheet,
   Dimensions,
-  TouchableNativeFeedback,
   TouchableOpacity,
 } from "react-native";
 interface ChatHeaderProps {
-  navigation: any;
   userIdProp: number;
 }
 const { width, height } = Dimensions.get("window");
-const ChatHeader: React.FC<ChatHeaderProps> = ({ navigation, userIdProp }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
   const [userId, setUserId] = useState<number>(0);
   const [avatar, setAvatar] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+  const navigation = useNavigation();
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -53,11 +57,22 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ navigation, userIdProp }) => {
     <View style={styles.header}>
       <View style={styles.backIcon}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back-sharp" size={24} color={Color} />
+          <Ionicons
+            name="chevron-back-sharp"
+            size={24}
+            style={styles.iconColor}
+          />
         </TouchableOpacity>
       </View>
       <View style={styles.avatarContainer}>
-        <Image source={{ uri: avatar }} style={styles.avatar} />
+        {avatar === "" ? (
+          <Image
+            source={require("../../../assets/images/userAvatar.png")}
+            style={styles.avatar}
+          />
+        ) : (
+          <Image source={{ uri: avatar }} style={styles.avatar} />
+        )}
       </View>
       <View style={styles.textView}>
         <Text style={styles.name}>
@@ -65,56 +80,66 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ navigation, userIdProp }) => {
         </Text>
         <Text style={styles.status}>Online</Text>
       </View>
-
       <View style={styles.callIcons}>
         <View style={styles.audioIcon}>
-          <Ionicons name="call" size={24} color={Color} />
+          <Ionicons
+            name="call"
+            size={24}
+            color={Color}
+            style={styles.iconColor}
+          />
         </View>
         <View style={styles.videoIcon}>
-          <FontAwesome name="video-camera" size={24} color={Color} />
+          <FontAwesome name="video-camera" size={24} style={styles.iconColor} />
         </View>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    height: height * 0.05,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: backgroundColor,
-    marginTop: height * 0.05,
-  },
-  backIcon: {},
-  avatarContainer: {
-    marginLeft: width * 0.02,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  name: {
-    fontWeight: fontWeight,
-    fontSize: 16,
-    color: Color,
-  },
-  textView: {},
-  status: {
-    color: "green",
-    marginLeft: 10,
-    fontWeight: fontWeight,
-  },
-  callIcons: {
-    flexDirection: "row",
-    marginLeft: width * 0.4,
-  },
-  audioIcon: {},
-  videoIcon: {
-    marginLeft: width * 0.04,
-  },
-});
+const getStyles = (isDarkMode: any) =>
+  StyleSheet.create({
+    header: {
+      height: height * 0.05,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      marginTop: height * 0.05,
+    },
+    backIcon: {},
+    avatarContainer: {
+      marginLeft: width * 0.02,
+    },
+    avatar: {
+      width: width * 0.09,
+      height: width * 0.09, // Đảm bảo avatar luôn là hình tròn
+      borderRadius: (width * 0.09) / 2, // Bán kính bằng một nửa width
+      marginRight: width * 0.02,
+    },
+    name: {
+      fontWeight: fontWeight,
+      fontSize: width * 0.04,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    textView: {},
+    status: {
+      color: "green",
+      marginLeft: width * 0.01,
+      fontWeight: fontWeight,
+    },
+    callIcons: {
+      flexDirection: "row",
+      marginLeft: width * 0.4,
+    },
+    audioIcon: {},
+    videoIcon: {
+      marginLeft: width * 0.04,
+    },
+    iconColor: {
+      color: "#007AFF",
+    },
+  });
 
 export default ChatHeader;

@@ -16,7 +16,7 @@ import { fontWeight } from "@/styles/color";
 import Posts from "@/components/public/Posts";
 
 const { width, height } = Dimensions.get("window");
-      
+
 const ProfilePublicScreen = () => {
   const [userId, setUserId] = useState<number>(0);
   const [selectedTab, setSelectedTab] = useState<"public" | "private">(
@@ -24,7 +24,6 @@ const ProfilePublicScreen = () => {
   );
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation();
   const route = useRoute();
   const userIdProp = route?.params as { userId: number };
 
@@ -92,7 +91,7 @@ const getStyles = (isDarkMode: boolean) =>
       justifyContent: "center", // Căn giữa theo chiều dọc
       alignItems: "center", // Căn giữa theo chiều ngang
       textAlign: "center", // Căn giữa chữ
-      color: "#fff",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: width * 0.05,
       fontWeight: fontWeight, // Tăng kích thước chữ để dễ đọc hơn
     },
