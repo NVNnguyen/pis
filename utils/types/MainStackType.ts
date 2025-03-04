@@ -1,16 +1,18 @@
-export type RootStackParamList = {
+export type MainStackType = {
     Login: undefined;
     Register: undefined;
     ForgotPassword: undefined;
-    FriendMode: undefined;
+    PrivateMode: undefined;
     PublicMode: undefined;
     Search: undefined;
-    ProfilePublic: { userId: number }; // Profile có id
+    Profile: { userId: number }; // Profile có id
     TabBar: undefined;
-    Comments: { id: number; userId: number };
+    Comments: {  userId: number, postId: number; };
     ChatList: undefined;
     Messages: { userId: number };
     Loading: undefined;
     Otp: {email: string}
     ResetPassword: {email: string}
+    PostDetails: {userId: number, postId: number; }
+    FollowList: {tab: string};
   };

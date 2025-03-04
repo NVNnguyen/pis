@@ -3,26 +3,25 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Dimensions, Image, StyleSheet, TouchableOpacity } from "react-native";
 import LoginScreen from "@/app/screens/generalMode/LoginScreen";
 import RegisterScreen from "@/app/screens/generalMode/RegisterScreen";
-import FriendModeScreen from "@/app/screens/privateMode/FriendModeScreen";
+import FriendModeScreen from "@/app/screens/privateMode/PrivateModeScreen";
 import PublicModeScreen from "@/app/screens/publicMode/PublicModeScreen";
-import SearchScreen from "@/app/screens/publicMode/SearchScreen";
-import ProfilePublicScreen from "@/app/screens/publicMode/ProfilePublicScreen";
+import ProfileScreen from "@/app/screens/generalMode/ProfileScreen";
 import TabBar from "@/components/public/TabBar/TabBar";
-import CommentScreen from "@/app/screens/publicMode/CommentScreen";
 import ChatScreen from "@/app/screens/generalMode/ChatScreen";
 import ChatListScreen from "@/app/screens/generalMode/ChatListScreen";
 import LoadingScreen from "@/app/screens/generalMode/LoadingScreen";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight } from "@/styles/color";
+import { fontWeight } from "@/styles/stylePrimary";
 import ForgotPasswordScreen from "@/app/screens/generalMode/ForgotPasswordScreen";
 import OtpScreen from "@/app/screens/generalMode/OtpScreen";
 import ResetPasswordScreen from "@/app/screens/generalMode/ResetPasswordScreen";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import PostDetailScreen from "@/app/screens/publicMode/PostDetailScreen";
+import FollowListScreen from "@/app/screens/generalMode/FollowListScreen";
 
 const { width, height } = Dimensions.get("window");
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<MainStackType>();
 const MainStack: React.FC = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
@@ -36,6 +35,8 @@ const MainStack: React.FC = () => {
             style={styles.logo}
           />
         ),
+        gestureEnabled: true, // Kích hoạt vuốt để quay lại
+        gestureDirection: "horizontal", // Vuốt ngang để chuyển trang
         headerStyle: {
           backgroundColor: isDarkMode
             ? darkTheme.background
@@ -58,7 +59,7 @@ const MainStack: React.FC = () => {
         component={ForgotPasswordScreen}
       />
       <Stack.Screen
-        name="FriendMode"
+        name="PrivateMode"
         component={FriendModeScreen}
         options={{ headerShown: false }}
       />
@@ -68,13 +69,8 @@ const MainStack: React.FC = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="Search"
-        component={SearchScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ProfilePublic"
-        component={ProfilePublicScreen}
+        name="Profile"
+        component={ProfileScreen}
         options={{
           headerShown: true,
         }}
@@ -83,11 +79,6 @@ const MainStack: React.FC = () => {
         name="TabBar"
         component={TabBar}
         options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Comments"
-        component={CommentScreen}
-        options={{ headerShown: true }}
       />
       <Stack.Screen
         name="ChatList"
@@ -109,6 +100,20 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="ResetPassword"
         component={ResetPasswordScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="PostDetails"
+        component={PostDetailScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="FollowList"
+        component={FollowListScreen}
         options={{
           headerShown: true,
         }}

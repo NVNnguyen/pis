@@ -3,22 +3,20 @@ import { Dimensions, FlatList, View, Text } from "react-native";
 import { StyleSheet } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import TabBar from "@/components/public/TabBar/TabBar";
-import { getDecodedToken } from "@/utils/decodeToken";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/genaral/loading/Loading";
 import postsAPI from "@/api/postsAPI";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import Gallery from "@/components/public/Gallery";
-import { fontWeight } from "@/styles/color";
+import { fontWeight } from "@/styles/stylePrimary";
 import Posts from "@/components/public/Posts";
+import { getMyUserId } from "@/hooks/getMyUserID";
 
 const { width, height } = Dimensions.get("window");
 
-const ProfilePublicScreen = () => {
-  const [userId, setUserId] = useState<number>(0);
+const ProfileScreen = () => {
   const [selectedTab, setSelectedTab] = useState<"public" | "private">(
     "public"
   );
@@ -26,16 +24,6 @@ const ProfilePublicScreen = () => {
   const styles = getStyles(isDarkMode);
   const route = useRoute();
   const userIdProp = route?.params as { userId: number };
-
-  useEffect(() => {
-    const fetchUserId = async () => {
-      await getDecodedToken();
-      const decodedToken = await AsyncStorage.getItem("userID");
-      setUserId(Number(decodedToken));
-    };
-    fetchUserId();
-  }, []);
-
   const {
     data: posts,
     isLoading,
@@ -97,4 +85,4 @@ const getStyles = (isDarkMode: boolean) =>
     },
   });
 
-export default ProfilePublicScreen;
+export default ProfileScreen;

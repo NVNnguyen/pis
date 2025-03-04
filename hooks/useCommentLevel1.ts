@@ -14,7 +14,7 @@ const useCommentLevel1= (userId: number, postId: number) => {
                 userId,
                 postId
             );
-            return response?.data?.elementCommentLevel1;
+            return response?.data;
             },
             enabled: !!userId && !!postId,
             staleTime: 1000 * 60 * 3,

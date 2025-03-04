@@ -3,28 +3,23 @@ import {
   StyleSheet,
   View,
   Text,
-  Image,
   TouchableOpacity,
   Dimensions,
-  SafeAreaView,
 } from "react-native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
-import { FontAwesome, MaterialIcons, Feather } from "@expo/vector-icons";
 import {
-  toggleCameraFacing,
-  captureImage,
-} from "../../../utils/friendModeHandel"; // Import functions
-import { backgroundColor, Color, fontWeight } from "../../../styles/color";
-import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
+  MaterialIcons,
+  Feather,
+} from "@expo/vector-icons";
+import { captureImage, toggleCameraFacing } from "@/utils/friendModeHandel";
+import {  Color, fontWeight } from "@/styles/stylePrimary";
 
 const { width, height } = Dimensions.get("window");
 
-const FriendModeScreen = () => {
+const CapTure = () => {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-
-
   useEffect(() => {
     if (!permission) {
       requestPermission();
@@ -39,81 +34,54 @@ const FriendModeScreen = () => {
     return <Text>Camera permissions are required to use this app.</Text>;
   }
 
-
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Image
-            source={{ uri: "https://via.placeholder.com/40" }}
-            style={styles.avatar}
-          />
-          <PublicOrPrivate/>
-          <TouchableOpacity style={styles.notification}>
-            <FontAwesome name="bell" size={width * 0.06} color={Color} />
-            <Text style={styles.notificationBadge}>4</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Camera View */}
-        <View style={styles.cameraContainer}>
-          <CameraView style={styles.cameraView} facing={facing} ref={cameraRef}>
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={() => setFacing(toggleCameraFacing(facing))}
-            >
-              <MaterialIcons
-                name="flip-camera-ios"
-                size={width * 0.08}
-                color={Color}
-              />
-            </TouchableOpacity>
-          </CameraView>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="mic" size={width * 0.08} color={Color} />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Camera View */}
+      <View style={styles.cameraContainer}>
+        <CameraView style={styles.cameraView} facing={facing} ref={cameraRef}>
           <TouchableOpacity
-            style={styles.captureButton}
-            onPress={() => captureImage(cameraRef)}
+            style={styles.refreshButton}
+            onPress={() => setFacing(toggleCameraFacing(facing))}
           >
-            <View style={styles.captureInner}></View>
+            <MaterialIcons
+              name="flip-camera-ios"
+              size={width * 0.08}
+              color={Color}
+            />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="image" size={width * 0.08} color={Color} />
-          </TouchableOpacity>
-        </View>
+        </CameraView>
+      </View>
 
-        {/* Memories */}
-        <TouchableOpacity style={styles.memoriesButton}>
-          <Text style={styles.memoriesText}>Memories</Text>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.iconButton}>
+          <Feather name="mic" size={width * 0.08} color={Color} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={() => captureImage(cameraRef)}
+        >
+          <View style={styles.captureInner}></View>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton}>
+          <Feather name="image" size={width * 0.08} color={Color} />
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      {/* Memories */}
+      <TouchableOpacity style={styles.memoriesButton}>
+        <Text style={styles.memoriesText}>Memories</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: backgroundColor,
-  },
   container: {
     flex: 1,
     paddingHorizontal: width * 0.05,
     paddingVertical: height * 0.02,
     justifyContent: "space-between",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: height * 0.02,
   },
   avatar: {
     width: width * 0.1,
@@ -186,4 +154,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FriendModeScreen;
+export default CapTure;

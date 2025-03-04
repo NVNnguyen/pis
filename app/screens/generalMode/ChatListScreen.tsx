@@ -1,48 +1,28 @@
 import conversationAPI from "@/api/conversationAPI";
-import ChatListItem from "@/components/public/ChatList";
+import ChatListItem from "@/components/genaral/chat/ChatList";
 import TabBar from "@/components/public/TabBar/TabBar";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getMyUserId } from "@/hooks/getMyUserID";
+import useConversation from "@/hooks/useConversation";
+import { textFontSize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, View, Text } from "react-native";
 
 const ChatListScreen = () => {
-  const [conversation, setConversation] = useState<any[]>([]);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
   const myUserId = getMyUserId();
-  useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        if (!myUserId || myUserId === 0) {
-          console.warn("❌ User ID không hợp lệ:", myUserId);
-          return;
-        }
-
-        console.log("📡 Fetching conversations for User ID:", myUserId);
-        const conversationResponse = await conversationAPI.conversations(
-          myUserId
-        );
-        setConversation(conversationResponse?.data || []);
-        console.log("✅ Conversations fetched:", conversationResponse.data);
-      } catch (error) {
-        console.error("❌ Lỗi khi lấy danh sách cuộc hội thoại:", error);
-      }
-    };
-
-    if (myUserId) {
-      fetchConversations();
-    }
-  }, [myUserId]); // useEffect chỉ chạy khi userId thay đổi
+  const { conversation, isConversationLoading, conversationError } =
+    useConversation(myUserId ?? 0);
 
   return (
     <View style={styles.container}>
-      {conversation.length === 0 ? (
+      {conversation?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Không có tin nhắn nào</Text>
+          <Text style={styles.emptyText}>Not message yet!</Text>
         </View>
       ) : (
         <FlatList
@@ -74,7 +54,7 @@ const getStyles = (isDarkMode: any) =>
       alignItems: "center",
     },
     emptyText: {
-      fontSize: 18,
+      fontSize: textFontSize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });

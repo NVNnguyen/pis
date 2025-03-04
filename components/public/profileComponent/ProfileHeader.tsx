@@ -6,7 +6,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -15,20 +15,25 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { fontWeight } from "@/styles/color";
+import { fontWeight } from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
-import infoAPI from "@/api/infoAPI";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
 import useUserInfo from "@/hooks/useUserInfo";
 import useUserFollowInfo from "@/hooks/useUserFollowInfo";
 import useProfileActions from "@/hooks/useProfileActions";
 import { getMyUserId } from "@/hooks/getMyUserID";
-import { useQuery } from "@tanstack/react-query";
 import UnFollowModel from "../Modals/UnFollowModal";
 import EditProfileModal from "../Modals/EditProfileModal";
-import { useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import SettingModel from "../Modals/SettingModal";
 import AvatarDetailModal from "../Modals/AvatarDetailModal";
+import useUploadAvatar from "@/hooks/useUploadAvatar";
+import useFollowStore from "@/stores/useFollowStore";
+import { MainStackType } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
 
@@ -44,15 +49,20 @@ const ProfileHeader = ({
   const [tab, setTab] = useState<"public" | "private">("public");
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode, tab);
-  const myUserId = getMyUserId();
+  const myUserId = Number(getMyUserId());
   const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
-  const { follower, following } = useUserFollowInfo(userIdProp);
+  const { followInfo, isFollowLoading, isFollowError } =
+    useUserFollowInfo(userIdProp);
+  const { followStore, setFollow, resetFollow } = useFollowStore();
+  useEffect(() => {
+    if (followInfo) setFollow(followInfo);
+  }, [followInfo]);
   const [isVisibleEditModel, setIsVisibleEditModel] = useState<boolean>(false);
   const [isVisibleSettingModel, setIsVisibleSettingModel] =
     useState<boolean>(false);
   const [isVisibleAvatarDetail, setIsVisibleAvatarDetail] =
     useState<boolean>(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const {
     isModalVisible,
     setIsModalVisible,
@@ -97,23 +107,8 @@ const ProfileHeader = ({
     }
   };
   const { formData, openPickImage } = useImagePickerSelectionOne();
-
-  const {
-    data: profile,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["loadAvatar", userIdProp],
-    queryFn: async () => {
-      if (!formData) {
-        console.warn("⚠️ Không có FormData để upload!");
-        return null;
-      }
-      const response = await infoAPI.uploadAvatar(formData, userIdProp);
-      return response?.data;
-    },
-    enabled: !!userIdProp && !!formData,
-  });
+  const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
+    useUploadAvatar(formData, myUserId);
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -136,7 +131,7 @@ const ProfileHeader = ({
                   />
                 )}
               </View>
-              {(follower ?? 0) > 100000 && (
+              {followInfo?.followers > 100000 && (
                 <View style={styles.verifiedBadge}>
                   <MaterialIcons name="verified" style={styles.verifiedText} />
                 </View>
@@ -179,14 +174,20 @@ const ProfileHeader = ({
 
       {/* Followers and Link */}
       <View style={styles.followersSection}>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("FollowList", { tab: "follower" })}
+        >
           <Text style={styles.followers}>
-            {formatNumber(follower ?? 0)} followers
+            {formatNumber(followStore?.followers ?? 0)} followers
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("FollowList", { tab: "following" })
+          }
+        >
           <Text style={styles.followers}>
-            {formatNumber(following ?? 0)} following
+            {formatNumber(followStore?.followingNumbers ?? 0)} following
           </Text>
         </TouchableOpacity>
       </View>
@@ -288,7 +289,7 @@ const ProfileHeader = ({
         visible={isVisibleEditModel}
         onClose={() => setIsVisibleEditModel(false)}
         avatar={userInfo?.avatar ?? ""}
-        follower={follower ?? 0}
+        follower={followInfo?.followers ?? 0}
         userIdProp={userIdProp}
         firstName={userInfo?.firstName ?? ""}
         lastName={userInfo?.lastName ?? ""}

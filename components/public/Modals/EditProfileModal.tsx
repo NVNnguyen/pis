@@ -8,11 +8,11 @@ import {
   Dimensions,
   Modal,
   Image,
+  Button,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight } from "@/styles/color";
+import { fontWeight, textFontSize } from "@/styles/stylePrimary";
 import useUpdateProfile from "@/hooks/useUpdateProfile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { emailRegex } from "@/utils/regex";
@@ -20,6 +20,8 @@ import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { MaterialIcons } from "@expo/vector-icons";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
 import infoAPI from "@/api/infoAPI";
+import DateTimePickerModal from "react-native-modal-datetime-picker"; // or the correct path to DatePicker
+import useUploadAvatar from "@/hooks/useUploadAvatar";
 
 const { width, height } = Dimensions.get("window");
 
@@ -46,24 +48,32 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   birthday,
   userIdProp,
 }) => {
-  const [firstNameEdit, setFirstNameEdit] = useState<string>(firstName);
-  const [lastNameEdit, setLastNameEdit] = useState<string>(lastName);
-  const [emailEdit, setEmailEdit] = useState<string>(email);
-  const [birthdayEdit, setBirthdayEdit] = useState<Date | null>(birthday);
-  const [alertVisible, setAlertVisible] = useState<boolean>(false);
-  const [alertTitle, setAlertTitle] = useState<string>("");
-  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [firstNameEdit, setFirstNameEdit] = useState(firstName);
+  const [lastNameEdit, setLastNameEdit] = useState(lastName);
+  const [emailEdit, setEmailEdit] = useState(email);
+  const [birthdayEdit, setBirthdayEdit] = useState<Date>(new Date(birthday));
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [isOpenEditBirthday, setIsOpenEditBirthDay] = useState(false);
+  const maxYearOld = new Date();
+  maxYearOld.setFullYear(maxYearOld.getFullYear() - 7);
+  const minYearOld = new Date();
+  minYearOld.setFullYear(minYearOld.getFullYear() - 120);
   const { isDarkMode } = useTheme();
   const styles = getStyle(isDarkMode);
-  const onChange = (_event: any, selectedDate: any) => {
-    const currentDate = selectedDate || birthdayEdit;
-    setBirthdayEdit(currentDate);
-  };
   const updateProfileMutation = useUpdateProfile();
   const queryClient = useQueryClient();
 
   const handleUpdateProfile = () => {
-    updateProfileMutation.mutate(
+    if (!emailRegex.test(emailEdit)) {
+      setAlertVisible(true);
+      setAlertTitle("Invalid Email");
+      setAlertMessage("Please enter a valid email address.");
+      return;
+    }
+
+    updateProfileMutation.updateProfile(
       {
         firstName: firstNameEdit,
         lastName: lastNameEdit,
@@ -73,43 +83,20 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["userInfo", userIdProp] }); // 🚀 Invalidate userInfo query
-          onClose(); // Đóng modal sau khi cập nhật
+          queryClient.invalidateQueries({ queryKey: ["userInfo", userIdProp] });
+          queryClient.invalidateQueries({
+            queryKey: ["postsProfile", userIdProp],
+          });
+          onClose();
         },
       }
     );
   };
-  useEffect(() => {
-    if (typeof birthdayEdit === "string") {
-      setBirthdayEdit(new Date(birthdayEdit));
-    }
-  }, [birthdayEdit]);
-  const { formData, openPickImage } = useImagePickerSelectionOne();
-  const {
-    data: profile,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["loadAvatar", userIdProp],
-    queryFn: async () => {
-      if (!formData) {
-        console.warn("⚠️ Không có FormData để upload!");
-        return null;
-      }
-      const response = await infoAPI.uploadAvatar(formData, userIdProp);
-      return response?.data;
-    },
-    enabled: !!userIdProp && !!formData,
-  });
-  const handleEnterEmail = () => {
-    if (!emailRegex.test(emailEdit)) {
-      setAlertVisible(true);
-      setAlertTitle("Email invalid!");
-      setAlertMessage("Email invalid! Please enter correct email format!");
-      return false;
-    }
-    return true;
-  };
+
+  const { image, formData, openPickImage } = useImagePickerSelectionOne();
+  const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
+    useUploadAvatar(formData, userIdProp);
+
   return (
     <Modal animationType="slide" transparent visible={visible}>
       <View style={styles.overlay}>
@@ -120,87 +107,91 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Edit profile</Text>
-            <TouchableOpacity
-              onPress={() => {
-                if (handleEnterEmail()) {
-                  handleUpdateProfile();
-                  onClose();
-                }
-              }}
-            >
-              <Text style={styles.doneText}>Done</Text>
-            </TouchableOpacity>
+            {isUpLoadAvatarLoading || updateProfileMutation.isLoading ? (
+              <TouchableOpacity onPress={handleUpdateProfile}>
+                <Text style={styles.doneText}>Saving...</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleUpdateProfile}>
+                <Text style={styles.doneText}>Save</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Profile Section */}
           <View style={styles.profileSection}>
-            {avatar?.length > 0 && (
-              <View style={styles.avatarContainer}>
-                <View style={styles.avatar}>
-                  {avatar?.length > 0 && (
-                    <Image source={{ uri: avatar }} style={styles.avatarImg} />
-                  )}
-                  {avatar?.length === 0 && (
-                    <Image
-                      source={require("@/assets/images/userAvatar.png")}
-                      style={styles.avatarImg}
-                    />
-                  )}
-                </View>
-                {(follower ?? 0) > 100000 && (
-                  <View style={styles.verifiedBadge}>
-                    <MaterialIcons
-                      name="verified"
-                      style={styles.verifiedText}
-                    />
-                  </View>
-                )}
-                <TouchableOpacity onPress={openPickImage}>
-                  <Text style={styles.txtEditAvt}>Edit avatar</Text>
-                </TouchableOpacity>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Image
+                  source={
+                    image
+                      ? { uri: image }
+                      : avatar
+                      ? { uri: avatar }
+                      : require("@/assets/images/userAvatar.png")
+                  }
+                  style={styles.avatarImg}
+                />
               </View>
-            )}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>FirstName</Text>
-              <TextInput
-                style={styles.input}
-                value={firstNameEdit}
-                onChangeText={(text) => setFirstNameEdit(text)}
-                placeholder="Enter your firstname!"
-                placeholderTextColor="#999"
-              />
+              {follower > 100000 && (
+                <View style={styles.verifiedBadge}>
+                  <MaterialIcons name="verified" style={styles.verifiedText} />
+                </View>
+              )}
+              <TouchableOpacity onPress={openPickImage}>
+                <Text style={styles.txtEditAvt}>Edit avatar</Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>LastName</Text>
-              <TextInput
-                style={styles.input}
-                value={lastNameEdit}
-                onChangeText={(text) => setLastNameEdit(text)}
-                placeholder="Enter your lastname!"
-                placeholderTextColor="#999"
-                multiline
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={emailEdit}
-                onChangeText={(text) => setEmailEdit(text)}
-                placeholder="Enter your email!"
-                placeholderTextColor="#999"
-                multiline
-              />
-            </View>
+            {/* Inputs */}
+            {[
+              {
+                label: "First Name",
+                value: firstNameEdit,
+                onChange: setFirstNameEdit,
+              },
+              {
+                label: "Last Name",
+                value: lastNameEdit,
+                onChange: setLastNameEdit,
+              },
+              { label: "Email", value: emailEdit, onChange: setEmailEdit },
+            ].map((input, index) => (
+              <View key={index} style={styles.inputContainer}>
+                <Text style={styles.label}>{input.label}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={input.value}
+                  onChangeText={input.onChange}
+                  placeholder={`Enter your ${input.label.toLowerCase()}!`}
+                  placeholderTextColor="#999"
+                />
+              </View>
+            ))}
+
+            {/* Birthday */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Birthday</Text>
-              <DateTimePicker
-                value={birthdayEdit || new Date()}
-                mode="date"
-                display="default"
-                onChange={onChange}
-              />
+              <TouchableOpacity onPress={() => setIsOpenEditBirthDay(true)}>
+                <Text style={styles.input}>
+                  {birthdayEdit
+                    ? new Date(birthdayEdit).toDateString() // Chuyển đổi `string` thành `Date`
+                    : new Date().toDateString()}
+                </Text>
+              </TouchableOpacity>
+              {isOpenEditBirthday && (
+                <View>
+                  <DateTimePickerModal
+                    isVisible={isOpenEditBirthday}
+                    date={birthdayEdit}
+                    onCancel={() => setIsOpenEditBirthDay(false)}
+                    onConfirm={() => setIsOpenEditBirthDay(false)}
+                    maximumDate={maxYearOld}
+                    minimumDate={minYearOld}
+                    onChange={(date) => setBirthdayEdit(date)}
+                  />
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -241,16 +232,16 @@ const getStyle = (isDarkMode: any) =>
     },
     cancelText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     headerTitle: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.02,
+      fontSize: textFontSize,
       fontWeight: "bold",
     },
     doneText: {
       color: "#1E90FF",
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     profileSection: {
       marginTop: height * 0.02,
@@ -260,15 +251,16 @@ const getStyle = (isDarkMode: any) =>
     },
     label: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textFontSize,
       fontWeight: fontWeight,
+      marginBottom: height * 0.01,
     },
     input: {
       backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
       padding: height * 0.012,
       borderRadius: 8,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     avatarContainer: {
       alignItems: "center",
@@ -304,7 +296,7 @@ const getStyle = (isDarkMode: any) =>
     },
     txtEditAvt: {
       color: "#1da1f2",
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
       marginTop: height * 0.01,
     },
   });

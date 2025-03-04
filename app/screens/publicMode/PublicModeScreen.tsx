@@ -1,17 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Dimensions, Animated } from "react-native";
+import { View, StyleSheet, Dimensions, Animated, FlatList } from "react-native";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import TabBar from "@/components/public/TabBar/TabBar";
-import { backgroundColor } from "@/styles/color";
-import Home from "@/components/public/Home";
+import { backgroundColor } from "@/styles/stylePrimary";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import ProfilePublicScreen from "./ProfilePublicScreen";
-import { getDecodedToken } from "@/utils/decodeToken";
 import { getMyUserId } from "@/hooks/getMyUserID";
+import NewPost from "@/components/public/NewPost";
+import useUserInfo from "@/hooks/useUserInfo";
+import usePosts from "@/hooks/usePosts";
+import PostItem from "@/components/public/Posts";
+import usePostStore from "@/stores/usePostStore";
 
 const { width, height } = Dimensions.get("window");
 
@@ -21,9 +22,17 @@ const PublicModeScreen = () => {
   const lastScrollY = useRef(0);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const route = useRoute();
-  console.log(route.name);
   const myUserId = getMyUserId() ?? 0;
+  const { userInfo, isUserLoading, userError } = useUserInfo(myUserId);
+  const { posts, isPostsLoading, postsError } = usePosts(myUserId);
+  const { setPosts, postsStore } = usePostStore();
+  // ✅ Chỉ cập nhật Zustand khi posts thay đổi
+  useEffect(() => {
+    if (posts !== null) {
+      setPosts(posts);
+    }
+  }, [posts]); // 🚀 Chỉ chạy khi `posts` thay đổi
+
   useEffect(() => {
     const listener = tabBarTranslateY.addListener((value) => {
       currentTranslateY.current = value.value;
@@ -69,9 +78,24 @@ const PublicModeScreen = () => {
       <View style={styles.toggleContainer}>
         <PublicOrPrivate />
       </View>
-      {route.name === "PublicMode" && (
-        <Home handleScroll={handleScroll} userIdProp={myUserId} />
-      )}
+      <FlatList
+        data={postsStore}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <PostItem {...item} />}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={20}
+        ListHeaderComponent={
+          <NewPost
+            userInfo={{
+              avatar: userInfo?.avatar,
+              firstName: userInfo?.firstName,
+              lastName: userInfo?.lastName,
+              userId: myUserId,
+            }}
+          />
+        }
+      />
       <Animated.View
         style={[
           styles.tabBar,

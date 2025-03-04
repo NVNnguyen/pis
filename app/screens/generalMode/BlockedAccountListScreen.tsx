@@ -1,4 +1,4 @@
-import { backgroundColor, Color, fontWeight } from "@/styles/color"; // Ensure this file exists or replace with actual colors
+import { backgroundColor, Color, fontWeight } from "@/styles/stylePrimary"; // Ensure this file exists or replace with actual colors
 import React, { useState } from "react";
 import {
   View,

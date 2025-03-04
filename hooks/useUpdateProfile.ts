@@ -1,7 +1,7 @@
 import infoAPI from "@/api/infoAPI";
 import { useMutation } from "@tanstack/react-query";
 
-interface updateProfileType {
+interface UpdateProfileType {
   firstName: string;
   lastName: string;
   email: string;
@@ -10,8 +10,8 @@ interface updateProfileType {
 }
 
 const useUpdateProfile = () => {
-  return useMutation({
-    mutationFn: async (data: updateProfileType) => {
+  const mutation = useMutation({
+    mutationFn: async (data: UpdateProfileType) => {
       const response = await infoAPI.updateProfile(
         data.userIdProp,
         data.firstName,
@@ -22,6 +22,13 @@ const useUpdateProfile = () => {
       return response.data;
     },
   });
+
+  return {
+    updateProfile: mutation.mutate, // Hàm gọi API
+    isLoading: mutation.isPending,  // Trạng thái loading
+    data: mutation.data,            // Dữ liệu trả về
+    error: mutation.error,          // Bắt lỗi
+  };
 };
 
 export default useUpdateProfile;

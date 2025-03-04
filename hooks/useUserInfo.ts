@@ -14,7 +14,7 @@ const useUserInfo = (userIdProp: number) => {
       console.log("📡 Fetching user info for User ID:", userIdProp);
       const response = await infoAPI.userInfo(userIdProp);
       if (!response.data) throw new Error("UserIfo not found!");
-      return response.data;
+      return response?.data;
     },
     staleTime: 1000 * 60 * 3,
   });

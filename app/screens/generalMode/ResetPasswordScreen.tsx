@@ -14,13 +14,22 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import {
+  backgroundColor,
+  Color,
+  fontWeight,
+} from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { emailRegex } from "@/utils/regex";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import authApi from "@/api/authAPI";
 
 type RouteParams = {
@@ -32,7 +41,7 @@ type RouteParams = {
 const { width, height } = Dimensions.get("window");
 
 const ResetPasswordScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const [password, setPassword] = useState("");
   const [rePassword, setRePassword] = useState("");
   const [alertVisible, setAlertVisible] = useState<boolean>(false);

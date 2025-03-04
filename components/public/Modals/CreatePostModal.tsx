@@ -13,13 +13,20 @@ import {
 import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight } from "@/styles/color";
+import { fontWeight, textFontSize } from "@/styles/stylePrimary";
 import useImagePicker from "@/hooks/useImagePicker";
 import { useQueryClient } from "@tanstack/react-query";
+import { grey } from "@/utils/colorPrimary";
+import CameraModal from "./CameraModal";
+import VoiceModal from "./VoiceModal";
+import AudioPlayer from "../AudioPlayer";
 
 interface CreatePostModelProps {
-  visible: boolean;
-  onClose: () => void;
+  openModel: {
+    visible: boolean;
+    key: string | null;
+  };
+  onClose: () => { visible: boolean; key: string | null };
   imagesProp: string[];
   removeImageProp: (uri: string) => void;
 }
@@ -27,65 +34,65 @@ interface CreatePostModelProps {
 const { width, height } = Dimensions.get("window");
 
 const CreatePostModel: React.FC<CreatePostModelProps> = ({
-  visible,
+  openModel,
   onClose,
   imagesProp,
   removeImageProp,
 }) => {
   const [postText, setPostText] = useState("");
+  const [isVisibleCameraModal, setIsVisibleCameraModal] =
+    useState<boolean>(false);
+  const [capturedImages, setCapturedImages] = useState<string | null>(null);
+  const [isOpenVoiceModal, setIsOpenVoiceModal] = useState<boolean>(false);
+  const [recordUri, setRecordUri] = useState<string | null>(null);
+  const handleImageCaptured = (imageUri: string) => {
+    setCapturedImages(imageUri); // Thêm ảnh vào danh sách
+  };
+  const reMoveImageFromCamera = () => {
+    setCapturedImages(null);
+  };
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+  const queryClient = useQueryClient();
+  const userInfo = queryClient.getQueryData<{ avatar: string }>(["userInfo"]);
+
+  const { images, removeImage, permission, openImagePicker } = useImagePicker();
   const [imageSizes, setImageSizes] = useState<{
     [key: string]: { width: number; height: number };
   }>({});
-  const { images, removeImage, permission, openImagePicker } = useImagePicker();
-
-  // Lấy kích thước ảnh khi danh sách `images` thay đổi
 
   useEffect(() => {
-    if (imagesProp.length > 0) {
-      imagesProp.forEach((uri) => {
-        Image.getSize(uri, (imgWidth, imgHeight) => {
-          const aspectRatio = imgWidth / imgHeight;
-          setImageSizes((prevSizes) => ({
-            ...prevSizes,
-            [uri]: {
-              width: width * 0.4, // Ảnh chiếm 80% chiều rộng màn hình
-              height: (width * 0.4) / aspectRatio, // Chiều cao theo tỷ lệ gốc
-            },
-          }));
-        });
+    const allImages = [...imagesProp, ...images];
+    allImages.forEach((uri) => {
+      Image.getSize(uri, (imgWidth, imgHeight) => {
+        const aspectRatio = imgWidth / imgHeight;
+        setImageSizes((prevSizes) => ({
+          ...prevSizes,
+          [uri]: {
+            width: width * 0.4,
+            height: (width * 0.4) / aspectRatio,
+          },
+        }));
       });
-    } else if (images.length > 0) {
-      images.forEach((uri) => {
-        Image.getSize(uri, (imgWidth, imgHeight) => {
-          const aspectRatio = imgWidth / imgHeight;
-          setImageSizes((prevSizes) => ({
-            ...prevSizes,
-            [uri]: {
-              width: width * 0.4, // Ảnh chiếm 80% chiều rộng màn hình
-              height: (width * 0.4) / aspectRatio, // Chiều cao theo tỷ lệ gốc
-            },
-          }));
-        });
-      });
-    }
+    });
   }, [imagesProp, images]);
+  console.log("Open modal: ", openModel);
+  useEffect(() => {
+    if (openModel.key === "photo") {
+      openImagePicker();
+    }
+    if (openModel.key === "camera") {
+      setIsVisibleCameraModal(true);
+    }
+    if (openModel.key === "record") {
+      setIsOpenVoiceModal(true);
+    }
+  }, [openModel.key]);
 
-  if (!permission) {
-    return <Text>Requesting camera permissions...</Text>;
-  }
-  if (!permission.granted) {
-    return <Text>Camera permissions are required to use this app.</Text>;
-  }
-  const queryClient = useQueryClient();
-  const userInfo = queryClient.getQueryData<{ avatar: string }>(["userInfo"]); // 1 là userId (thay đổi tùy trường hợp)
-  console.log("user info modal", userInfo);
   return (
-    <Modal animationType="slide" transparent visible={visible}>
+    <Modal animationType="slide" transparent visible={openModel.visible}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.cancelText}>Cancel</Text>
@@ -99,9 +106,8 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* User Info */}
           <View style={styles.userInfo}>
-            {userInfo && (
+            {userInfo?.avatar && (
               <Image source={{ uri: userInfo.avatar }} style={styles.avatar} />
             )}
             <TextInput
@@ -113,82 +119,71 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
               onChangeText={setPostText}
             />
           </View>
+          {(imagesProp.length > 0 || images.length > 0) && (
+            <FlatList
+              data={[...imagesProp, ...images]}
+              keyExtractor={(item) => item}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View>
+                  <Image
+                    source={{ uri: item }}
+                    style={imageSizes[item] || styles.image}
+                  />
 
-          {/* Hiển thị danh sách ảnh */}
-          {imagesProp.length > 0 && (
-            <FlatList
-              data={imagesProp}
-              keyExtractor={(index) => index.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <>
-                  <Image
-                    source={{ uri: item }}
-                    style={[
-                      styles.image,
-                      imageSizes[item] && {
-                        width: imageSizes[item].width,
-                        height: imageSizes[item].height,
-                      },
-                    ]}
-                  />
-                  <TouchableOpacity
-                    style={styles.clearImage}
-                    onPress={() => removeImageProp(item)}
-                  >
-                    <MaterialIcons name="clear" size={24} color="black" />
-                  </TouchableOpacity>
-                </>
-              )}
-            />
-          )}
-          {images.length > 0 && (
-            <FlatList
-              data={images}
-              keyExtractor={(index) => index.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <>
-                  <Image
-                    source={{ uri: item }}
-                    style={[
-                      styles.image,
-                      imageSizes[item] && {
-                        width: imageSizes[item].width,
-                        height: imageSizes[item].height,
-                      },
-                    ]}
-                  />
                   <TouchableOpacity
                     style={styles.clearImage}
                     onPress={() => {
-                      removeImageProp(item);
                       removeImage(item);
+                      removeImageProp(item);
                     }}
                   >
-                    <MaterialIcons name="clear" size={24} color="black" />
+                    <MaterialIcons name="clear" size={24} color={grey} />
                   </TouchableOpacity>
-                </>
+                </View>
               )}
             />
           )}
+          {capturedImages && (
+            <View style={styles.captureImageContainer}>
+              <Image
+                source={{ uri: capturedImages }}
+                style={styles.imageCapture}
+              />
+              <TouchableOpacity
+                style={styles.clearImageCapture}
+                onPress={() => reMoveImageFromCamera()}
+              >
+                <MaterialIcons name="clear" size={24} color={grey} />
+              </TouchableOpacity>
+            </View>
+          )}
 
-          {/* Action Icons */}
+          {recordUri && <AudioPlayer audioUri={recordUri} />}
 
           <View style={styles.actionRow}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsVisibleCameraModal(true)}>
               <SimpleLineIcons name="camera" size={24} color="#9E9E9E" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => openImagePicker()}>
+            <TouchableOpacity onPress={openImagePicker}>
               <Ionicons name="images-outline" size={24} color="#9E9E9E" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsOpenVoiceModal(true)}>
               <MaterialIcons name="keyboard-voice" size={24} color="#9E9E9E" />
             </TouchableOpacity>
           </View>
         </View>
+        <CameraModal
+          visible={isVisibleCameraModal}
+          onClose={() => setIsVisibleCameraModal(false)}
+          onCapture={handleImageCaptured}
+        />
+        <VoiceModal
+          visible={isOpenVoiceModal}
+          onClose={() => setIsOpenVoiceModal(false)}
+          onDone={(uri) => setRecordUri(uri)}
+        />
       </View>
     </Modal>
   );
@@ -223,11 +218,11 @@ const getStyles = (isDarkMode: boolean) =>
     },
     cancelText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textFontSize,
     },
     headerTitle: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
       fontWeight: "bold",
     },
     postButton: {
@@ -237,10 +232,12 @@ const getStyles = (isDarkMode: boolean) =>
       borderRadius: 15,
     },
     disabledPost: {
-      backgroundColor: "#444",
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
     },
     postText: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      color: isDarkMode ? lightTheme.text : darkTheme.text,
       fontWeight: fontWeight,
     },
     userInfo: {
@@ -257,7 +254,7 @@ const getStyles = (isDarkMode: boolean) =>
     input: {
       flex: 1,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textFontSize,
     },
     actionRow: {
       flexDirection: "row",
@@ -273,10 +270,37 @@ const getStyles = (isDarkMode: boolean) =>
     },
     clearImage: {
       position: "absolute",
-      backgroundColor: "#fff",
+      backgroundColor: isDarkMode ? darkTheme.text : lightTheme.text,
       borderRadius: "50%",
       right: 0,
       margin: 10,
+    },
+    captureImageContainer: {
+      position: "relative",
+      width: width * 0.6,
+      height: width * 0.7,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    imageCapture: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 10,
+      resizeMode: "cover",
+    },
+
+    clearImageCapture: {
+      position: "absolute",
+      top: 5,
+      right: 5,
+      backgroundColor: "rgba(0,0,0,0.5)", // ✅ Làm mờ nền để dễ thấy
+      borderRadius: 15,
+      width: 30,
+      height: 30,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 10,
     },
   });
 

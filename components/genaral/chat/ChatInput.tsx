@@ -17,9 +17,14 @@ import {
   FontAwesome6,
   Ionicons,
 } from "@expo/vector-icons";
-import { Color } from "@/styles/color";
+import { Color, textFontSize } from "@/styles/stylePrimary";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
+import {
+  darkThemeInput,
+  lightThemeInput,
+  primaryColor,
+} from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window"); // Lấy chiều rộng màn hình
 
@@ -50,21 +55,25 @@ const ChatInput = () => {
           {/* Dãy biểu tượng - Chỉ hiển thị khi message rỗng */}
           {message.trim().length != 0 ? (
             <TouchableOpacity onPress={() => setMessage("")}>
-              <AntDesign name="right" size={24} color={Color} />
+              <AntDesign name="right" size={24} color={primaryColor} />
             </TouchableOpacity>
           ) : (
             <View style={styles.iconsContainer}>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome name="plus-circle" size={24} color={Color} />
+                <FontAwesome
+                  name="plus-circle"
+                  size={24}
+                  color={primaryColor}
+                />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <Entypo name="camera" size={24} color={Color} />
+                <Entypo name="camera" size={24} color={primaryColor} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome6 name="image" size={24} color={Color} />
+                <FontAwesome6 name="image" size={24} color={primaryColor} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome name="microphone" size={24} color={Color} />
+                <FontAwesome name="microphone" size={24} color={primaryColor} />
               </TouchableOpacity>
             </View>
           )}
@@ -74,12 +83,14 @@ const ChatInput = () => {
             <TextInput
               placeholder="Aa"
               style={styles.textInput}
-              placeholderTextColor="#9E9E9E"
+              placeholderTextColor={
+                isDarkMode ? darkTheme.text : lightTheme.text
+              }
               value={message}
               onChangeText={(text) => setMessage(text)} // Cập nhật state khi nhập
             />
             <TouchableOpacity>
-              <FontAwesome name="smile-o" size={24} color={Color} />
+              <FontAwesome name="smile-o" size={24} color={primaryColor} />
             </TouchableOpacity>
           </View>
 
@@ -89,9 +100,9 @@ const ChatInput = () => {
             onPress={handleSendMessage}
           >
             {message.trim().length > 0 ? (
-              <Ionicons name="send" size={24} color={Color} />
+              <Ionicons name="send" size={24} color={primaryColor} />
             ) : (
-              <FontAwesome name="thumbs-up" size={24} color={Color} />
+              <FontAwesome name="thumbs-up" size={24} color={primaryColor} />
             )}
           </TouchableOpacity>
         </View>
@@ -124,7 +135,7 @@ const getStyles = (isDarkMode: any) =>
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "#2C2C2C",
+      backgroundColor: isDarkMode ? darkThemeInput : lightThemeInput,
       flex: 1,
       borderRadius: 20,
       paddingHorizontal: width * 0.01,
@@ -132,8 +143,8 @@ const getStyles = (isDarkMode: any) =>
     },
     textInput: {
       flex: 1,
-      fontSize: 16,
-      color: Color,
+      fontSize: textFontSize,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
       paddingVertical: height * 0.005,
     },
     likeButton: {

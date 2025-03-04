@@ -10,27 +10,32 @@ import {
   TouchableWithoutFeedback,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { fontWeight } from "../../../styles/color";
+import {
+  buttonFontsize,
+  fontWeight,
+  textFontSize,
+  titleFontsize,
+} from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { emailRegex } from "@/utils/regex";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { useMutation } from "@tanstack/react-query";
 import { FontAwesome } from "@expo/vector-icons";
-import { grey } from "@/utils/colorPrimary";
+import { darkThemeInput, grey, lightThemeInput } from "@/utils/colorPrimary";
 import authAPI from "@/api/authAPI";
+import { getDecodedToken } from "@/utils/decodeToken";
 
 const { width, height } = Dimensions.get("window"); // Get device dimensions
 
 const LoginScreen = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList, "Login">>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
@@ -38,7 +43,6 @@ const LoginScreen = () => {
   const [alertMessage, setAlertMessage] = useState<string>("");
   const handleLogin = async () => {
     const trimmedEmail = email.toLowerCase().trim();
-
     if (!trimmedEmail) {
       showAlert("Please enter email or phone number!");
       return;
@@ -47,7 +51,6 @@ const LoginScreen = () => {
       showAlert("Invalid email format! Please enter a valid email.");
       return;
     }
-
     loginMutation.mutate({ email: trimmedEmail, password });
   };
 
@@ -56,7 +59,9 @@ const LoginScreen = () => {
       return await authAPI.login(credentials.email, credentials.password);
     },
     onSuccess: async (response) => {
+      getDecodedToken(response?.data?.token);
       await AsyncStorage.setItem("token", response?.data?.token);
+
       console.log("login successfully!");
       navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
     },
@@ -167,7 +172,7 @@ const getStyles = (isDarkMode: any) =>
       alignItems: "center",
     },
     title: {
-      fontSize: width * 0.08, // Dynamic font size
+      fontSize: titleFontsize, // Dynamic font size
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: height * 0.02,
       fontWeight: fontWeight,
@@ -177,21 +182,21 @@ const getStyles = (isDarkMode: any) =>
       alignSelf: "flex-start",
       marginLeft: width * 0.05,
       marginBottom: height * 0.01,
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
     },
     input: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
+      backgroundColor: isDarkMode ? darkThemeInput : lightThemeInput,
       width: "100%",
       height: height * 0.065,
       borderRadius: 10,
-      paddingHorizontal: 15,
+      paddingHorizontal: width * 0.015,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: height * 0.02,
     },
     passwordContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
+      backgroundColor: isDarkMode ? darkThemeInput : lightThemeInput,
       width: "100%",
       height: height * 0.065,
       borderRadius: 10,
@@ -210,7 +215,7 @@ const getStyles = (isDarkMode: any) =>
     checkboxText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginLeft: width * 0.02,
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
     },
     button: {
       backgroundColor: isDarkMode
@@ -221,22 +226,22 @@ const getStyles = (isDarkMode: any) =>
       borderRadius: 10,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: height * 0.02,
+      marginVertical: height * 0.02,
     },
     buttonText: {
       color: isDarkMode ? lightTheme.text : darkTheme.text,
-      fontSize: width * 0.05,
-      fontWeight: "bold",
+      fontSize: buttonFontsize,
+      fontWeight: fontWeight,
     },
     forgotPassword: {
       color: grey,
       marginBottom: height * 0.03,
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
       textDecorationLine: "underline",
     },
     signInWith: {
       color: grey,
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
       marginBottom: height * 0.01,
     },
     socialButtons: {
@@ -256,12 +261,13 @@ const getStyles = (isDarkMode: any) =>
     socialText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginLeft: width * 0.02,
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
     },
     registerText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
       textDecorationLine: "underline",
+      marginBottom: height * 0.14,
     },
   });
 

@@ -13,31 +13,26 @@ import {
 } from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDecodedToken } from "@/utils/decodeToken";
 import CreatePostModel from "../Modals/CreatePostModal";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
+import { getMyUserId } from "@/hooks/getMyUserID";
 
 const { width, height } = Dimensions.get("window");
 
 const TabBar = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const [userId, setUserId] = useState<number>(0);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const [modalState, setModalState] = useState<{
+    visible: boolean;
+    key: string | null;
+  }>({
+    visible: false,
+    key: null, // Lưu key tùy chọn
+  });
   const route = useRoute();
   const screenName = route.name;
-  useEffect(() => {
-    const fetchUserId = async () => {
-      await getDecodedToken();
-      const decodedToken = await AsyncStorage.getItem("userID");
-      setUserId(Number(decodedToken));
-      console.log("User ID:", userId);
-    };
-    fetchUserId();
-  }, []);
-
+  const myUserId = getMyUserId();
   return (
     <View style={styles.container}>
       <View style={styles.bottomNav}>
@@ -46,7 +41,12 @@ const TabBar = () => {
           style={[
             styles.navItem,
             {
-              borderTopColor: screenName === "PublicMode" ? "#fff" : "grey",
+              borderTopColor:
+                screenName === "PublicMode"
+                  ? isDarkMode
+                    ? lightTheme.background
+                    : darkTheme.background
+                  : "grey",
               borderTopWidth: screenName === "PublicMode" ? 1 : 0,
             },
           ]}
@@ -54,7 +54,13 @@ const TabBar = () => {
           <Ionicons
             name="home"
             size={height * 0.03}
-            color={screenName === "PublicMode" ? "#fff" : "grey"}
+            color={
+              screenName === "PublicMode"
+                ? isDarkMode
+                  ? lightTheme.background
+                  : darkTheme.background
+                : "grey"
+            }
           />
         </TouchableOpacity>
 
@@ -63,7 +69,12 @@ const TabBar = () => {
           style={[
             styles.navItem,
             {
-              borderTopColor: screenName === "Search" ? "#fff" : "grey",
+              borderTopColor:
+                screenName === "Search"
+                  ? isDarkMode
+                    ? lightTheme.background
+                    : darkTheme.background
+                  : "grey",
               borderTopWidth: screenName === "Search" ? 1 : 0,
             },
           ]}
@@ -71,12 +82,23 @@ const TabBar = () => {
           <FontAwesome
             name="search"
             size={height * 0.03}
-            color={screenName === "Search" ? "#fff" : "grey"}
+            color={
+              screenName === "Search"
+                ? isDarkMode
+                  ? lightTheme.background
+                  : darkTheme.background
+                : "grey"
+            }
           />
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setIsModalVisible(true)}
+          onPress={() =>
+            setModalState({
+              visible: true,
+              key: "camera",
+            })
+          }
           style={styles.navItem}
         >
           <View style={styles.addButton}>
@@ -89,7 +111,12 @@ const TabBar = () => {
           style={[
             styles.navItem,
             {
-              borderTopColor: screenName === "ChatList" ? "#fff" : "grey",
+              borderTopColor:
+                screenName === "ChatList"
+                  ? isDarkMode
+                    ? lightTheme.background
+                    : darkTheme.background
+                  : "grey",
               borderTopWidth: screenName === "ChatList" ? 1 : 0,
             },
           ]}
@@ -97,31 +124,53 @@ const TabBar = () => {
           <MaterialCommunityIcons
             name="chat"
             size={height * 0.03}
-            color={screenName === "ChatList" ? "#fff" : "grey"}
+            color={
+              screenName === "ChatList"
+                ? isDarkMode
+                  ? lightTheme.background
+                  : darkTheme.background
+                : "grey"
+            }
           />
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("ProfilePublic", { userId: userId })
-          }
+          onPress={() => {
+            if (myUserId !== null) {
+              navigation.navigate("Profile", { userId: myUserId });
+            }
+          }}
           style={[
             styles.navItem,
             {
-              borderTopColor: screenName === "ProfilePublic" ? "#fff" : "grey",
-              borderTopWidth: screenName === "ProfilePublic" ? 1 : 0,
+              borderTopColor:
+                screenName === "Profile"
+                  ? isDarkMode
+                    ? lightTheme.background
+                    : darkTheme.background
+                  : "grey",
+              borderTopWidth: screenName === "Profile" ? 1 : 0,
             },
           ]}
         >
           <FontAwesome
             name="user"
             size={height * 0.03}
-            color={screenName === "ProfilePublic" ? "#fff" : "grey"}
+            color={
+              screenName === "Profile"
+                ? isDarkMode
+                  ? lightTheme.background
+                  : darkTheme.background
+                : "grey"
+            }
           />
         </TouchableOpacity>
         <CreatePostModel
-          visible={isModalVisible}
-          onClose={() => setIsModalVisible(false)}
+          openModel={modalState}
+          onClose={() => {
+            setModalState({ visible: false, key: null });
+            return { visible: false, key: null };
+          }}
           imagesProp={[]}
           removeImageProp={() => {}}
         />

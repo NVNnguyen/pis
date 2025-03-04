@@ -3,6 +3,7 @@ export type PostItemType = {
     userId: number;
     username: string;
     avatar: string;
+    followers: number
     follow: boolean;
   };
   id: number;

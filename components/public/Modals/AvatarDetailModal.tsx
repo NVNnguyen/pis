@@ -1,5 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import { backgroundColor } from "@/styles/color";
+import { backgroundColor } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
 import {

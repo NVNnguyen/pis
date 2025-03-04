@@ -12,33 +12,6 @@ export const toggleCameraFacing = (currentFacing: CameraType): CameraType =>
 /**
  * Saves the captured image by uploading it to the server.
  */
-const saveImage = async (localPath: string): Promise<void> => {
-  try {
-    const formData = new FormData();
-    formData.append("file", {
-      uri: localPath,
-      name: `captured_image_${Date.now()}.png`, // Unique file name
-      type: "image/png", // MIME type
-    } as any);
-
-    const response = await axios.post(
-      "http://192.168.1.2:8083/api/images/upload", // Use "10.0.2.2" for Android emulator
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    console.log("Image uploaded successfully:", response.data);
-  } catch (error) {
-    console.error(
-      "Error uploading image:",
-      
-    );
-  }
-};
 
 /**
  * Captures an image using the provided camera reference.
@@ -62,7 +35,7 @@ export const captureImage = async (cameraRef: React.RefObject<any>): Promise<voi
       console.log("Image captured at temporary path:", tempPath);
 
       // Upload the image to the server
-      await saveImage(tempPath);
+     
     }
   } catch (error) {
     console.error("Error capturing image:");

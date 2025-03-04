@@ -33,7 +33,7 @@ const getStyles = (isDarkMode: any) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      marginBottom: height * 0.015,
+      paddingBottom: height * 0.015,
     },
   });
 

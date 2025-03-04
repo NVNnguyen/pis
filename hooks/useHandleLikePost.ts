@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 const useHandleLikePost = (myUserId: number, id: number, like: boolean, likes: number) => {
   const [numberLike, setNumberLike] = useState<number>(likes);
   const [isLiked, setIsLiked] = useState<boolean>(like);
-  console.log("isLiked", isLiked);  
   const handleLike = useCallback(async () => {
     if (!myUserId) {
       console.error("User ID is undefined or null");

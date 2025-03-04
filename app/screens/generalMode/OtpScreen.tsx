@@ -1,9 +1,14 @@
 import authApi from "@/api/authAPI";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { useTheme } from "@/contexts/ThemeContext";
-import { buttonBlueColor, grey } from "@/utils/colorPrimary";
+import {
+  buttonFontsize,
+  textFontSize,
+  titleFontsize,
+} from "@/styles/stylePrimary";
+import { grey } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useState } from "react";
@@ -25,7 +30,7 @@ const OtpScreen = () => {
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<MainStackType>>();
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [otp, setOtp] = useState<number>(0);
@@ -101,7 +106,7 @@ const getStyles = (isDarkMode: any) =>
         : lightTheme.background,
     },
     title: {
-      fontSize: width * 0.09,
+      fontSize: titleFontsize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
     input: {
@@ -112,7 +117,7 @@ const getStyles = (isDarkMode: any) =>
       padding: width * 0.03,
       width: "80%",
       textAlign: "center",
-      fontSize: width * 0.05,
+      fontSize: textFontSize,
       borderRadius: width * 0.02,
       marginBottom: height * 0.02,
       color: isDarkMode ? lightTheme.text : darkTheme.text,
@@ -125,11 +130,11 @@ const getStyles = (isDarkMode: any) =>
     },
     buttonText: {
       color: isDarkMode ? lightTheme.text : lightTheme.text,
-      fontSize: width * 0.05,
+      fontSize: buttonFontsize,
     },
     suggestTxt: {
       color: grey,
-      fontSize: width * 0.04,
+      fontSize: textFontSize,
       marginBottom: height * 0.02,
     },
   });

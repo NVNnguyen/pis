@@ -14,7 +14,12 @@ import {
   FontAwesome,
   Feather,
 } from "@expo/vector-icons";
-import { Color, fontWeight } from "../../../styles/color";
+import {
+  Color,
+  fontWeight,
+  textFontSize,
+  textPostFontSize,
+} from "../../../styles/stylePrimary";
 
 const { width, height } = Dimensions.get("window");
 
@@ -203,7 +208,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     color: Color,
-    fontSize: width * 0.045,
+    fontSize: textFontSize,
     fontWeight: fontWeight,
   },
   iconContainer: {
@@ -213,7 +218,7 @@ const styles = StyleSheet.create({
     marginHorizontal: width * 0.02,
   },
   sectionTitle: {
-    fontSize: width * 0.06,
+    fontSize: textFontSize,
     color: Color,
     fontWeight: fontWeight,
     textAlign: "center",
@@ -232,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionText: {
-    fontSize: width * 0.045,
+    fontSize: textFontSize,
     color: Color,
     fontWeight: fontWeight,
   },
@@ -241,7 +246,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: width * 0.05,
   },
   sectionHeader: {
-    fontSize: width * 0.045,
+    fontSize: textFontSize,
     color: Color,
     fontWeight: fontWeight,
     marginBottom: height * 0.01,
@@ -257,7 +262,7 @@ const styles = StyleSheet.create({
   },
   listText: {
     color: Color,
-    fontSize: width * 0.045,
+    fontSize: textFontSize,
   },
   deleteAccount: {
     backgroundColor: "#b00020",

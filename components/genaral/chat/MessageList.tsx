@@ -1,83 +1,65 @@
 import conversationAPI from "@/api/conversationAPI";
-import Chat from "@/components/public/Chat";
+import Message from "@/components/genaral/chat/Message";
 import { useTheme } from "@/contexts/ThemeContext";
-import { darkTheme, lightTheme } from "@/utils/themes";
+import { getMyUserId } from "@/hooks/getMyUserID";
+import useMessage from "@/hooks/useMessage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from "react-native";
+import { FlatList, StyleSheet, Dimensions, View } from "react-native";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 interface MessageProps {
   userIdProp: number;
 }
 
 const MessageList: React.FC<MessageProps> = ({ userIdProp }) => {
-  const [userId, setUserId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-
-  useEffect(() => {
-    const fetchUserId = async () => {
-      try {
-        const decodedToken = await AsyncStorage.getItem("userID");
-        if (decodedToken) {
-          setUserId(Number(decodedToken));
-          console.log("✅ User ID:", decodedToken);
-        } else {
-          console.warn("❌ Không tìm thấy userID trong AsyncStorage!");
-        }
-      } catch (error) {
-        console.error("❌ Lỗi khi lấy userID:", error);
-      }
-    };
-    fetchUserId();
-  }, []);
-
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        if (!userId) return;
-
-        console.log("📡 Fetching messages for:", userId, userIdProp);
-        const response = await conversationAPI.messages(userId, userIdProp);
-
-        if (response?.data) {
-          setMessages(response.data);
-          console.log("✅ Messages fetched:", response.data);
-        }
-      } catch (error) {
-        console.error("❌ Lỗi khi lấy tin nhắn:", error);
-      }
-    };
-
-    if (userId) {
-      fetchMessages();
-    }
-  }, [userId]); // ✅ Chỉ chạy lại khi `userId` thay đổi
-
+  const myUserid = getMyUserId() ?? 0;
+  const { message, isMessageLoading, messageError } = useMessage(
+    myUserid,
+    userIdProp
+  );
+  console.log("📡 MessageList:", message);
   return (
     <FlatList
-      data={messages}
+      data={message}
       keyExtractor={(item, index) => index.toString()}
-      renderItem={({ item }) => <Chat {...item} />}
-      contentContainerStyle={styles.listContainer}
+      renderItem={({ item }) => (
+        <View
+          style={
+            item?.userId === myUserid
+              ? styles.ownerMessage
+              : styles.theirMessage
+          }
+        >
+          <Message
+            {...item}
+            style={
+              item?.userId === myUserid
+                ? styles.ownerMessage
+                : styles.theirMessage
+            }
+          />
+        </View>
+      )}
     />
   );
 };
 
 const getStyles = (isDarkMode: any) =>
   StyleSheet.create({
-    listContainer: {
-      padding: 10,
+    ownerMessage: {
+      alignSelf: "flex-end",
+      flexDirection: "row-reverse",
+      marginVertical: height * 0.01,
+      marginRight: width * 0.01,
+    },
+    theirMessage: {
+      alignSelf: "flex-start",
+      marginVertical: height * 0.01,
+      marginLeft: width * 0.01,
     },
   });
 

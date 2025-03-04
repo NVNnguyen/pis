@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 const usePosts = (userIdProp: number)=>{
     
   const {
-    data: posts,
+    data: posts ,
     isLoading: isPostsLoading,
     error: postsError,
   } = useQuery({

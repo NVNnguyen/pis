@@ -1,6 +1,8 @@
 import infoAPI from "@/api/infoAPI";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Color, fontWeight } from "@/styles/color";
+import useUserInfo from "@/hooks/useUserInfo";
+import { Color, fontWeight } from "@/styles/stylePrimary";
+import { primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -18,41 +20,10 @@ interface ChatHeaderProps {
 }
 const { width, height } = Dimensions.get("window");
 const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
-  const [userId, setUserId] = useState<number>(0);
-  const [avatar, setAvatar] = useState<string>("");
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        if (!userIdProp || userIdProp === 0) {
-          console.warn("User ID không hợp lệ:", userIdProp);
-          return;
-        }
-
-        console.log("📡 Fetching user info for User ID:", userIdProp);
-        const responseUser = await infoAPI.userInfo(userIdProp);
-
-        if (!responseUser.data) {
-          console.warn(" Không tìm thấy thông tin user!");
-          return;
-        }
-
-        setAvatar(responseUser.data?.avatar || "");
-        setFirstName(responseUser.data?.firstName || "Unknown");
-        setLastName(responseUser.data?.lastName || "User");
-
-        console.log(" User Info Fetched:", responseUser.data);
-      } catch (error) {
-        console.error(" Error fetching user info:", error);
-      }
-    };
-
-    fetchUserInfo();
-  }, [userId]);
+  const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp);
   return (
     <View style={styles.header}>
       <View style={styles.backIcon}>
@@ -65,18 +36,18 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.avatarContainer}>
-        {avatar === "" ? (
+        {userInfo?.avatar === null ? (
           <Image
-            source={require("../../../assets/images/userAvatar.png")}
+            source={require("@/assets/images/userAvatar.png")}
             style={styles.avatar}
           />
         ) : (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
+          <Image source={{ uri: userInfo?.avatar }} style={styles.avatar} />
         )}
       </View>
       <View style={styles.textView}>
         <Text style={styles.name}>
-          {firstName} {lastName}
+          {userInfo?.firstName} {userInfo?.lastName}
         </Text>
         <Text style={styles.status}>Online</Text>
       </View>
@@ -138,7 +109,7 @@ const getStyles = (isDarkMode: any) =>
       marginLeft: width * 0.04,
     },
     iconColor: {
-      color: "#007AFF",
+      color: primaryColor,
     },
   });
 

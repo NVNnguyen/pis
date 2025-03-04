@@ -10,8 +10,12 @@ import {
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { fontWeight } from "@/styles/color";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import {
+  fontWeight,
+  textFontSize,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
+import { MainStackType } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
 interface Chat {
@@ -30,18 +34,16 @@ interface ChatListItemProps {
 const ChatListItem: React.FC<ChatListItemProps> = ({ chat }) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("ProfilePublic", { userId: chat?.id })
-        }
+        onPress={() => navigation.navigate("Profile", { userId: chat?.id })}
       >
         {/* Avatar */}
         {chat?.avatar === null ? (
           <Image
-            source={require("../../assets/images/userAvatar.png")}
+            source={require("@/assets/images/userAvatar.png")}
             style={styles.avatar}
           />
         ) : (
@@ -100,8 +102,8 @@ const getStyles = (isDarkMode: any) =>
       marginLeft: width * 0.04,
     },
     username: {
-      fontSize: width * 0.045,
-      fontWeight: "bold",
+      fontSize: textFontSize,
+      fontWeight: fontWeight,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
     messageCtn: {
@@ -117,19 +119,17 @@ const getStyles = (isDarkMode: any) =>
       fontWeight: fontWeight,
     },
     lastMessageRead: {
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
       color: "#A0A0A0",
-      fontWeight: fontWeight,
     },
     lastMsgTimeUnRead: {
-      fontSize: width * 0.035,
+      fontSize: textPostFontSize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontWeight: fontWeight,
     },
     lastMsgTimeRead: {
-      fontSize: width * 0.035,
+      fontSize: textPostFontSize,
       color: "#A0A0A0",
-      fontWeight: fontWeight,
     },
   });
 

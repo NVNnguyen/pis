@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import {
   View,
@@ -7,26 +7,33 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
-  Alert,
 } from "react-native";
-import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import {
+  backgroundColor,
+  buttonFontsize,
+  Color,
+  fontWeight,
+  textFontSize,
+  titleFontsize,
+} from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { emailRegex } from "@/utils/regex";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import authAPI from "@/api/authAPI";
+import { RFValue } from "react-native-responsive-fontsize";
+import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -179,26 +186,26 @@ const getStyles = (isDarkMode: any) =>
       alignItems: "center",
     },
     title: {
-      fontSize: width * 0.06,
+      fontSize: Math.min(RFValue(18, 680), 30),
       fontWeight: fontWeight,
       marginBottom: height * 0.02,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
     label: {
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
       alignSelf: "flex-start",
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: height * 0.01,
     },
     input: {
       width: "100%",
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
+      backgroundColor: isDarkMode ? darkThemeInput : lightThemeInput,
       borderRadius: width * 0.03,
       paddingHorizontal: width * 0.04,
       paddingVertical: height * 0.015,
       marginBottom: height * 0.02,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
     },
     registerButton: {
       backgroundColor: isDarkMode
@@ -213,7 +220,7 @@ const getStyles = (isDarkMode: any) =>
     registerButtonText: {
       color: isDarkMode ? lightTheme.text : darkTheme.text,
       fontWeight: fontWeight,
-      fontSize: width * 0.045,
+      fontSize: buttonFontsize,
     },
   });
 

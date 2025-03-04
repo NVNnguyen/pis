@@ -10,6 +10,7 @@ import {
 import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -19,7 +20,8 @@ const AudioPlayer = ({ audioUri }: { audioUri: string }) => {
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
   useEffect(() => {
     if (!audioUri) {
       console.warn("No audioUri provided!");
@@ -153,35 +155,36 @@ const AudioPlayer = ({ audioUri }: { audioUri: string }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#000",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  waveformContainer: {
-    width: "100%",
-    height: 80,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  playButton: {
-    marginTop: 10,
-    backgroundColor: "#1DB954",
-    padding: 15,
-    borderRadius: 50,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "80%",
-    marginTop: 10,
-  },
-  timeText: {
-    color: "#fff",
-  },
-});
+const getStyles = (isDarkMode: any) => {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: "#000",
+      padding: 20,
+      borderRadius: 10,
+      alignItems: "center",
+    },
+    waveformContainer: {
+      width: "100%",
+      height: 80,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    playButton: {
+      marginTop: 10,
+      backgroundColor: "#1DB954",
+      padding: 15,
+      borderRadius: 50,
+    },
+    progressContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "80%",
+      marginTop: 10,
+    },
+    timeText: {
+      color: "#fff",
+    },
+  });
+};
 
 export default AudioPlayer;
- 

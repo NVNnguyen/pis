@@ -1,6 +1,10 @@
-import { backgroundColor, Color } from "@/styles/color";
+import { backgroundColor, Color } from "@/styles/stylePrimary";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import {
+  useNavigation,
+  NavigationProp,
+  useRoute,
+} from "@react-navigation/native";
 import {
   View,
   TouchableOpacity,
@@ -11,18 +15,17 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
+import { RFValue } from "react-native-responsive-fontsize";
 
 const { width, height } = Dimensions.get("window");
 
 const PublicOrPrivate = () => {
   const toggleOptionRef = useRef<boolean>(false); // Tránh re-render
   const [toggleOption, setToggleOption] = useState<boolean>(false);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-
   useEffect(() => {
     const loadToggleOption = async () => {
       const savedOption = await AsyncStorage.getItem("toggleOption");
@@ -40,7 +43,7 @@ const PublicOrPrivate = () => {
       toggleOptionRef.current = option;
       setToggleOption(option);
       await AsyncStorage.setItem("toggleOption", JSON.stringify(option));
-      navigation.navigate(option ? "PublicMode" : "FriendMode");
+      navigation.navigate(option ? "PublicMode" : "PrivateMode");
     },
     [navigation]
   );
@@ -100,7 +103,7 @@ const getStyles = (isDarkMode: any) =>
     },
     toggleText: {
       color: Color,
-      fontSize: width * 0.04,
+      fontSize: Math.min(RFValue(16, 680), 30),
     },
     activeButton: {
       backgroundColor: isDarkMode

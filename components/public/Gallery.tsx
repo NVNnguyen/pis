@@ -15,9 +15,6 @@ import {
 import Spinner from "react-native-spinkit";
 
 const { width } = Dimensions.get("window");
-const IMAGE_SIZE = width * 0.3; // Định kích thước ảnh trong lưới
-const STORY_SIZE = width * 0.13; // Định kích thước ảnh Story
-
 interface PostItemProps {
   id: number;
   userPostResponse: {
@@ -116,7 +113,7 @@ const getStyles = (isDarkMode: boolean) =>
       borderRadius: 15,
     },
     txtNoPosts: {
-      color: "#fff",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });
 

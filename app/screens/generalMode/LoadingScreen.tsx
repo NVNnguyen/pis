@@ -1,7 +1,7 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import { fontWeight } from "@/styles/color";
+import { fontWeight, textPostFontSize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useEffect, useRef } from "react";
@@ -31,7 +31,7 @@ const LoadingScreen = () => {
     ).start();
   }, []);
   const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList, "Loading">>();
+    useNavigation<NativeStackNavigationProp<MainStackType, "Loading">>();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,7 +87,7 @@ const getStyles = (isDarkMode: any) =>
     },
     text: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: width * 0.016,
+      fontSize: textPostFontSize,
       marginTop: height * 0.01,
       fontWeight: fontWeight,
     },

@@ -1,5 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import { Color, fontWeight } from "@/styles/color";
+import { Color, fontWeight } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import React from "react";
 import {

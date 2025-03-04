@@ -13,7 +13,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { OPENSANS_REGULAR } from "@/utils/const";
-import { fontWeight } from "@/styles/color";
+import { fontWeight, textFontSize } from "@/styles/stylePrimary";
 import useUpdateProfile from "@/hooks/useUpdateProfile";
 import { useQueryClient } from "@tanstack/react-query";
 import { emailRegex } from "@/utils/regex";
@@ -123,16 +123,16 @@ const getStyle = (isDarkMode: any) =>
     },
     cancelText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     headerTitle: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.02,
+      fontSize: textFontSize,
       fontWeight: "bold",
     },
     doneText: {
       color: "#1E90FF",
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     profileSection: {
       marginTop: height * 0.02,
@@ -142,7 +142,7 @@ const getStyle = (isDarkMode: any) =>
     },
     label: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textFontSize,
       fontWeight: fontWeight,
     },
     input: {
@@ -150,7 +150,7 @@ const getStyle = (isDarkMode: any) =>
       padding: height * 0.012,
       borderRadius: 8,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.018,
+      fontSize: textFontSize,
     },
     btnLogout: {
       alignContent: "center",
@@ -159,7 +159,7 @@ const getStyle = (isDarkMode: any) =>
     },
     txtLogout: {
       color: "red",
-      fontSize: width * 0.05,
+      fontSize: textFontSize,
       fontWeight: fontWeight,
       textDecorationLine: "underline",
     },

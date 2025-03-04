@@ -16,7 +16,7 @@ initHttp(); // Gọi khi app khởi động
 const postsAPI = {
   posts: async (id: number) => {
     try {
-      const response = await http.get(`${BASE_URL_POSTS}/${id}`);
+      const response = await http.get(`${BASE_URL_POSTS}/public/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching  posts:", error);

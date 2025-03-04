@@ -7,7 +7,7 @@ import {
   Dimensions,
   GestureResponderEvent,
 } from "react-native";
-import { Color } from "../../../styles/color";
+import { Color } from "../../../styles/stylePrimary";
 
 interface FeatureItemProps {
   icon: string;

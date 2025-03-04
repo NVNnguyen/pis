@@ -10,7 +10,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import { backgroundColor, Color, fontWeight } from "../../../styles/color";
+import {
+  backgroundColor,
+  Color,
+  fontWeight,
+} from "../../../styles/stylePrimary";
 
 const { width, height } = Dimensions.get("window");
 

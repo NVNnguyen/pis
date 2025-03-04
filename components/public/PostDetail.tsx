@@ -1,0 +1,321 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
+import {
+  fontWeight,
+  text10FontSize,
+  text12FontSize,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
+import { formatNumber } from "@/utils/formatNumber";
+import AudioPlayer from "./AudioPlayer";
+import { useNavigation } from "@react-navigation/native";
+import { NavigationProp } from "@react-navigation/native";
+import { getMyUserId } from "@/hooks/getMyUserID";
+import PostImageDetailModal from "./Modals/PostImageDetailModal";
+import { MainStackType } from "@/utils/types/MainStackType";
+import { PostItemType } from "@/utils/types/PostItemType";
+import useHandleLikePost from "@/hooks/useHandleLikePost";
+import useHandleFollow from "@/hooks/useHandleFollow";
+import usePostStore from "@/stores/usePostStore";
+import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
+
+const { width, height } = Dimensions.get("window");
+const PostDetails = ({
+  userPostResponse,
+  id,
+  caption,
+  images,
+  likes,
+  comments,
+  type,
+  like,
+  createTime,
+}: PostItemType) => {
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
+    useState<boolean>(false);
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const myUserId = getMyUserId() ?? 0;
+
+  // Tìm index từ id
+  const getIndexById = (id: number) =>
+    images.findIndex((image) => image.id === id);
+  // Hiển thị modal
+  const showModal = (id: number) => {
+    const index = getIndexById(id);
+    if (index !== -1) {
+      setCurrentIndex(index); // Lưu index của ảnh được chọn
+      setIsVisiblePostImageDetail(true); // Mở modal
+    }
+  };
+  const { numberLike, isLiked, handleLike } = useHandleLikePost(
+    myUserId,
+    id,
+    like,
+    likes
+  );
+  const { isFollowing, handleFollowing } = useHandleFollow(
+    userPostResponse?.username,
+    userPostResponse?.follow
+  );
+
+  return (
+    <View style={styles.postContainer}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.avatarContainer}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Profile", {
+                userId: userPostResponse.userId,
+              })
+            }
+          >
+            {userPostResponse?.avatar != null && (
+              <Image
+                source={{ uri: userPostResponse.avatar }}
+                style={styles.avatar}
+              />
+            )}
+            {userPostResponse?.avatar == null && (
+              <Image
+                source={require("@/assets/images/userAvatar.png")}
+                style={styles.avatar}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+        <View style={styles.userInfo}>
+          <View style={styles.userRow}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Profile", {
+                  userId: userPostResponse?.userId,
+                })
+              }
+            >
+              <Text style={styles.username}>{userPostResponse?.username}</Text>
+            </TouchableOpacity>
+            {userPostResponse?.followers > 100000 && (
+              <MaterialIcons name="verified" style={styles.verifiedText} />
+            )}
+            <Text style={styles.time}>{createTime}</Text>
+          </View>
+        </View>
+        {!isFollowing && myUserId !== userPostResponse?.userId && (
+          <TouchableOpacity onPress={handleFollowing} style={styles.followBtn}>
+            <Text style={styles.followTxt}>Follow</Text>
+          </TouchableOpacity>
+        )}
+        {isFollowing && myUserId !== userPostResponse?.userId && (
+          <TouchableOpacity
+            onPress={handleFollowing}
+            style={styles.followingBtn}
+          >
+            <Text style={styles.followingTxt}>Following</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <Text style={styles.caption}>
+        {caption}{" "}
+        <MaterialIcons
+          name="favorite"
+          size={height * 0.014}
+          style={styles.icon}
+        />
+      </Text>
+      {type === "Voice" && images.length > 0 && images[0].url && (
+        <AudioPlayer audioUri={images[0].url} />
+      )}
+      {type === "Image" && images.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageContainer}
+        >
+          <FlatList
+            data={images}
+            keyExtractor={(image) => image.id.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                key={item.id} // Thêm key ở đúng vị trí
+                onPress={() => {
+                  showModal(item?.id);
+                }}
+              >
+                <Image source={{ uri: item.url }} style={styles.image} />
+              </TouchableOpacity>
+            )}
+          />
+        </ScrollView>
+      )}
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
+          <Ionicons
+            name={isLiked ? "heart" : "heart-outline"}
+            size={24}
+            color={
+              isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
+            }
+          />
+          {}
+          <Text style={styles.iconText}>{formatNumber(numberLike)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() =>
+            navigation.navigate("PostDetails", {
+              userId: userPostResponse?.userId,
+              postId: id,
+            })
+          }
+        >
+          <Ionicons
+            name="chatbubble-outline"
+            size={height * 0.02}
+            style={styles.icon}
+          />
+          <Text style={styles.iconText}>{formatNumber(comments)}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal hiển thị ảnh toàn màn hình */}
+      <PostImageDetailModal // Thay đổi thành PostImageDetailModal
+        images={images}
+        currentIndex={currentIndex}
+        isModalVisible={isVisiblePostImageDetail}
+        onClose={() => setIsVisiblePostImageDetail(false)}
+      />
+    </View>
+  );
+};
+
+const getStyles = (isDarkMode: boolean) =>
+  StyleSheet.create({
+    postContainer: {
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      paddingVertical: height * 0.02,
+      paddingHorizontal: width * 0.04,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: height * 0.01,
+    },
+    avatarContainer: {
+      position: "relative",
+      marginRight: width * 0.03,
+    },
+    avatar: {
+      width: width * 0.1,
+      height: width * 0.1,
+      borderRadius: (width * 0.1) / 2,
+    },
+    followBtn: {
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
+      width: width * 0.2,
+      height: height * 0.03,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderRadius: 10,
+    },
+    followTxt: {
+      color: isDarkMode ? lightTheme.text : darkTheme.text,
+      fontSize: text10FontSize,
+      fontWeight: fontWeight,
+    },
+    followingBtn: {
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      width: width * 0.22,
+      height: height * 0.03,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderRadius: 10,
+      borderColor: isDarkMode ? lightThemeInput : darkThemeInput,
+    },
+    followingTxt: {
+      color: isDarkMode ? lightThemeInput : darkThemeInput,
+    },
+    icon: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 2,
+    },
+    username: {
+      fontWeight: fontWeight,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+      marginRight: width * 0.008,
+    },
+    verifiedText: {
+      color: "#1da1f2",
+      fontSize: textPostFontSize,
+      marginRight: width * 0.008,
+    },
+    time: {
+      color: "#A0A0A0",
+      fontSize: text10FontSize,
+    },
+    caption: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+    },
+    imageContainer: {
+      flexDirection: "row",
+      marginTop: 10,
+    },
+    image: {
+      width: width * 0.6,
+      height: height * 0.35,
+      borderRadius: 10,
+      marginRight: width * 0.02,
+    },
+    footer: {
+      flexDirection: "row",
+      marginTop: height * 0.01,
+    },
+    iconContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: 20,
+    },
+    iconText: {
+      marginLeft: width * 0.005,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+    },
+  });
+
+export default PostDetails;

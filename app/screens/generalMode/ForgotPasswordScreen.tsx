@@ -1,11 +1,16 @@
 import authApi from "@/api/authAPI";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { useTheme } from "@/contexts/ThemeContext";
-import { fontWeight } from "@/styles/color";
+import {
+  buttonFontsize,
+  fontWeight,
+  textFontSize,
+  titleFontsize,
+} from "@/styles/stylePrimary";
 import { grey } from "@/utils/colorPrimary";
 import { emailRegex } from "@/utils/regex";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -22,7 +27,7 @@ import {
 } from "react-native";
 
 type ForgotPasswordScreenNavigationProp =
-  StackNavigationProp<RootStackParamList>;
+  StackNavigationProp<MainStackType>;
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
 const ForgotPasswordScreen = () => {
@@ -121,14 +126,14 @@ const getStyles = (isDarkMode: any) =>
       alignItems: "center",
     },
     title: {
-      fontSize: width * 0.07, // Responsive font size
+      fontSize: titleFontsize, // Responsive font size
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontWeight: fontWeight,
       textAlign: "center",
       marginTop: height * 0.15,
     },
     subtitle: {
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
       color: grey,
       textAlign: "center",
       marginTop: height * 0.04,
@@ -147,7 +152,7 @@ const getStyles = (isDarkMode: any) =>
       marginBottom: height * 0.04,
     },
     optionText: {
-      fontSize: width * 0.045,
+      fontSize: textFontSize,
       color: isDarkMode ? lightTheme.text : darkTheme.text,
       marginLeft: width * 0.03,
       width: width,
@@ -165,7 +170,7 @@ const getStyles = (isDarkMode: any) =>
     nextButtonText: {
       color: isDarkMode ? lightTheme.text : darkTheme.text,
       fontWeight: fontWeight,
-      fontSize: 20,
+      fontSize: buttonFontsize,
     },
   });
 

@@ -4,9 +4,9 @@ interface DecodedToken {
     userId: string;
     sub: string;
   }
-export const getDecodedToken = async () => {
+export const getDecodedToken = async (token: string) => {
     try {
-      const token = await AsyncStorage.getItem("token"); // Đợi token từ AsyncStorage
+   // Đợi token từ AsyncStorage
       if (!token) {
         console.log("Token not exit.");
         return null;

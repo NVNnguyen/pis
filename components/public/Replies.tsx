@@ -4,25 +4,22 @@ import {
   Text,
   StyleSheet,
   Image,
-  ScrollView,
   Dimensions,
   TouchableOpacity,
-  FlatList,
-  Alert,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight } from "@/styles/color";
+import { fontWeight, textPostFontSize } from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import useHandleLikeComment from "@/hooks/useHandleLikeComment";
-import useHandleFollow from "@/hooks/useHanldeFollow";
+import useHandleFollow from "@/hooks/useHandleFollow";
 
 const { width, height } = Dimensions.get("window");
 const Replies = (item: any) => {
@@ -31,7 +28,7 @@ const Replies = (item: any) => {
   const [isOpenReplies, setIsOpenReplies] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const myUserId = getMyUserId() ?? 0;
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
     myUserId,
@@ -51,7 +48,7 @@ const Replies = (item: any) => {
         <View style={styles.avatarContainer}>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("ProfilePublic", {
+              navigation.navigate("Profile", {
                 userId: item?.userPostResponse?.userId,
               })
             }
@@ -64,7 +61,7 @@ const Replies = (item: any) => {
             )}
             {item?.userPostResponse.avatar == null && (
               <Image
-                source={require("../../assets/images/userAvatar.png")}
+                source={require("@/assets/images/userAvatar.png")}
                 style={styles.avatar}
               />
             )}
@@ -84,7 +81,7 @@ const Replies = (item: any) => {
           <View style={styles.userRow}>
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate("ProfilePublic", {
+                navigation.navigate("Profile", {
                   userId: item?.userPostResponse.userId,
                 })
               }
@@ -93,7 +90,10 @@ const Replies = (item: any) => {
                 {item?.userPostResponse.username}
               </Text>
             </TouchableOpacity>
-            <MaterialIcons name="verified" style={styles.verifiedText} />
+            {item?.userPostResponse?.followers > 100000 && (
+              <MaterialIcons name="verified" style={styles.verifiedText} />
+            )}
+
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
           <Text style={styles.caption}>
@@ -174,8 +174,8 @@ const getStyles = (isDarkMode: boolean) =>
       paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
       borderLeftWidth: 1,
-      borderBottomLeftRadius: 90,
-      borderColor: "grey",
+      borderLeftColor: "grey",
+      borderBottomLeftRadius: 100,
     },
     header: {
       flexDirection: "row",
@@ -215,24 +215,24 @@ const getStyles = (isDarkMode: boolean) =>
     username: {
       fontWeight: fontWeight,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
       marginRight: width * 0.008,
     },
     verifiedText: {
       color: "#1da1f2",
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
       marginRight: width * 0.008,
     },
     time: {
       color: "#A0A0A0",
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
     },
     caption: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
     },
     imageContainer: {
-      paddingLeft: height * 0.06,
+      paddingLeft: width * 0.06,
       flexDirection: "row",
       marginTop: 10,
     },

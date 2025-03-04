@@ -8,23 +8,25 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
-  Alert,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight } from "@/styles/color";
+import {
+  fontWeight,
+  text12FontSize,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
-import postsAPI from "@/api/postsAPI";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
-import { RootStackParamList } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import { PostItemType } from "@/utils/types/PostItemType";
 import useHandleLikePost from "@/hooks/useHandleLikePost";
-import useHandleFollow from "@/hooks/useHanldeFollow";
+import useHandleFollow from "@/hooks/useHandleFollow";
 
 const { width, height } = Dimensions.get("window");
 const PostItem = ({
@@ -43,12 +45,12 @@ const PostItem = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [numberLine, setNumberLine] = useState(3);
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const [isExpandable, setIsExpandable] = useState<boolean>(false);
   const myUserId = getMyUserId() ?? 0;
-  // Tìm index từ id
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);
-  // Hiển thị modal
   const showModal = (id: number) => {
     const index = getIndexById(id);
     if (index !== -1) {
@@ -66,6 +68,7 @@ const PostItem = ({
     userPostResponse?.username,
     userPostResponse?.follow
   );
+
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -73,20 +76,20 @@ const PostItem = ({
         <View style={styles.avatarContainer}>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("ProfilePublic", {
+              navigation.navigate("Profile", {
                 userId: userPostResponse.userId,
               })
             }
           >
-            {userPostResponse.avatar != null && (
+            {userPostResponse?.avatar != null && (
               <Image
                 source={{ uri: userPostResponse.avatar }}
                 style={styles.avatar}
               />
             )}
-            {userPostResponse.avatar == null && (
+            {userPostResponse?.avatar == null && (
               <Image
-                source={require("../../assets/images/userAvatar.png")}
+                source={require("@/assets/images/userAvatar.png")}
                 style={styles.avatar}
               />
             )}
@@ -106,24 +109,50 @@ const PostItem = ({
           <View style={styles.userRow}>
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate("ProfilePublic", {
-                  userId: userPostResponse.userId,
+                navigation.navigate("Profile", {
+                  userId: userPostResponse?.userId,
                 })
               }
             >
-              <Text style={styles.username}>{userPostResponse.username}</Text>
+              <Text style={styles.username}>{userPostResponse?.username}</Text>
             </TouchableOpacity>
-            <MaterialIcons name="verified" style={styles.verifiedText} />
+            {userPostResponse?.followers > 100000 && (
+              <MaterialIcons name="verified" style={styles.verifiedText} />
+            )}
             <Text style={styles.time}>{createTime}</Text>
           </View>
-          <Text style={styles.caption}>
-            {caption}{" "}
-            <MaterialIcons
-              name="favorite"
-              size={height * 0.014}
-              style={styles.icon}
-            />
-          </Text>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("PostDetails", {
+                userId: userPostResponse?.userId,
+                postId: id,
+              })
+            }
+          >
+            <Text
+              style={styles.caption}
+              numberOfLines={numberLine}
+              onTextLayout={(event) => {
+                const lineCount = event.nativeEvent.lines.length;
+                if (lineCount > numberLike) {
+                  setIsExpandable(true);
+                }
+              }}
+            >
+              {caption}{" "}
+              <MaterialIcons
+                name="favorite"
+                size={height * 0.014}
+                style={styles.icon}
+              />
+            </Text>
+          </TouchableOpacity>
+
+          {isExpandable && numberLine < caption.length && (
+            <TouchableOpacity onPress={() => setNumberLine(caption.length)}>
+              <Text>See more</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity>
           <MaterialIcons
@@ -154,7 +183,7 @@ const PostItem = ({
                   showModal(item?.id);
                 }}
               >
-                <Image source={{ uri: item.url }} style={styles.image} />
+                <Image source={{ uri: item.url }} style={styles.imagePost} />
               </TouchableOpacity>
             )}
           />
@@ -176,12 +205,12 @@ const PostItem = ({
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={() => {
-            navigation.navigate("Comments", {
-              id: id,
+          onPress={() =>
+            navigation.navigate("PostDetails", {
               userId: userPostResponse?.userId,
-            });
-          }}
+              postId: id,
+            })
+          }
         >
           <Ionicons
             name="chatbubble-outline"
@@ -253,51 +282,28 @@ const getStyles = (isDarkMode: boolean) =>
     username: {
       fontWeight: fontWeight,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
       marginRight: width * 0.008,
     },
     verifiedText: {
       color: "#1da1f2",
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
       marginRight: width * 0.008,
     },
     time: {
       color: "#A0A0A0",
-      fontSize: height * 0.016,
+      fontSize: text12FontSize,
     },
     caption: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
+      fontSize: textPostFontSize,
     },
     imageContainer: {
       paddingLeft: height * 0.06,
       flexDirection: "row",
       marginTop: 10,
     },
-    fullImageContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "black",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 10,
-    },
-    fullImageScrollView: {
-      flex: 1,
-    },
-    fullImage: {
-      width: "100%",
-      height: "100%",
-    },
-    closeButton: {
-      position: "absolute",
-      top: 40,
-      right: 20,
-    },
-    image: {
+    imagePost: {
       width: width * 0.6,
       height: height * 0.35,
       borderRadius: 10,
@@ -316,23 +322,7 @@ const getStyles = (isDarkMode: boolean) =>
     iconText: {
       marginLeft: width * 0.005,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: height * 0.016,
-    },
-    modalContainer: {
-      flex: 1,
-      backgroundColor: "black",
-    },
-    closeIcon: {
-      position: "absolute",
-      top: height * 0.07, // Đặt icon cách đỉnh màn hình
-      left: width * 0.07, // Đặt icon cách cạnh trái
-      zIndex: 10, // Hiển thị icon phía trên các thành phần khác
-      backgroundColor: "grey", // Nền xám
-      borderRadius: width * 0.05, // Đặt borderRadius bằng nửa chiều rộng/chiều cao để tạo hình tròn
-      width: width * 0.07, // Đường kính hình tròn
-      height: width * 0.07, // Đường kính hình tròn (bằng với chiều rộng để đảm bảo hình tròn)
-      justifyContent: "center", // Căn giữa nội dung theo chiều dọc
-      alignItems: "center", // Căn giữa nội dung theo chiều ngang
+      fontSize: textPostFontSize,
     },
   });
 
