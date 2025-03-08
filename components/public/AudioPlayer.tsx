@@ -11,8 +11,9 @@ import { Audio } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const AudioPlayer = ({ audioUri }: { audioUri: string }) => {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -144,7 +145,11 @@ const AudioPlayer = ({ audioUri }: { audioUri: string }) => {
       </View>
 
       <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
-        <Ionicons name={isPlaying ? "pause" : "play"} size={32} color="white" />
+        <Ionicons
+          name={isPlaying ? "pause" : "play"}
+          size={32}
+          color={isDarkMode ? darkTheme.text : lightTheme.text}
+        />
       </TouchableOpacity>
 
       <View style={styles.progressContainer}>
@@ -158,31 +163,34 @@ const AudioPlayer = ({ audioUri }: { audioUri: string }) => {
 const getStyles = (isDarkMode: any) => {
   return StyleSheet.create({
     container: {
-      backgroundColor: "#000",
-      padding: 20,
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
+      padding: width * 0.02,
       borderRadius: 10,
       alignItems: "center",
+      width: "80%",
     },
     waveformContainer: {
       width: "100%",
-      height: 80,
+      height: height * 0.08,
       justifyContent: "center",
       alignItems: "center",
     },
     playButton: {
-      marginTop: 10,
-      backgroundColor: "#1DB954",
-      padding: 15,
+      marginTop: height * 0.01,
+      backgroundColor: isDarkMode ? lightTheme.text : darkTheme.text,
+      padding: width * 0.015,
       borderRadius: 50,
     },
     progressContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       width: "80%",
-      marginTop: 10,
+      marginTop: height * 0.01,
     },
     timeText: {
-      color: "#fff",
+      color: isDarkMode ? lightTheme.text : darkTheme.text,
     },
   });
 };

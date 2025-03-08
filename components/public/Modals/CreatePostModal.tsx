@@ -9,74 +9,107 @@ import {
   Image,
   Dimensions,
   FlatList,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight, textFontSize } from "@/styles/stylePrimary";
+import {
+  buttonFontsize,
+  fontWeight,
+  textFontSize,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
 import useImagePicker from "@/hooks/useImagePicker";
 import { useQueryClient } from "@tanstack/react-query";
-import { grey } from "@/utils/colorPrimary";
 import CameraModal from "./CameraModal";
 import VoiceModal from "./VoiceModal";
 import AudioPlayer from "../AudioPlayer";
-
+import { getMyUserId } from "@/hooks/getMyUserID";
+import { useCreatePost } from "@/hooks/useCreatePost";
+import * as FileSystem from "expo-file-system";
 interface CreatePostModelProps {
   openModel: {
     visible: boolean;
     key: string | null;
   };
   onClose: () => { visible: boolean; key: string | null };
-  imagesProp: string[];
-  removeImageProp: (uri: string) => void;
+  isLoading: (isLoading: boolean) => void; // ✅ Cập nhật kiểu trả về
 }
 
 const { width, height } = Dimensions.get("window");
-
 const CreatePostModel: React.FC<CreatePostModelProps> = ({
   openModel,
   onClose,
-  imagesProp,
-  removeImageProp,
+  isLoading, // ✅ Nhận hàm cập nhật loading từ ngoài
 }) => {
-  const [postText, setPostText] = useState("");
+  const [content, setContent] = useState<string>("");
   const [isVisibleCameraModal, setIsVisibleCameraModal] =
     useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string | null>(null);
   const [isOpenVoiceModal, setIsOpenVoiceModal] = useState<boolean>(false);
   const [recordUri, setRecordUri] = useState<string | null>(null);
-  const handleImageCaptured = (imageUri: string) => {
-    setCapturedImages(imageUri); // Thêm ảnh vào danh sách
-  };
-  const reMoveImageFromCamera = () => {
-    setCapturedImages(null);
-  };
+  const [isLoadingCreatePost, setIsLoadingCreatePost] =
+    useState<boolean>(false);
+  const myUserId = getMyUserId() ?? 0;
+  const queryClient = useQueryClient();
+  const userInfo = queryClient.getQueryData<{
+    avatar: string;
+    username: string;
+  }>(["userInfo", myUserId]);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const queryClient = useQueryClient();
-  const userInfo = queryClient.getQueryData<{ avatar: string }>(["userInfo"]);
-
-  const { images, removeImage, permission, openImagePicker } = useImagePicker();
+  const handleImageCaptured = (imageUri: string) => {
+    setCapturedImages(imageUri);
+    Image.getSize(imageUri, (imgWidth, imgHeight) => {
+      const aspectRatio = imgWidth / imgHeight;
+      setImageSizes((prevSizes) => ({
+        ...prevSizes,
+        [imageUri]: {
+          width: width * 0.6,
+          height: (width * 0.7) / aspectRatio,
+          borderRadius: 10,
+          marginRight: 10,
+          resizeMode: "cover",
+        },
+      }));
+    });
+  };
+  const { images, removeImage, openImagePicker, removeAllImages } =
+    useImagePicker();
   const [imageSizes, setImageSizes] = useState<{
     [key: string]: { width: number; height: number };
   }>({});
-
   useEffect(() => {
-    const allImages = [...imagesProp, ...images];
-    allImages.forEach((uri) => {
-      Image.getSize(uri, (imgWidth, imgHeight) => {
-        const aspectRatio = imgWidth / imgHeight;
-        setImageSizes((prevSizes) => ({
-          ...prevSizes,
-          [uri]: {
-            width: width * 0.4,
-            height: (width * 0.4) / aspectRatio,
-          },
-        }));
-      });
+    images.forEach((uri) => {
+      if (!imageSizes[uri]) {
+        // Chỉ cập nhật nếu chưa có kích thước
+        Image.getSize(uri, (imgWidth, imgHeight) => {
+          const aspectRatio = imgWidth / imgHeight;
+          setImageSizes((prevSizes) => ({
+            ...prevSizes,
+            [uri]: {
+              width: width * 0.4,
+              height: (width * 0.4) / aspectRatio,
+              borderRadius: 10,
+              marginRight: 10,
+            },
+          }));
+        });
+      }
     });
-  }, [imagesProp, images]);
-  console.log("Open modal: ", openModel);
+  }, [images]);
+  const handleOpenRecord = () => {
+    setCapturedImages(null);
+    removeAllImages();
+    setIsOpenVoiceModal(true);
+  };
+
+  console.log(userInfo);
+
   useEffect(() => {
     if (openModel.key === "photo") {
       openImagePicker();
@@ -85,106 +118,232 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
       setIsVisibleCameraModal(true);
     }
     if (openModel.key === "record") {
-      setIsOpenVoiceModal(true);
+      handleOpenRecord();
     }
   }, [openModel.key]);
+  const createPostMutation = useCreatePost();
+  const handleCreatePost = () => {
+    if (isLoadingCreatePost) return;
+
+    setIsLoadingCreatePost(true);
+    isLoading(true); // ✅ Cập nhật loading ở ngoài
+
+    const files = [];
+
+    if (capturedImages) {
+      files.push({
+        uri: capturedImages,
+        type: "image/jpeg",
+        name: "captured_image.jpg",
+      });
+    }
+
+    if (images.length > 0) {
+      files.push(
+        ...images.map((image, index) => ({
+          uri: image,
+          type: "image/jpeg",
+          name: `image_${index}.jpg`,
+        }))
+      );
+    }
+
+    if (recordUri) {
+      files.push({
+        uri: recordUri,
+        type: "audio/mpeg",
+        name: "audio.mp3",
+      });
+    }
+
+    createPostMutation.mutate(
+      {
+        userId: myUserId,
+        type: recordUri ? "Voice" : "Image",
+        content: content,
+        mode: "Public",
+        files: files.length > 0 ? files : undefined,
+      },
+      {
+        onError: (error) => {
+          Alert.alert(
+            "Create post error",
+            "Can't create post. Please try again!"
+          );
+          setIsLoadingCreatePost(false);
+          isLoading(false); // ✅ Dừng trạng thái loading bên ngoài khi có lỗi
+        },
+      }
+    );
+    setIsLoadingCreatePost(false);
+    isLoading(false); // ✅ Dừng trạng thái loading bên ngoài
+    onClose();
+    setRecordUri(null);
+    setContent("");
+    setCapturedImages(null);
+    removeAllImages();
+  };
+
+  const handleCloseModal = () => {
+    if (recordUri) {
+      Alert.alert(
+        "Discard new post?",
+        "This post type can't be saved as a draft.",
+        [
+          {
+            text: "Keep Editing",
+            onPress: () => {},
+            style: "cancel",
+          },
+          {
+            text: "Discard",
+            onPress: () => {
+              setRecordUri(null);
+              onClose(); // Gọi hàm đúng cách
+            },
+            style: "destructive",
+          },
+        ]
+      );
+    }
+  };
 
   return (
     <Modal animationType="slide" transparent visible={openModel.visible}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>New Post</Text>
-            <TouchableOpacity
-              style={[styles.postButton, !postText && styles.disabledPost]}
-              disabled={!postText}
-            >
-              <Text style={styles.postText}>Post</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.userInfo}>
-            {userInfo?.avatar && (
-              <Image source={{ uri: userInfo.avatar }} style={styles.avatar} />
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="What's new?"
-              placeholderTextColor="#999"
-              multiline
-              value={postText}
-              onChangeText={setPostText}
-            />
-          </View>
-          {(imagesProp.length > 0 || images.length > 0) && (
-            <FlatList
-              data={[...imagesProp, ...images]}
-              keyExtractor={(item) => item}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <View>
-                  <Image
-                    source={{ uri: item }}
-                    style={imageSizes[item] || styles.image}
-                  />
-
-                  <TouchableOpacity
-                    style={styles.clearImage}
-                    onPress={() => {
-                      removeImage(item);
-                      removeImageProp(item);
-                    }}
-                  >
-                    <MaterialIcons name="clear" size={24} color={grey} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
-          )}
-          {capturedImages && (
-            <View style={styles.captureImageContainer}>
-              <Image
-                source={{ uri: capturedImages }}
-                style={styles.imageCapture}
-              />
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            <View style={styles.header}>
               <TouchableOpacity
-                style={styles.clearImageCapture}
-                onPress={() => reMoveImageFromCamera()}
+                onPress={() => {
+                  if (recordUri) {
+                    handleCloseModal(); // Gọi hàm đúng cách
+                  } else {
+                    onClose(); // Gọi hàm đúng cách
+                  }
+                }}
               >
-                <MaterialIcons name="clear" size={24} color={grey} />
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>New Post</Text>
+              <TouchableOpacity
+                style={[styles.postButton, !content && styles.disabledPost]}
+                disabled={!content}
+                onPress={() => handleCreatePost()}
+              >
+                <Text style={styles.postText}>Post</Text>
               </TouchableOpacity>
             </View>
-          )}
 
-          {recordUri && <AudioPlayer audioUri={recordUri} />}
+            <View style={styles.userInfo}>
+              {userInfo?.avatar ? (
+                <Image
+                  source={{ uri: userInfo.avatar }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <Image
+                  source={require("@/assets/images/userAvatar.png")}
+                  style={styles.avatar}
+                />
+              )}
+              <View>
+                <Text style={styles.usernameTxt}>{userInfo?.username}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="What's new?"
+                  placeholderTextColor="##9E9E9E"
+                  multiline
+                  value={content}
+                  onChangeText={setContent}
+                />
+              </View>
+            </View>
+            {(images.length > 0 || capturedImages) && (
+              <FlatList
+                data={
+                  capturedImages ? [capturedImages, ...images] : [...images]
+                }
+                keyExtractor={(item, index) => `${item}-${index}`} // Tránh trùng key
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View>
+                    <Image source={{ uri: item }} style={imageSizes[item]} />
+                    <TouchableOpacity
+                      style={styles.clearImage}
+                      onPress={() => {
+                        if (item === capturedImages) {
+                          setCapturedImages(null); // Xóa ảnh từ camera
+                        } else {
+                          removeImage(item); // Xóa ảnh từ thư viện
+                        }
+                      }}
+                    >
+                      <MaterialIcons
+                        name="clear"
+                        size={buttonFontsize}
+                        color="grey"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
 
-          <View style={styles.actionRow}>
-            <TouchableOpacity onPress={() => setIsVisibleCameraModal(true)}>
-              <SimpleLineIcons name="camera" size={24} color="#9E9E9E" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={openImagePicker}>
-              <Ionicons name="images-outline" size={24} color="#9E9E9E" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsOpenVoiceModal(true)}>
-              <MaterialIcons name="keyboard-voice" size={24} color="#9E9E9E" />
-            </TouchableOpacity>
+            {recordUri && <AudioPlayer audioUri={recordUri} />}
+
+            <View style={styles.actionRow}>
+              {!recordUri && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => setIsVisibleCameraModal(true)}
+                  >
+                    <SimpleLineIcons
+                      name="camera"
+                      size={buttonFontsize}
+                      color="#9E9E9E"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={openImagePicker}>
+                    <Ionicons
+                      name="images-outline"
+                      size={buttonFontsize}
+                      color="#9E9E9E"
+                    />
+                  </TouchableOpacity>
+                </>
+              )}
+              {images.length === 0 && capturedImages === null && (
+                <TouchableOpacity onPress={() => setIsOpenVoiceModal(true)}>
+                  <MaterialIcons
+                    name="keyboard-voice"
+                    size={buttonFontsize}
+                    color="#9E9E9E"
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
+          {/* Add a loading overlay when posting */}
+          {/* {isLoadingCreatePost && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color="#1E90FF" />
+              <Text style={styles.loadingText}>Posting...</Text>
+            </View>
+          )} */}
+          <CameraModal
+            visible={isVisibleCameraModal}
+            onClose={() => setIsVisibleCameraModal(false)}
+            onCapture={handleImageCaptured}
+          />
+          <VoiceModal
+            visible={isOpenVoiceModal}
+            onClose={() => setIsOpenVoiceModal(false)}
+            onDone={(uri) => setRecordUri(uri)}
+          />
         </View>
-        <CameraModal
-          visible={isVisibleCameraModal}
-          onClose={() => setIsVisibleCameraModal(false)}
-          onCapture={handleImageCaptured}
-        />
-        <VoiceModal
-          visible={isOpenVoiceModal}
-          onClose={() => setIsOpenVoiceModal(false)}
-          onDone={(uri) => setRecordUri(uri)}
-        />
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -251,6 +410,11 @@ const getStyles = (isDarkMode: boolean) =>
       borderRadius: (width * 0.1) / 2,
       marginRight: width * 0.02,
     },
+    usernameTxt: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+      fontWeight: fontWeight,
+    },
     input: {
       flex: 1,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -301,6 +465,22 @@ const getStyles = (isDarkMode: boolean) =>
       justifyContent: "center",
       alignItems: "center",
       zIndex: 10,
+    },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 100,
+    },
+    loadingText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginTop: height * 0.01,
+      fontSize: textFontSize,
     },
   });
 

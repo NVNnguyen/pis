@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { getMyUserId } from "@/hooks/getMyUserID";
 import useHandleFollow from "@/hooks/useHandleFollow";
 import {
   fontWeight,
@@ -9,7 +10,12 @@ import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { MaterialIcons } from "@expo/vector-icons";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import {
   View,
   Image,
@@ -25,17 +31,25 @@ interface FollowProfileProp {
   followers: number;
   firstName: string;
   lastName: string;
-  follow: boolean;
+  isFollow: boolean;
 }
+
 const { width, height } = Dimensions.get("window");
 const FollowProfile = (userFollowers: FollowProfileProp) => {
   const { isDarkMode } = useTheme();
   const styles = getStyle(isDarkMode);
-  const { isFollowing, handleFollowing } = useHandleFollow(
-    userFollowers?.username,
-    userFollowers?.follow
-  );
+  const myUserId = Number(getMyUserId());
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const { isFollowing, responseMessage, handleFollowing } = useHandleFollow({
+    userName: userFollowers?.username || "",
+    following: userFollowers?.isFollow || false,
+    userId: myUserId,
+    friendId: userFollowers?.userId || 0,
+  });
+  const route =
+    useRoute<RouteProp<{ params: { tab: string; userId: number } }>>();
+  const userId = route?.params?.userId;
+  console.log("userID: ", userId);
   return (
     <View style={styles.header}>
       <View style={styles.avatarContainer}>
@@ -43,6 +57,7 @@ const FollowProfile = (userFollowers: FollowProfileProp) => {
           onPress={() =>
             navigation.navigate("Profile", {
               userId: userFollowers.userId,
+              isFollow: userFollowers.isFollow,
             })
           }
         >
@@ -65,7 +80,8 @@ const FollowProfile = (userFollowers: FollowProfileProp) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("Profile", {
-                userId: userFollowers?.userId,
+                userId: userFollowers.userId,
+                isFollow: userFollowers.isFollow,
               })
             }
           >
@@ -81,14 +97,37 @@ const FollowProfile = (userFollowers: FollowProfileProp) => {
           </TouchableOpacity>
         </View>
       </View>
-      {!isFollowing && (
-        <TouchableOpacity onPress={handleFollowing} style={styles.followBtn}>
-          <Text style={styles.followTxt}>Follow</Text>
-        </TouchableOpacity>
+      {myUserId === userId && (
+        <>
+          {!isFollowing && (
+            <TouchableOpacity
+              onPress={handleFollowing}
+              style={styles.followBtn}
+            >
+              <Text style={styles.followTxt}>Follow</Text>
+            </TouchableOpacity>
+          )}
+          {isFollowing && (
+            <TouchableOpacity
+              onPress={handleFollowing}
+              style={styles.followingBtn}
+            >
+              <Text style={styles.followingTxt}>Following</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
-      {isFollowing && (
-        <TouchableOpacity onPress={handleFollowing} style={styles.followingBtn}>
-          <Text style={styles.followingTxt}>Following</Text>
+      {myUserId !== userId && (
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("Profile", {
+              userId: userFollowers.userId,
+              isFollow: userFollowers.isFollow,
+            })
+          }
+          style={styles.followBtn}
+        >
+          <Text style={styles.followTxt}>Profile</Text>
         </TouchableOpacity>
       )}
     </View>

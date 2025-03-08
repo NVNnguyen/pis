@@ -114,11 +114,11 @@ const LoginScreen = () => {
           onPress={() => setIsChecked(!isChecked)}
         >
           {isChecked ? (
-            <MaterialIcons name="check-box" size={24} color={Color} />
+            <MaterialIcons name="check-box" size={buttonFontsize} color={Color} />
           ) : (
             <MaterialIcons
               name="check-box-outline-blank"
-              size={24}
+              size={buttonFontsize}
               color={Color}
             />
           )}

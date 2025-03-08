@@ -28,16 +28,25 @@ const useImagePicker = () => {
       quality: 1,
     });
 
-    if (!result.canceled) {
-      setImages([...images, ...result.assets.map((asset) => asset.uri)]);
-      setIsModalVisible(true)
-    }
+    
+  if (!result.canceled) {
+    setIsModalVisible(false); // Bắt đầu tải ảnh
+    const newImages = result.assets.map((asset) => asset.uri);
+    setImages((prevImages) => [...prevImages, ...newImages]);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+   
+    setIsModalVisible(true); // Đóng modal sau khi tải xong
+  }
   };
   // ❌ Hàm để xóa ảnh khỏi danh sách
   const removeImage = (uri: string) => {
     setImages(images.filter((image) => image !== uri));
   };
-
+  const removeAllImages = ()=>{
+    setImages([])
+  }
   return {
     images,
     setImages,
@@ -45,6 +54,7 @@ const useImagePicker = () => {
     permission,
     isModalVisible,
     setIsModalVisible,
+    removeAllImages,
     removeImage
   };
 };

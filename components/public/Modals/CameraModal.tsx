@@ -63,15 +63,6 @@ const CameraModal = ({ visible, onCapture, onClose }: CameraModalProp) => {
       }
     }
   };
-  console.log(resultImage);
-  if (resultImage) {
-    const match = resultImage.match(/([^/]+)$/); // Lấy phần sau cùng của đường dẫn
-    if (match) {
-      console.log("Tên file ảnh:", match[0]);
-    } else {
-      console.log("Không thể tìm thấy tên file!");
-    }
-  }
   return (
     <Modal
       animationType="slide"

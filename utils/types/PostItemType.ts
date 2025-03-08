@@ -4,7 +4,7 @@ export type PostItemType = {
     username: string;
     avatar: string;
     followers: number
-    follow: boolean;
+    isFollow: boolean ;
   };
   id: number;
   caption: string;

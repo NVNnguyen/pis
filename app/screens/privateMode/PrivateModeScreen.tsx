@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { backgroundColor, Color } from "@/styles/stylePrimary";
+import { backgroundColor, buttonFontsize, Color } from "@/styles/stylePrimary";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
@@ -46,9 +46,18 @@ const PrivateModeScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("Profile", { userId: myUserId })}
+          onPress={() =>
+            navigation.navigate("Profile", {
+              userId: myUserId,
+              isFollow: false,
+            })
+          }
         >
-          <FontAwesome name="user-circle-o" size={24} color="#fff" />
+          <FontAwesome
+            name="user-circle-o"
+            size={buttonFontsize}
+            color="#fff"
+          />
         </TouchableOpacity>
         <PublicOrPrivate />
         <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>

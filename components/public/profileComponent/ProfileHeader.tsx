@@ -2,8 +2,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
   AntDesign,
+  Feather,
   FontAwesome6,
   Ionicons,
+  MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useState } from "react";
@@ -14,8 +16,13 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import { fontWeight } from "@/styles/stylePrimary";
+import {
+  buttonFontsize,
+  fontWeight,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
 import useUserInfo from "@/hooks/useUserInfo";
@@ -26,16 +33,23 @@ import UnFollowModel from "../Modals/UnFollowModal";
 import EditProfileModal from "../Modals/EditProfileModal";
 import {
   NavigationProp,
-  useFocusEffect,
+  RouteProp,
   useNavigation,
+  useRoute,
 } from "@react-navigation/native";
 import SettingModel from "../Modals/SettingModal";
 import AvatarDetailModal from "../Modals/AvatarDetailModal";
-import useUploadAvatar from "@/hooks/useUploadAvatar";
 import useFollowStore from "@/stores/useFollowStore";
 import { MainStackType } from "@/utils/types/MainStackType";
+import useHandleFollow from "@/hooks/useHandleFollow";
 
 const { width, height } = Dimensions.get("window");
+type ProfileRouteParams = {
+  Profile: {
+    userId: string;
+    isFollow: boolean;
+  };
+};
 
 const ProfileHeader = ({
   userIdProp,
@@ -53,10 +67,18 @@ const ProfileHeader = ({
   const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp); // Gọi API lại khi `userIdProp` thay đổi
   const { followInfo, isFollowLoading, isFollowError } =
     useUserFollowInfo(userIdProp);
+
+  const route = useRoute<RouteProp<ProfileRouteParams, "Profile">>();
+  const initialIsFollow = route?.params?.isFollow || false;
+  const [isFollowingState, setIsFollowingState] =
+    useState<boolean>(initialIsFollow);
+
   const { followStore, setFollow, resetFollow } = useFollowStore();
+
   useEffect(() => {
     if (followInfo) setFollow(followInfo);
   }, [followInfo]);
+
   const [isVisibleEditModel, setIsVisibleEditModel] = useState<boolean>(false);
   const [isVisibleSettingModel, setIsVisibleSettingModel] =
     useState<boolean>(false);
@@ -69,13 +91,14 @@ const ProfileHeader = ({
     toggleFollow,
     handleFollowStatus,
   } = useProfileActions(userInfo);
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity onPress={() => setIsVisibleSettingModel(true)}>
           <Ionicons
             name="options"
-            size={24}
+            size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
             style={{ marginRight: 15 }}
           />
@@ -83,32 +106,61 @@ const ProfileHeader = ({
       ),
     });
   }, [navigation, isDarkMode]);
-  const getColor = (
-    isFollowing: boolean,
-    isDarkMode: boolean,
-    type: "text" | "background"
-  ) => {
-    if (isFollowing) {
-      return isDarkMode
-        ? type === "text"
-          ? darkTheme.text
-          : darkTheme.background
-        : type === "text"
-        ? lightTheme.text
-        : lightTheme.background;
-    } else {
-      return isDarkMode
-        ? type === "text"
-          ? lightTheme.text
-          : lightTheme.background
-        : type === "text"
-        ? darkTheme.text
-        : darkTheme.background;
+
+  const { openPickImage } = useImagePickerSelectionOne();
+
+  // Sử dụng hook useHandleFollow với state cục bộ
+  const {
+    isFollowing,
+    responseMessage,
+    handleFollowing,
+    performFollowAction,
+    isLoading,
+  } = useHandleFollow({
+    userName: userInfo?.username || "",
+    following: isFollowingState, // Sử dụng state hiện tại thay vì route params
+    userId: myUserId,
+    friendId: userInfo?.id || 0,
+  });
+
+  // 1. Optimistic Update - Đừng đợi API trả về, cập nhật UI ngay lập tức
+  const handleFollowOptimistic = () => {
+    // Cập nhật UI trước
+    setIsFollowingState(!isFollowingState);
+
+    // Cập nhật followers count optimistically
+    const newFollowers = isFollowingState
+      ? (followStore?.followers || 0) - 1
+      : (followStore?.followers || 0) + 1;
+
+    setFollow({
+      ...followStore,
+      followers: newFollowers,
+    });
+
+    // Sau đó gọi API
+    performFollowAction();
+  }; // 3. Chỉnh sửa useEffect để xử lý lỗi nếu có
+  useEffect(() => {
+    // Nếu trạng thái từ API trả về khác với UI hiện tại, điều đó có nghĩa là có lỗi xảy ra
+    if (isFollowing !== isFollowingState && responseMessage) {
+      // Rollback UI state nếu API thất bại
+      setIsFollowingState(isFollowing);
+
+      // Rollback follower count
+      const correctFollowers = isFollowing
+        ? followStore?.followers || 0
+        : (followStore?.followers || 0) - 1;
+
+      setFollow({
+        ...followStore,
+        followers: correctFollowers,
+      });
+
+      // Có thể hiển thị thông báo lỗi ở đây
     }
-  };
-  const { formData, openPickImage } = useImagePickerSelectionOne();
-  const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
-    useUploadAvatar(formData, myUserId);
+  }, [isFollowing, responseMessage]);
+
   return (
     <View style={styles.container}>
       {/* Header Section */}
@@ -175,7 +227,12 @@ const ProfileHeader = ({
       {/* Followers and Link */}
       <View style={styles.followersSection}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("FollowList", { tab: "follower" })}
+          onPress={() =>
+            navigation.navigate("FollowList", {
+              tab: "follower",
+              userId: userIdProp,
+            })
+          }
         >
           <Text style={styles.followers}>
             {formatNumber(followStore?.followers ?? 0)} followers
@@ -183,7 +240,10 @@ const ProfileHeader = ({
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate("FollowList", { tab: "following" })
+            navigation.navigate("FollowList", {
+              tab: "following",
+              userId: userIdProp,
+            })
           }
         >
           <Text style={styles.followers}>
@@ -206,38 +266,41 @@ const ProfileHeader = ({
         </View>
       )}
       {myUserId !== userIdProp && (
-        <View
-          style={[
-            styles.followingSectionButton,
-            {
-              backgroundColor: getColor(
-                userInfo?.follow ?? false,
-                isDarkMode,
-                "background"
-              ),
-            },
-          ]}
-        >
+        <View style={styles.myProfile}>
           <TouchableOpacity
-            onPress={handleFollowStatus}
-            style={[styles.followingButton]}
+            onPress={handleFollowOptimistic}
+            style={[styles.otherProfile]}
           >
-            <Text
-              style={[
-                styles.followingButtonText,
-                {
-                  color: getColor(
-                    userInfo?.follow ?? false,
-                    isDarkMode,
-                    "text"
-                  ),
-                },
-              ]}
-            >
-              {userInfo?.follow ? "Following" : "Follow"}
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <>
+                {" "}
+                <MaterialIcons
+                  name={isFollowingState ? "library-add-check" : "library-add"}
+                  size={buttonFontsize}
+                  color={isDarkMode ? lightTheme.text : darkTheme.text}
+                />
+                <Text style={styles.followTxt}>
+                  {isFollowingState ? "Following" : "Follow"}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
-          {/* ModelUnFollow */}
+
+          <TouchableOpacity
+            style={styles.messageCtn}
+            onPress={() =>
+              navigation.navigate("Messages", { userId: userIdProp })
+            }
+          >
+            <MaterialCommunityIcons
+              name="chat"
+              size={buttonFontsize}
+              color={isDarkMode ? darkTheme.text : lightTheme.text}
+            />
+            <Text style={styles.shareProfileButtonText}>Message</Text>
+          </TouchableOpacity>
         </View>
       )}
       <View style={styles.postContainer}>
@@ -245,6 +308,7 @@ const ProfileHeader = ({
           style={[
             styles.postsBtn,
             selectedTab === "public" && styles.selectedBtn,
+            myUserId !== userInfo?.id && styles.publicContainer,
           ]}
           onPress={() => setSelectedTab("public")}
         >
@@ -257,23 +321,24 @@ const ProfileHeader = ({
             Public posts
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.postsBtn,
-            selectedTab === "private" && styles.selectedBtn,
-          ]}
-          onPress={() => setSelectedTab("private")}
-        >
-          <Text
+        {myUserId === userInfo?.id && (
+          <TouchableOpacity
             style={[
-              styles.postsTxt,
-              selectedTab === "private" && styles.selectedTxt,
+              styles.postsBtn,
+              selectedTab === "private" && styles.selectedBtn,
             ]}
+            onPress={() => setSelectedTab("private")}
           >
-            Private posts
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.postsTxt,
+                selectedTab === "private" && styles.selectedTxt,
+              ]}
+            >
+              Private posts
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
       <UnFollowModel
         selectedUser={{
@@ -406,7 +471,7 @@ const getStyles = (isDarkMode: boolean, selectedTab: string) =>
     },
     verifiedText: {
       color: "#1da1f2",
-      fontSize: 24,
+      fontSize: buttonFontsize,
     },
     followersSection: {
       marginTop: height * 0.015,
@@ -444,6 +509,27 @@ const getStyles = (isDarkMode: boolean, selectedTab: string) =>
       justifyContent: "space-between",
       marginTop: height * 0.03,
     },
+    otherProfile: {
+      flexDirection: "row",
+      height: height * 0.045,
+      width: width * 0.45,
+      borderRadius: 10,
+      justifyContent: "space-evenly",
+      alignItems: "center",
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
+    },
+    messageCtn: {
+      flexDirection: "row",
+      height: height * 0.045,
+      width: width * 0.45,
+      borderRadius: 10,
+      justifyContent: "space-evenly",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
     editProfileButton: {
       height: height * 0.045,
       width: width * 0.45,
@@ -465,8 +551,13 @@ const getStyles = (isDarkMode: boolean, selectedTab: string) =>
       alignItems: "center",
       borderColor: isDarkMode ? darkTheme.text : lightTheme.text,
     },
+    followTxt: {
+      color: isDarkMode ? lightTheme.text : darkTheme.text,
+      fontSize: textPostFontSize,
+    },
     shareProfileButtonText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
     },
     postContainer: {
       flexDirection: "row",
@@ -490,6 +581,17 @@ const getStyles = (isDarkMode: boolean, selectedTab: string) =>
     },
     selectedTxt: {
       color: isDarkMode ? darkTheme.text : lightTheme.text, // Màu trắng khi được chọn
+    },
+    publicContainer: {
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    loadingColor: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
     },
   });
 

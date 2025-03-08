@@ -17,7 +17,7 @@ import {
   FontAwesome6,
   Ionicons,
 } from "@expo/vector-icons";
-import { Color, textFontSize } from "@/styles/stylePrimary";
+import { buttonFontsize, Color, textFontSize } from "@/styles/stylePrimary";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
@@ -55,25 +55,41 @@ const ChatInput = () => {
           {/* Dãy biểu tượng - Chỉ hiển thị khi message rỗng */}
           {message.trim().length != 0 ? (
             <TouchableOpacity onPress={() => setMessage("")}>
-              <AntDesign name="right" size={24} color={primaryColor} />
+              <AntDesign
+                name="right"
+                size={buttonFontsize}
+                color={primaryColor}
+              />
             </TouchableOpacity>
           ) : (
             <View style={styles.iconsContainer}>
               <TouchableOpacity style={styles.iconButton}>
                 <FontAwesome
                   name="plus-circle"
-                  size={24}
+                  size={buttonFontsize}
                   color={primaryColor}
                 />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <Entypo name="camera" size={24} color={primaryColor} />
+                <Entypo
+                  name="camera"
+                  size={buttonFontsize}
+                  color={primaryColor}
+                />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome6 name="image" size={24} color={primaryColor} />
+                <FontAwesome6
+                  name="image"
+                  size={buttonFontsize}
+                  color={primaryColor}
+                />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome name="microphone" size={24} color={primaryColor} />
+                <FontAwesome
+                  name="microphone"
+                  size={buttonFontsize}
+                  color={primaryColor}
+                />
               </TouchableOpacity>
             </View>
           )}
@@ -90,7 +106,11 @@ const ChatInput = () => {
               onChangeText={(text) => setMessage(text)} // Cập nhật state khi nhập
             />
             <TouchableOpacity>
-              <FontAwesome name="smile-o" size={24} color={primaryColor} />
+              <FontAwesome
+                name="smile-o"
+                size={buttonFontsize}
+                color={primaryColor}
+              />
             </TouchableOpacity>
           </View>
 
@@ -100,9 +120,17 @@ const ChatInput = () => {
             onPress={handleSendMessage}
           >
             {message.trim().length > 0 ? (
-              <Ionicons name="send" size={24} color={primaryColor} />
+              <Ionicons
+                name="send"
+                size={buttonFontsize}
+                color={primaryColor}
+              />
             ) : (
-              <FontAwesome name="thumbs-up" size={24} color={primaryColor} />
+              <FontAwesome
+                name="thumbs-up"
+                size={buttonFontsize}
+                color={primaryColor}
+              />
             )}
           </TouchableOpacity>
         </View>

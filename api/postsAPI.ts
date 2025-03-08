@@ -1,5 +1,3 @@
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getToken } from "@/utils/storage";
 import Http from "@/utils/Http";
 
@@ -23,15 +21,25 @@ const postsAPI = {
       throw error;
     }
   },
+  createPost: async (formData: FormData) => {
+    try {
+      const response = await http.post(`${BASE_URL_POSTS}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response?.data;
+    } catch (error) {
+      console.error("Error create  posts:", (error as any)?.message);
+      throw error;
+    }
+  },
   commentsLevel1: async (userId: number, postId: number) => {
     try {
       const response = await http.post(`${BASE_URL_POSTS}/comments/level1`, {
-        userId: userId,
-        postId: postId,
-      });
-
+       "userId": userId, 
+        "postId": postId
+    });
       console.log(response);
-      return response.data;
+      return response?.data;
     } catch (error) {
       console.error("Error fetching comments level1:", error);
       throw error;
@@ -48,6 +56,17 @@ const postsAPI = {
       return response?.data;
     } catch (error) {
       console.error("Error fetching comments level2:", error);
+      throw error;
+    }
+  },
+  createComment: async (formData: FormData) => {
+    try {
+      const response = await http.post(`${BASE_URL_POSTS}/comments`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response?.data;
+    } catch (error) {
+      console.error("Error create  comment:", (error as any)?.message);
       throw error;
     }
   },

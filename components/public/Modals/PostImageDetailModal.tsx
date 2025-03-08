@@ -1,4 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
+import { buttonFontsize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
 import {
@@ -34,7 +35,7 @@ const PostImageDetailModal = ({
         <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
           <AntDesign
             name="close"
-            size={height * 0.024}
+            size={buttonFontsize}
             color={closeIconColor}
           />
         </TouchableOpacity>

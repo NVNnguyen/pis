@@ -13,6 +13,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
+  buttonFontsize,
   fontWeight,
   text12FontSize,
   textPostFontSize,
@@ -64,11 +65,26 @@ const PostItem = ({
     like,
     likes
   );
-  const { isFollowing, handleFollowing } = useHandleFollow(
-    userPostResponse?.username,
-    userPostResponse?.follow
-  );
 
+  const { isFollowing, responseMessage, handleFollowing } = useHandleFollow({
+    userName: userPostResponse?.username || "",
+    following: userPostResponse?.isFollow || false,
+    userId: myUserId,
+    friendId: userPostResponse?.userId || 0,
+  });
+  console.log(
+    "PostItem: ",
+    userPostResponse,
+    id,
+    caption,
+    images,
+    likes,
+    comments,
+    type,
+    like,
+    createTime
+  );
+  console.log("userId: ", userPostResponse?.userId, "MyId", myUserId);
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -78,6 +94,7 @@ const PostItem = ({
             onPress={() =>
               navigation.navigate("Profile", {
                 userId: userPostResponse.userId,
+                isFollow: userPostResponse.isFollow,
               })
             }
           >
@@ -94,8 +111,7 @@ const PostItem = ({
               />
             )}
           </TouchableOpacity>
-
-          {!isFollowing && myUserId !== userPostResponse?.userId && (
+          {userPostResponse?.userId !== undefined && !isFollowing && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
                 name="add"
@@ -111,6 +127,7 @@ const PostItem = ({
               onPress={() =>
                 navigation.navigate("Profile", {
                   userId: userPostResponse?.userId,
+                  isFollow: userPostResponse?.isFollow,
                 })
               }
             >
@@ -124,8 +141,9 @@ const PostItem = ({
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("PostDetails", {
-                userId: userPostResponse?.userId,
+                userId: userPostResponse.userId,
                 postId: id,
+                userName: userPostResponse?.username,
               })
             }
           >
@@ -157,15 +175,17 @@ const PostItem = ({
         <TouchableOpacity>
           <MaterialIcons
             name="more-horiz"
-            size={24}
+            size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
           />
         </TouchableOpacity>
       </View>
-      {type === "Voice" && images.length > 0 && images[0].url && (
-        <AudioPlayer audioUri={images[0].url} />
+      {type === "Voice" && images?.length > 0 && (
+        <View style={styles.audioContainer}>
+          <AudioPlayer audioUri={images[0]?.url} />
+        </View>
       )}
-      {type === "Image" && images.length > 0 && (
+      {type === "Image" && images?.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -195,7 +215,7 @@ const PostItem = ({
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
-            size={24}
+            size={buttonFontsize}
             color={
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
@@ -207,8 +227,9 @@ const PostItem = ({
           style={styles.iconContainer}
           onPress={() =>
             navigation.navigate("PostDetails", {
-              userId: userPostResponse?.userId,
+              userId: userPostResponse.userId,
               postId: id,
+              userName: userPostResponse?.username,
             })
           }
         >
@@ -277,7 +298,7 @@ const getStyles = (isDarkMode: boolean) =>
     userRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 2,
+      marginBottom: height * 0.002,
     },
     username: {
       fontWeight: fontWeight,
@@ -298,16 +319,20 @@ const getStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
     },
+    audioContainer: {
+      alignItems: "center",
+    },
     imageContainer: {
       paddingLeft: height * 0.06,
       flexDirection: "row",
-      marginTop: 10,
+      marginTop: height * 0.01,
     },
     imagePost: {
       width: width * 0.6,
       height: height * 0.35,
       borderRadius: 10,
       marginRight: width * 0.02,
+      resizeMode: "cover",
     },
     footer: {
       flexDirection: "row",
@@ -317,7 +342,7 @@ const getStyles = (isDarkMode: boolean) =>
     iconContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginRight: 20,
+      marginRight: width * 0.02,
     },
     iconText: {
       marginLeft: width * 0.005,

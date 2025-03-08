@@ -1,7 +1,7 @@
 import infoAPI from "@/api/infoAPI";
 import { useTheme } from "@/contexts/ThemeContext";
 import useUserInfo from "@/hooks/useUserInfo";
-import { Color, fontWeight } from "@/styles/stylePrimary";
+import { buttonFontsize, Color, fontWeight } from "@/styles/stylePrimary";
 import { primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -30,7 +30,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons
             name="chevron-back-sharp"
-            size={24}
+            size={buttonFontsize}
             style={styles.iconColor}
           />
         </TouchableOpacity>
@@ -55,13 +55,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
         <View style={styles.audioIcon}>
           <Ionicons
             name="call"
-            size={24}
+            size={buttonFontsize}
             color={Color}
             style={styles.iconColor}
           />
         </View>
         <View style={styles.videoIcon}>
-          <FontAwesome name="video-camera" size={24} style={styles.iconColor} />
+          <FontAwesome name="video-camera" size={buttonFontsize} style={styles.iconColor} />
         </View>
       </View>
     </View>

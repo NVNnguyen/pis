@@ -5,8 +5,8 @@ class Http {
 
   constructor(token?: string) {
     this.instance = axios.create({
-      baseURL: "https://28cb-2402-800-6343-cd62-7983-34b9-b8b5-3c96.ngrok-free.app/api/v1",
-      timeout: 10000,
+      baseURL: "https://8c71-125-235-237-168.ngrok-free.app/api/v1",
+      timeout: 300000,
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}), // Thêm Bearer Token nếu có

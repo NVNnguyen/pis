@@ -5,7 +5,7 @@ export type MainStackType = {
     PrivateMode: undefined;
     PublicMode: undefined;
     Search: undefined;
-    Profile: { userId: number }; // Profile có id
+    Profile: { userId: number, isFollow: boolean }; // Profile có id
     TabBar: undefined;
     Comments: {  userId: number, postId: number; };
     ChatList: undefined;
@@ -13,6 +13,6 @@ export type MainStackType = {
     Loading: undefined;
     Otp: {email: string}
     ResetPassword: {email: string}
-    PostDetails: {userId: number, postId: number; }
-    FollowList: {tab: string};
+    PostDetails: {userId: number, postId: number; userName: string }
+    FollowList: {tab: string, userId: number};
   };

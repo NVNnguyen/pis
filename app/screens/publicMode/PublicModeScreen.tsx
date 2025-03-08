@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Dimensions, Animated, FlatList } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  FlatList,
+  Text,
+} from "react-native";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import TabBar from "@/components/public/TabBar/TabBar";
 import { backgroundColor } from "@/styles/stylePrimary";
@@ -13,6 +20,8 @@ import useUserInfo from "@/hooks/useUserInfo";
 import usePosts from "@/hooks/usePosts";
 import PostItem from "@/components/public/Posts";
 import usePostStore from "@/stores/usePostStore";
+import CreatePostModel from "@/components/public/Modals/CreatePostModal";
+import { isLoading } from "expo-font";
 
 const { width, height } = Dimensions.get("window");
 
@@ -26,12 +35,19 @@ const PublicModeScreen = () => {
   const { userInfo, isUserLoading, userError } = useUserInfo(myUserId);
   const { posts, isPostsLoading, postsError } = usePosts(myUserId);
   const { setPosts, postsStore } = usePostStore();
-  // ✅ Chỉ cập nhật Zustand khi posts thay đổi
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    if (posts !== null) {
+    if (
+      posts &&
+      posts.length > 0 &&
+      JSON.stringify(posts) !== JSON.stringify(postsStore)
+    ) {
+      console.log("Updating Zustand store with new posts:", posts);
       setPosts(posts);
     }
-  }, [posts]); // 🚀 Chỉ chạy khi `posts` thay đổi
+  }, [posts, postsStore]); // Lắng nghe cả postsStore để tránh cập nhật không cần thiết
+  // 🚀 Chỉ chạy khi `posts` thay đổi
 
   useEffect(() => {
     const listener = tabBarTranslateY.addListener((value) => {
@@ -72,7 +88,7 @@ const PublicModeScreen = () => {
 
     lastScrollY.current = currentScrollY; // Cập nhật vị trí cuộn hiện tại
   };
-
+ 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.toggleContainer}>
@@ -92,6 +108,7 @@ const PublicModeScreen = () => {
               firstName: userInfo?.firstName,
               lastName: userInfo?.lastName,
               userId: myUserId,
+              username: userInfo?.username,
             }}
           />
         }
@@ -104,6 +121,19 @@ const PublicModeScreen = () => {
       >
         <TabBar />
       </Animated.View>
+      {loading && (
+        <View>
+          <Text style={{ color: "#fff" }}>Loading...</Text>
+        </View>
+      )}
+      <CreatePostModel
+        openModel={{
+          visible: false,
+          key: null,
+        }}
+        onClose={() => ({ visible: false, key: null })}
+        isLoading={setLoading}
+      />
     </SafeAreaView>
   );
 };

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { captureImage } from "@/utils/friendModeHandel";
-import { Color, fontWeight } from "@/styles/stylePrimary";
+import { buttonFontsize, Color, fontWeight } from "@/styles/stylePrimary";
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,7 +24,7 @@ const PostPrivate = () => {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.iconButton}>
-          <AntDesign name="appstore-o" size={24} color={Color} />
+          <AntDesign name="appstore-o" size={buttonFontsize} color={Color} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.captureButton}>
           <View style={styles.captureInner}></View>

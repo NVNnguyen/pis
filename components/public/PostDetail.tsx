@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
+  buttonFontsize,
   fontWeight,
   text10FontSize,
   text12FontSize,
@@ -28,10 +30,10 @@ import { MainStackType } from "@/utils/types/MainStackType";
 import { PostItemType } from "@/utils/types/PostItemType";
 import useHandleLikePost from "@/hooks/useHandleLikePost";
 import useHandleFollow from "@/hooks/useHandleFollow";
-import usePostStore from "@/stores/usePostStore";
 import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window");
+
 const PostDetails = ({
   userPostResponse,
   id,
@@ -42,7 +44,10 @@ const PostDetails = ({
   type,
   like,
   createTime,
-}: PostItemType) => {
+  isOpenComment, // Thêm vào đây
+}: PostItemType & {
+  isOpenComment?: (isOpen: boolean) => void;
+}) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -51,9 +56,20 @@ const PostDetails = ({
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const myUserId = getMyUserId() ?? 0;
 
+  // State để quản lý trạng thái follow
+  const [isFollowingState, setIsFollowingState] = useState<boolean>(
+    userPostResponse?.isFollow || false
+  );
+
+  // Đồng bộ isFollowingState với userPostResponse.isFollow khi props thay đổi
+  useEffect(() => {
+    setIsFollowingState(userPostResponse?.isFollow || false);
+  }, [userPostResponse?.isFollow]);
+
   // Tìm index từ id
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);
+
   // Hiển thị modal
   const showModal = (id: number) => {
     const index = getIndexById(id);
@@ -62,16 +78,27 @@ const PostDetails = ({
       setIsVisiblePostImageDetail(true); // Mở modal
     }
   };
+
   const { numberLike, isLiked, handleLike } = useHandleLikePost(
     myUserId,
     id,
     like,
     likes
   );
-  const { isFollowing, handleFollowing } = useHandleFollow(
-    userPostResponse?.username,
-    userPostResponse?.follow
-  );
+
+  // Sử dụng hook useHandleFollow
+  const { performFollowAction, isLoading } = useHandleFollow({
+    userName: userPostResponse?.username || "",
+    following: userPostResponse?.isFollow || false,
+    userId: myUserId,
+    friendId: userPostResponse?.userId || 0,
+  });
+
+  // Optimistic UI update cho follow/unfollow
+  const handleFollowOptimistically = () => {
+    setIsFollowingState(!isFollowingState); // Cập nhật UI ngay lập tức
+    performFollowAction(); // Gọi API để thực hiện hành động
+  };
 
   return (
     <View style={styles.postContainer}>
@@ -81,7 +108,8 @@ const PostDetails = ({
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("Profile", {
-                userId: userPostResponse.userId,
+                userId: userPostResponse?.userId,
+                isFollow: isFollowingState,
               })
             }
           >
@@ -105,6 +133,7 @@ const PostDetails = ({
               onPress={() =>
                 navigation.navigate("Profile", {
                   userId: userPostResponse?.userId,
+                  isFollow: isFollowingState,
                 })
               }
             >
@@ -116,19 +145,39 @@ const PostDetails = ({
             <Text style={styles.time}>{createTime}</Text>
           </View>
         </View>
-        {!isFollowing && myUserId !== userPostResponse?.userId && (
-          <TouchableOpacity onPress={handleFollowing} style={styles.followBtn}>
-            <Text style={styles.followTxt}>Follow</Text>
-          </TouchableOpacity>
-        )}
-        {isFollowing && myUserId !== userPostResponse?.userId && (
-          <TouchableOpacity
-            onPress={handleFollowing}
-            style={styles.followingBtn}
-          >
-            <Text style={styles.followingTxt}>Following</Text>
-          </TouchableOpacity>
-        )}
+
+        {/* Chỉ hiển thị nút follow nếu không phải người dùng hiện tại */}
+        {myUserId !== userPostResponse?.userId &&
+          (isFollowingState ? (
+            <TouchableOpacity
+              onPress={handleFollowOptimistically}
+              style={styles.followingBtn}
+            >
+              {" "}
+              {isLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              ) : (
+                <Text style={styles.followingTxt}>Following</Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleFollowOptimistically}
+              style={styles.followBtn}
+            >
+              {isLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              ) : (
+                <Text style={styles.followTxt}>Follow</Text>
+              )}
+            </TouchableOpacity>
+          ))}
       </View>
       <Text style={styles.caption}>
         {caption}{" "}
@@ -154,7 +203,7 @@ const PostDetails = ({
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <TouchableOpacity
-                key={item.id} // Thêm key ở đúng vị trí
+                key={item.id}
                 onPress={() => {
                   showModal(item?.id);
                 }}
@@ -171,22 +220,16 @@ const PostDetails = ({
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
-            size={24}
+            size={buttonFontsize}
             color={
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
           />
-          {}
           <Text style={styles.iconText}>{formatNumber(numberLike)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={() =>
-            navigation.navigate("PostDetails", {
-              userId: userPostResponse?.userId,
-              postId: id,
-            })
-          }
+          onPress={() => isOpenComment && isOpenComment(true)}
         >
           <Ionicons
             name="chatbubble-outline"
@@ -198,7 +241,7 @@ const PostDetails = ({
       </View>
 
       {/* Modal hiển thị ảnh toàn màn hình */}
-      <PostImageDetailModal // Thay đổi thành PostImageDetailModal
+      <PostImageDetailModal
         images={images}
         currentIndex={currentIndex}
         isModalVisible={isVisiblePostImageDetail}
@@ -208,6 +251,7 @@ const PostDetails = ({
   );
 };
 
+// getStyles giữ nguyên
 const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     postContainer: {
@@ -309,7 +353,7 @@ const getStyles = (isDarkMode: boolean) =>
     iconContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginRight: 20,
+      marginRight: width * 0.02,
     },
     iconText: {
       marginLeft: width * 0.005,

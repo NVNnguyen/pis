@@ -1,5 +1,5 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import { backgroundColor } from "@/styles/stylePrimary";
+import { backgroundColor, buttonFontsize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
 import {
@@ -28,7 +28,7 @@ const AvatarDetailModal = ({
       <TouchableOpacity style={styles.closeIcon} onPress={() => onClose()}>
         <AntDesign
           name="close"
-          size={height * 0.024}
+          size={buttonFontsize}
           color={isDarkMode ? darkTheme.text : lightTheme.text}
         />
       </TouchableOpacity>

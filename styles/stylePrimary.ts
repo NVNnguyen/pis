@@ -1,5 +1,5 @@
-import { RFValue } from "react-native-responsive-fontsize";
 
+import { RFValue } from "react-native-responsive-fontsize";
 export const backgroundColor = "#121212";
 export const fontWeight = "bold";
 export const Color = "#FFF";

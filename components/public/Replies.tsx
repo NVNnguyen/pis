@@ -10,7 +10,11 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight, textPostFontSize } from "@/styles/stylePrimary";
+import {
+  buttonFontsize,
+  fontWeight,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
@@ -22,6 +26,7 @@ import useHandleLikeComment from "@/hooks/useHandleLikeComment";
 import useHandleFollow from "@/hooks/useHandleFollow";
 
 const { width, height } = Dimensions.get("window");
+interface RepliesProp {}
 const Replies = (item: any) => {
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
@@ -36,10 +41,13 @@ const Replies = (item: any) => {
     item?.like,
     item?.likes
   );
-  const { isFollowing, handleFollowing } = useHandleFollow(
-    item?.userPostResponse?.username,
-    item?.userPostResponse.follow
-  );
+  const { isFollowing, responseMessage, handleFollowing } = useHandleFollow({
+    userName: item?.userPostResponse?.username || "",
+    following: item?.userPostResponse?.isFollow || false,
+    userId: myUserId,
+    friendId: item?.userPostResponse?.userId || 0,
+  });
+  console.log("item replises: ", item);
   console.log("Replies", item);
   return (
     <View style={styles.postContainer}>
@@ -49,7 +57,8 @@ const Replies = (item: any) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate("Profile", {
-                userId: item?.userPostResponse?.userId,
+                userId: item?.userPostResponse.userId,
+                isFollow: item?.userPostResponse.isFollow,
               })
             }
           >
@@ -83,6 +92,7 @@ const Replies = (item: any) => {
               onPress={() =>
                 navigation.navigate("Profile", {
                   userId: item?.userPostResponse.userId,
+                  isFollow: item?.userPostResponse.isFollow,
                 })
               }
             >
@@ -108,14 +118,14 @@ const Replies = (item: any) => {
         <TouchableOpacity>
           <MaterialIcons
             name="more-horiz"
-            size={24}
+            size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
           />
         </TouchableOpacity>
       </View>
       <View style={styles.cmtContainer}>
         {item?.type === "Voice" && item?.url !== null && (
-          <AudioPlayer audioUri={item?.images[0].url} />
+          <AudioPlayer audioUri={item?.url} />
         )}
         <TouchableOpacity onPress={() => setIsVisiblePostImageDetail(true)}>
           {item?.type === "Image" && item?.url !== null && (
@@ -129,7 +139,7 @@ const Replies = (item: any) => {
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
-            size={24}
+            size={buttonFontsize}
             color={
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
@@ -137,12 +147,7 @@ const Replies = (item: any) => {
           {}
           <Text style={styles.iconText}>{formatNumber(numberLike ?? 0)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => {
-            setIsOpenReplies(!isOpenReplies);
-          }}
-        >
+        <TouchableOpacity style={styles.iconContainer} onPress={() => {}}>
           <Ionicons
             name="chatbubble-outline"
             size={height * 0.02}

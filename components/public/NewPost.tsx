@@ -7,15 +7,14 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import CreatePostModel from "./Modals/CreatePostModal";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import useImagePicker from "@/hooks/useImagePicker";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
-import { textFontSize } from "@/styles/stylePrimary";
-import CameraModal from "./Modals/CameraModal";
+import { buttonFontsize, textFontSize } from "@/styles/stylePrimary";
 
 interface newPostProps {
   userInfo: {
@@ -23,6 +22,7 @@ interface newPostProps {
     lastName: string;
     firstName: string;
     userId: number;
+    username: string;
   };
 }
 
@@ -32,6 +32,7 @@ const NewPost = ({ userInfo }: newPostProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const [loading, setLoading] = useState(false);
   const [modalState, setModalState] = useState<{
     visible: boolean;
     key: string | null;
@@ -40,94 +41,125 @@ const NewPost = ({ userInfo }: newPostProps) => {
     key: null, // Lưu key tùy chọn
   });
   return (
-    <View style={styles.container}>
-      <View style={styles.avatarContainer}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("Profile", { userId: userInfo.userId })
-          }
-        >
-          {userInfo?.avatar?.length == 0 ||
-            (userInfo?.avatar === null && (
-              <Image
-                source={require("@/assets/images/userAvatar.png")}
-                style={styles.avatar}
-              />
-            ))}
-          <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.rightContainer}>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("Profile", { userId: userInfo.userId })
-          }
-        >
-          <Text style={styles.fullName}>
-            {userInfo?.firstName} {userInfo?.lastName}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            setModalState({
-              visible: true,
-              key: null,
-            })
-          }
-        >
-          <Text style={styles.inputCation}>What's new?</Text>
-        </TouchableOpacity>
-
-        <View style={styles.iconContainer}>
+    <TouchableOpacity
+      style={styles.fullContainer}
+      activeOpacity={1}
+      onPress={() =>
+        setModalState({
+          visible: true,
+          key: null,
+        })
+      }
+    >
+      <View style={styles.container}>
+        <View style={styles.avatarContainer}>
           <TouchableOpacity
             onPress={() =>
-              setModalState({
-                visible: true,
-                key: "camera",
+              navigation.navigate("Profile", {
+                userId: userInfo.userId,
+                isFollow: false,
               })
             }
           >
-            <SimpleLineIcons name="camera" size={24} color="#9E9E9E" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              setModalState({
-                visible: true,
-                key: "photo",
-              })
-            }
-          >
-            <Ionicons name="images-outline" size={24} color="#9E9E9E" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              setModalState({
-                visible: true,
-                key: "record",
-              })
-            }
-          >
-            <MaterialIcons name="keyboard-voice" size={24} color="#9E9E9E" />
+            {userInfo?.avatar?.length == 0 ||
+              (userInfo?.avatar === null && (
+                <Image
+                  source={require("@/assets/images/userAvatar.png")}
+                  style={styles.avatar}
+                />
+              ))}
+            <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
           </TouchableOpacity>
         </View>
-      </View>
+        <View>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Profile", {
+                userId: userInfo.userId,
+                isFollow: false,
+              })
+            }
+          >
+            <Text style={styles.fullName}>{userInfo?.username}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.createBtn}
+            onPress={() =>
+              setModalState({
+                visible: true,
+                key: null,
+              })
+            }
+          >
+            <Text style={styles.inputCation}>What's new?</Text>
+          </TouchableOpacity>
 
-      {/* Truyền images vào modal */}
-      <CreatePostModel
-        openModel={modalState}
-        onClose={() => {
-          setModalState({ visible: false, key: null });
-          return { visible: false, key: null };
-        }}
-        imagesProp={[]}
-        removeImageProp={() => {}}
-      />
-    </View>
+          <View style={styles.iconContainer}>
+            <TouchableOpacity
+              onPress={() =>
+                setModalState({
+                  visible: true,
+                  key: "camera",
+                })
+              }
+            >
+              <SimpleLineIcons
+                name="camera"
+                size={buttonFontsize}
+                color="#9E9E9E"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                setModalState({
+                  visible: true,
+                  key: "photo",
+                })
+              }
+            >
+              <Ionicons
+                name="images-outline"
+                size={buttonFontsize}
+                color="#9E9E9E"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                setModalState({
+                  visible: true,
+                  key: "record",
+                })
+              }
+            >
+              <MaterialIcons
+                name="keyboard-voice"
+                size={buttonFontsize}
+                color="#9E9E9E"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <CreatePostModel
+          openModel={modalState}
+          onClose={() => {
+            setModalState({
+              visible: false,
+              key: null,
+            });
+            return { visible: false, key: null };
+          }}
+          isLoading={setLoading}
+        />
+      </View>
+    </TouchableOpacity>
   );
 };
 
 const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
+    fullContainer: {
+      width: "100%",
+    },
     container: {
       flexDirection: "row",
       padding: width * 0.01,
@@ -144,7 +176,10 @@ const getStyles = (isDarkMode: boolean) =>
       height: width * 0.1,
       borderRadius: (width * 0.1) / 2,
     },
-    rightContainer: {},
+    createBtn: {
+      flex: 1,
+      width: "100%",
+    },
     inputCation: {
       marginBottom: height * 0.01,
       fontSize: textFontSize,
@@ -158,7 +193,6 @@ const getStyles = (isDarkMode: boolean) =>
     fullName: {
       fontSize: textFontSize,
       fontWeight: "bold",
-
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });

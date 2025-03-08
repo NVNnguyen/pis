@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { Color } from "../../../styles/stylePrimary";
+import { buttonFontsize, Color } from "../../../styles/stylePrimary";
 
 const { width, height } = Dimensions.get("window"); // Get screen dimensions
 
@@ -24,7 +24,7 @@ const NewCredentialsScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton}>
-        <MaterialIcons name="arrow-back-ios" size={24} color={Color} />
+        <MaterialIcons name="arrow-back-ios" size={buttonFontsize} color={Color} />
       </TouchableOpacity>
 
       {/* Icon and Title */}
@@ -38,7 +38,7 @@ const NewCredentialsScreen: React.FC = () => {
 
       {/* New Password Input */}
       <View style={styles.inputContainer}>
-        <FontAwesome name="lock" size={24} color="#000" />
+        <FontAwesome name="lock" size={buttonFontsize} color="#000" />
         <TextInput
           style={styles.input}
           placeholder="New Password"
@@ -60,7 +60,7 @@ const NewCredentialsScreen: React.FC = () => {
 
       {/* Confirm Password Input */}
       <View style={styles.inputContainer}>
-        <FontAwesome name="lock" size={24} color="#000" />
+        <FontAwesome name="lock" size={buttonFontsize} color="#000" />
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"

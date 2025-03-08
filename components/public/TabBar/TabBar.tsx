@@ -16,6 +16,7 @@ import { darkTheme, lightTheme } from "@/utils/themes";
 import CreatePostModel from "../Modals/CreatePostModal";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { getMyUserId } from "@/hooks/getMyUserID";
+import { userInfo } from "@/utils/mockAPI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -96,7 +97,7 @@ const TabBar = () => {
           onPress={() =>
             setModalState({
               visible: true,
-              key: "camera",
+              key: null,
             })
           }
           style={styles.navItem}
@@ -137,14 +138,17 @@ const TabBar = () => {
         <TouchableOpacity
           onPress={() => {
             if (myUserId !== null) {
-              navigation.navigate("Profile", { userId: myUserId });
+              navigation.navigate("Profile", {
+                userId: myUserId,
+                isFollow: false,
+              });
             }
           }}
           style={[
             styles.navItem,
             {
               borderTopColor:
-                screenName === "Profile"
+                screenName === "Profile" 
                   ? isDarkMode
                     ? lightTheme.background
                     : darkTheme.background
@@ -171,8 +175,7 @@ const TabBar = () => {
             setModalState({ visible: false, key: null });
             return { visible: false, key: null };
           }}
-          imagesProp={[]}
-          removeImageProp={() => {}}
+          isLoading={() => {}}
         />
       </View>
     </View>

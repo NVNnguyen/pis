@@ -1,5 +1,12 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import React, { useRef } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TextInput,
+} from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import Loading from "@/components/genaral/loading/Loading";
@@ -12,12 +19,27 @@ const { width, height } = Dimensions.get("window");
 interface commentProps {
   userId: number;
   postId: number;
+  onCommentPress: (commentId: number, ref: React.RefObject<TextInput>, userName: string) => void;
+  commentInputRef: React.RefObject<TextInput>;
 }
-const Comments = ({ userId, postId }: commentProps) => {
+const Comments = ({
+  userId,
+  postId,
+  onCommentPress,
+  commentInputRef,
+}: commentProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const { commentsLevel1, isCommentLevel1Loading, commentLevel1Error } =
     useCommentLevel1(userId, postId);
+  const handleCommentPress = (
+    commentId: number,
+    ref: React.RefObject<TextInput>,
+    userName: string
+  ) => {
+    ref.current?.focus(); // Focus vào ô nhập comment
+    onCommentPress(commentId, ref, userName); // Truyền commentId và ref lên PostDetailScreen
+  };
   return (
     <View style={styles.container}>
       {isCommentLevel1Loading ||
@@ -36,7 +58,13 @@ const Comments = ({ userId, postId }: commentProps) => {
       <FlatList
         data={commentsLevel1}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <Comment {...item} />}
+        renderItem={({ item }) => (
+          <Comment
+            item={item}
+            onCommentPress={handleCommentPress}
+            commentInputRef={commentInputRef}
+          />
+        )}
       />
     </View>
   );

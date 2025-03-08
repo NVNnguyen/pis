@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   TouchableOpacity,
   FlatList,
   Button,
+  TextInput,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
+  buttonFontsize,
   fontWeight,
   text12FontSize,
   textPostFontSize,
@@ -30,29 +32,38 @@ import useHandleFollow from "@/hooks/useHandleFollow";
 import useCommentLevel2 from "@/hooks/useCommentLevel2";
 
 const { width, height } = Dimensions.get("window");
-const Comment = (item: any) => {
+interface CommentProp {
+  item: any;
+  onCommentPress: (
+    commentId: number,
+    ref: React.RefObject<TextInput>,
+    userName: string
+  ) => void;
+  commentInputRef: React.RefObject<TextInput>;
+}
+const Comment: React.FC<CommentProp> = ({
+  item,
+  onCommentPress,
+  commentInputRef,
+}) => {
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
   const [isOpenReplies, setIsOpenReplies] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const myUserId = getMyUserId() ?? 0;
   const { commentsLevel2, isLoading, error } = useCommentLevel2(
-    item?.userPostResponse?.userId,
+    myUserId,
     item?.id
   );
   const seeEnum = commentsLevel2?.length > 5 ? 5 : commentsLevel2?.length;
   const [seeMore, setSeeMore] = useState<number>(seeEnum);
-  const myUserId = getMyUserId() ?? 0;
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
     myUserId,
     item?.id,
     item?.like,
     item?.likes
-  );
-  const { isFollowing, handleFollowing } = useHandleFollow(
-    item?.userPostResponse?.username,
-    item?.userPostResponse.follow
   );
 
   return (
@@ -64,6 +75,7 @@ const Comment = (item: any) => {
             onPress={() =>
               navigation.navigate("Profile", {
                 userId: item?.userPostResponse?.userId,
+                isFollow: item?.userPostResponse?.isFollow,
               })
             }
           >
@@ -75,21 +87,11 @@ const Comment = (item: any) => {
             )}
             {item?.userPostResponse.avatar == null && (
               <Image
-                source={require("../../assets/images/userAvatar.png")}
+                source={require("@/assets/images/userAvatar.png")}
                 style={styles.avatar}
               />
             )}
           </TouchableOpacity>
-
-          {!isFollowing && myUserId !== item?.userPostResponse?.userId && (
-            <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
-              <MaterialIcons
-                name="add"
-                size={height * 0.012}
-                color={isDarkMode ? lightTheme.text : darkTheme.text}
-              />
-            </TouchableOpacity>
-          )}
         </View>
         <View style={styles.userInfo}>
           <View style={styles.userRow}>
@@ -97,6 +99,7 @@ const Comment = (item: any) => {
               onPress={() =>
                 navigation.navigate("Profile", {
                   userId: item?.userPostResponse.userId,
+                  isFollow: item?.userPostResponse?.isFollow,
                 })
               }
             >
@@ -109,26 +112,19 @@ const Comment = (item: any) => {
             )}
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
-          <Text style={styles.caption}>
-            {item?.content}{" "}
-            <MaterialIcons
-              name="favorite"
-              size={height * 0.014}
-              style={styles.icon}
-            />
-          </Text>
+          <Text style={styles.caption}>{item?.content} </Text>
         </View>
         <TouchableOpacity>
           <MaterialIcons
             name="more-horiz"
-            size={24}
+            size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
           />
         </TouchableOpacity>
       </View>
       <View style={styles.cmtContainer}>
         {item?.type === "Voice" && item?.url !== null && (
-          <AudioPlayer audioUri={item?.images[0].url} />
+          <AudioPlayer audioUri={item?.url} />
         )}
         <TouchableOpacity onPress={() => setIsVisiblePostImageDetail(true)}>
           {item?.type === "Image" && item?.url !== null && (
@@ -142,7 +138,7 @@ const Comment = (item: any) => {
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
             name={isLiked ? "heart" : "heart-outline"}
-            size={24}
+            size={buttonFontsize}
             color={
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
@@ -153,7 +149,11 @@ const Comment = (item: any) => {
         <TouchableOpacity
           style={styles.iconContainer}
           onPress={() => {
-            setIsOpenReplies(!isOpenReplies);
+            onCommentPress(
+              item?.id,
+              commentInputRef,
+              item?.userPostResponse.username
+            );
           }}
         >
           <Ionicons
@@ -184,6 +184,7 @@ const Comment = (item: any) => {
           <FlatList
             data={commentsLevel2.slice(0, seeMore)}
             keyExtractor={(item) => item.id.toString()}
+            nestedScrollEnabled={true}
             renderItem={({ item }) => <Replies {...item} />}
           />
           {commentsLevel2?.length > seeMore && (

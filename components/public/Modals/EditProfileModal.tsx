@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { fontWeight, textFontSize } from "@/styles/stylePrimary";
+import { buttonFontsize, fontWeight, textFontSize } from "@/styles/stylePrimary";
 import useUpdateProfile from "@/hooks/useUpdateProfile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { emailRegex } from "@/utils/regex";
@@ -292,7 +292,7 @@ const getStyle = (isDarkMode: any) =>
     },
     verifiedText: {
       color: "#1da1f2",
-      fontSize: 24,
+      fontSize: buttonFontsize,
     },
     txtEditAvt: {
       color: "#1da1f2",

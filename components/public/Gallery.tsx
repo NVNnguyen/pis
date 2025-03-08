@@ -47,14 +47,6 @@ const Gallery = ({ id, images }: PostItemProps) => {
     enabled: !!postId, // Chỉ gọi API khi postId có giá trị hợp lệ
     staleTime: 1000 * 60 * 3,
   });
-
-  const handlePressImage = (imageId: number) => {
-    setPostId(imageId); // Cập nhật postId khi nhấn vào ảnh
-  };
-
-  console.log("Post detail:", postDetail);
-  console.log("length of images", images?.length);
-  console.log(images);
   return (
     <View style={styles.container}>
       {isLoading && (

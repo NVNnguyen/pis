@@ -14,7 +14,6 @@ const usePosts = (userIdProp: number)=>{
       return response.data;
     },
     enabled: !!userIdProp,
-    staleTime: 1000 * 60 * 3,
   });
 return {
     posts,

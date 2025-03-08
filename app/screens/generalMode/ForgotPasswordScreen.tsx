@@ -83,7 +83,7 @@ const ForgotPasswordScreen = () => {
         <View style={styles.optionButton}>
           <MaterialIcons
             name="email"
-            size={24}
+            size={buttonFontsize}
             color={isDarkMode ? lightTheme.text : darkTheme.text}
           />
           <TextInput
