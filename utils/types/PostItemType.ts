@@ -1,5 +1,8 @@
 export type PostItemType = {
   userPostResponse: {
+    likes: number;
+    comments: number;
+    like: boolean;
     userId: number;
     username: string;
     avatar: string;

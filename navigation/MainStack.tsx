@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Dimensions, Image, StyleSheet, TouchableOpacity } from "react-native";
 import LoginScreen from "@/app/screens/generalMode/LoginScreen";
@@ -19,15 +19,51 @@ import OtpScreen from "@/app/screens/generalMode/OtpScreen";
 import ResetPasswordScreen from "@/app/screens/generalMode/ResetPasswordScreen";
 import PostDetailScreen from "@/app/screens/publicMode/PostDetailScreen";
 import FollowListScreen from "@/app/screens/generalMode/FollowListScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import HistoryPostScreen from "@/app/screens/privateMode/HistoryPostScreen";
+import SearchScreen from "@/app/screens/generalMode/SearchScreen";
 
 const { width, height } = Dimensions.get("window");
 const Stack = createNativeStackNavigator<MainStackType>();
 const MainStack: React.FC = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+  const [initialRoute, setInitialRoute] = useState<
+    keyof MainStackType | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const savedOption = await AsyncStorage.getItem("toggleOption");
+
+        if (token) {
+          if (savedOption === "PublicMode") {
+            setInitialRoute("PublicMode");
+          } else if (savedOption === "PrivateMode") {
+            setInitialRoute("PrivateMode");
+          } else {
+            setInitialRoute("Login");
+          }
+        } else {
+          setInitialRoute("Login");
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu từ AsyncStorage:", error);
+        setInitialRoute("Login");
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (initialRoute === null) {
+    return null; // Hiển thị màn hình loading hoặc splash screen nếu cần
+  }
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName={initialRoute}
       screenOptions={{
         headerTitle: () => (
           <Image
@@ -114,6 +150,20 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="FollowList"
         component={FollowListScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="HistoryPost"
+        component={HistoryPostScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="Search"
+        component={SearchScreen}
         options={{
           headerShown: true,
         }}

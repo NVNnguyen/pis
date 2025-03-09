@@ -148,7 +148,7 @@ const TabBar = () => {
             styles.navItem,
             {
               borderTopColor:
-                screenName === "Profile" 
+                screenName === "Profile"
                   ? isDarkMode
                     ? lightTheme.background
                     : darkTheme.background
@@ -188,6 +188,7 @@ const getStyles = (isDarkMode: any) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
+      marginBottom: height * 0.005,
     },
     bottomNav: {
       flexDirection: "row",

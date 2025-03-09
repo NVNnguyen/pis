@@ -18,7 +18,7 @@ export const useCreatePost = () => {
   return useMutation({
     mutationFn: async (postData: UseCreatePostProps) => {
       const formData = new FormData();
-      console.log();
+     
       postData.files?.forEach((file, index) => {
         const isVoice = postData.type === "Voice";
         formData.append("files", {
@@ -34,7 +34,7 @@ export const useCreatePost = () => {
       Object.entries(postData).forEach(([key, value]) => {
         if (key !== "files") formData.append(key, value.toString());
       });
-
+      console.log("Formdata create post: ",formData);
       const response = await postsAPI.createPost(formData);
       return response?.data;
     },

@@ -21,7 +21,7 @@ import usePosts from "@/hooks/usePosts";
 import PostItem from "@/components/public/Posts";
 import usePostStore from "@/stores/usePostStore";
 import CreatePostModel from "@/components/public/Modals/CreatePostModal";
-import { isLoading } from "expo-font";
+import PostsSkeleton from "@/Loading/PostsSkeleton";
 
 const { width, height } = Dimensions.get("window");
 
@@ -88,31 +88,34 @@ const PublicModeScreen = () => {
 
     lastScrollY.current = currentScrollY; // Cập nhật vị trí cuộn hiện tại
   };
- 
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.toggleContainer}>
         <PublicOrPrivate />
       </View>
+
       <FlatList
-        data={postsStore}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <PostItem {...item} />}
+        data={isPostsLoading ? Array(5).fill(null) : postsStore}
+        keyExtractor={(item, index) =>
+          item?.id ? item.id.toString() : index.toString()
+        }
+        renderItem={({ item }) =>
+          isPostsLoading ? <PostsSkeleton /> : <PostItem {...item} />
+        }
+        initialNumToRender={5} // Render 5 item đầu tiên
+        maxToRenderPerBatch={5} // Mỗi batch render thêm 5 item
+        windowSize={10} // Giữ 10 item xung quanh trong bộ nhớ (5 trước, 5 sau)
+        removeClippedSubviews={true} // Tối ưu RAM, loại bỏ item ngoài màn hình
+        onEndReachedThreshold={0.3} // Gần cuối danh sách 30% thì gọi onEndReached
+        onEndReached={() => {
+          // TODO: Load thêm dữ liệu ở đây nếu bạn muốn vô hạn (infinite scroll)
+        }}
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={20}
-        ListHeaderComponent={
-          <NewPost
-            userInfo={{
-              avatar: userInfo?.avatar,
-              firstName: userInfo?.firstName,
-              lastName: userInfo?.lastName,
-              userId: myUserId,
-              username: userInfo?.username,
-            }}
-          />
-        }
       />
+
       <Animated.View
         style={[
           styles.tabBar,
@@ -121,11 +124,6 @@ const PublicModeScreen = () => {
       >
         <TabBar />
       </Animated.View>
-      {loading && (
-        <View>
-          <Text style={{ color: "#fff" }}>Loading...</Text>
-        </View>
-      )}
       <CreatePostModel
         openModel={{
           visible: false,

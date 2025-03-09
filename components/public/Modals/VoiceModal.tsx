@@ -147,6 +147,7 @@ const getStyles = (isDarkMode: boolean) => {
       width: "100%",
       height: 1000, // Thêm chiều cao để `AudioPlayer` có không gian hiển thị
       paddingHorizontal: width * 0.05,
+      alignItems: "center",
     },
     recordContainer: {
       justifyContent: "center",

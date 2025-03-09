@@ -5,9 +5,11 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
-  ScrollView,
   Text,
   Animated,
+  FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -17,6 +19,10 @@ import { getMyUserId } from "@/hooks/getMyUserID";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
 import CapTure from "@/components/private/Capture";
+import { useTheme } from "@/contexts/ThemeContext";
+import { darkTheme, lightTheme } from "@/utils/themes";
+import usePrivatePosts from "@/hooks/usePrivatePosts";
+import PostPrivate from "@/components/private/PostPrivate";
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,21 +31,100 @@ const PrivateModeScreen = () => {
   const myUserId = getMyUserId() ?? 0;
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showAlternate, setShowAlternate] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const { isDarkMode } = useTheme();
+  const styles = getStyles(isDarkMode);
+  const [onTopCheck, setOnTopCheck] = useState<boolean>(false);
+  // Fetch private posts
+  const { postsPrivate, isPostsPrivateLoading, postsPrivateError } =
+    usePrivatePosts(myUserId);
+
+  const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
+
+  // Setup scroll handler to manage page transitions
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
     {
       useNativeDriver: false,
       listener: (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
-        // Show alternate screen when scrolled past a threshold
-        if (offsetY > height * 0.3) {
-          setShowAlternate(true);
-        } else {
-          setShowAlternate(false);
-        }
+        const pageIndex = Math.floor(offsetY / height + 0.5);
+        setCurrentPage(pageIndex);
+        setShowAlternate(pageIndex > 0);
       },
     }
   );
+
+  // Prepare data for FlatList - combine capture view with posts
+  const flatListData = [
+    { id: "capture", type: "capture" }, // First screen is capture
+    ...(postsPrivate || []), // Then add all posts with their original IDs
+  ];
+
+  // Function to handle scroll to top when capture button is pressed
+  const handleOnTop = (check: boolean) => {
+    setOnTopCheck(check);
+    if (check && flatListRef.current) {
+      flatListRef.current.scrollToIndex({ index: 0, animated: true });
+    }
+  };
+
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
+    // Only render components near current page to optimize performance
+    if (Math.abs(index - currentPage) > 1) {
+      return <View style={{ height }} />;
+    }
+
+    // If it's the first item in the list, render Capture
+    if (index === 0) {
+      return (
+        <View style={{ height }}>
+          <CapTure />
+        </View>
+      );
+    }
+
+    // Otherwise render the post
+    else {
+      // For all posts, render the memories view with PostPrivate component
+      return (
+        <View style={styles.memoriesContainer}>
+          <PostPrivate
+            userPostResponse={{
+              userId: item?.userPostResponse?.userId,
+              username: item?.userPostResponse?.username,
+              avatar: item?.userPostResponse?.avatar,
+              followers: item?.userPostResponse?.followers,
+              isFollow: item?.userPostResponse?.isFollow,
+              likes: item?.userPostResponse?.likes,
+              comments: item?.userPostResponse?.comments,
+              like: item?.userPostResponse?.like,
+            }}
+            id={item?.id || ""}
+            caption={item?.caption || ""}
+            images={item?.images || []}
+            likes={item?.likes || 0}
+            comments={item?.comments || 0}
+            type={item?.type || ""}
+            like={item?.like || false}
+            createTime={item?.createTime}
+            onTop={handleOnTop}
+          />
+        </View>
+      );
+    }
+  };
+
+  // Function to navigate to the Memories screen
+  const goToMemories = () => {
+    if (flatListRef.current && postsPrivate && postsPrivate.length > 0) {
+      flatListRef.current.scrollToIndex({ index: 1, animated: true });
+    } else {
+      // Show alert if no memories available
+      Alert.alert("No Memories", "You don't have any memories yet.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -56,7 +141,7 @@ const PrivateModeScreen = () => {
           <FontAwesome
             name="user-circle-o"
             size={buttonFontsize}
-            color="#fff"
+            color={iconColorMode}
           />
         </TouchableOpacity>
         <PublicOrPrivate />
@@ -64,130 +149,119 @@ const PrivateModeScreen = () => {
           <MaterialCommunityIcons
             name="chat"
             size={height * 0.03}
-            color={"#fff"}
+            color={iconColorMode}
           />
         </TouchableOpacity>
       </View>
-      <Animated.ScrollView
-        onScroll={handleScroll}
-        contentContainerStyle={styles.scrollContainer}
-      >
-        {/* Show either the Capture component or the AlternateScreen based on scroll position */}
-        <View style={{ height: height * 0.9 }}>
-          {!showAlternate && <CapTure />}
+
+      {isPostsPrivateLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={iconColorMode} />
+          <Text style={[styles.memoriesButtonText, { marginTop: 10 }]}>
+            Loading memories...
+          </Text>
         </View>
+      ) : postsPrivateError ? (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.memoriesButtonText, { color: "red" }]}>
+            Error loading memories
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={flatListData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          snapToInterval={height}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          pagingEnabled
+        />
+      )}
 
-        {/* This is an invisible view that allows scrolling to trigger the screen change */}
-        <View style={{ height: height * 0.5 }} />
-      </Animated.ScrollView>
-
-      {/* Scroll indicator */}
-      {!showAlternate && (
+      {/* Scroll indicator only shown on the first page */}
+      {currentPage === 0 && (
         <View style={styles.scrollIndicator}>
-          <Text style={styles.scrollText}>Scroll down for more</Text>
-          <FontAwesome name="angle-down" size={20} color="#fff" />
+          <TouchableOpacity
+            onPress={goToMemories}
+            style={styles.memoriesButton}
+            disabled={!postsPrivate || postsPrivate.length === 0}
+          >
+            <Text style={styles.memoriesButtonText}>Memories</Text>
+            <FontAwesome
+              name="angle-down"
+              size={buttonFontsize}
+              color={iconColorMode}
+            />
+          </TouchableOpacity>
         </View>
       )}
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: height * 0.02,
-    marginHorizontal: width * 0.04,
-  },
-  safeArea: {
-    flex: 1,
-    backgroundColor: backgroundColor,
-  },
-  scrollContainer: {
-    minHeight: height * 1.5,
-  },
-  scrollIndicator: {
-    position: "absolute",
-    bottom: 20,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    opacity: 0.7,
-  },
-  scrollText: {
-    color: "#fff",
-    marginBottom: 5,
-  },
-  // Alternate screen styles
-  alternateScreen: {
-    flex: 1,
-    padding: width * 0.05,
-    backgroundColor: backgroundColor,
-  },
-  alternateTitle: {
-    fontSize: width * 0.06,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: height * 0.03,
-    textAlign: "center",
-  },
-  featuresContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: height * 0.04,
-  },
-  featureButton: {
-    alignItems: "center",
-    padding: width * 0.03,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 12,
-    width: width * 0.25,
-  },
-  featureText: {
-    color: "#fff",
-    marginTop: 8,
-  },
-  recentActivityContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 16,
-    padding: width * 0.04,
-  },
-  sectionTitle: {
-    fontSize: width * 0.045,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: height * 0.02,
-  },
-  activityItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: height * 0.02,
-    paddingBottom: height * 0.01,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.1)",
-  },
-  activityIcon: {
-    width: width * 0.1,
-    height: width * 0.1,
-    borderRadius: width * 0.05,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: width * 0.03,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    color: "#fff",
-    fontSize: width * 0.035,
-  },
-  activityTime: {
-    color: "rgba(255, 255, 255, 0.5)",
-    fontSize: width * 0.03,
-    marginTop: 4,
-  },
-});
+const getStyles = (isDarkMode: any) => {
+  return StyleSheet.create({
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginHorizontal: width * 0.04,
+    },
+    safeArea: {
+      flex: 1,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+    },
+    scrollIndicator: {
+      position: "absolute",
+      bottom: 20,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      opacity: 0.7,
+    },
+    memoriesButton: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    memoriesButtonText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginBottom: 5,
+      fontSize: width * 0.04,
+    },
+    // Memories screen styles
+    memoriesContainer: {
+      flex: 1,
+      height: height,
+      backgroundColor: backgroundColor,
+    },
+    memoriesTitle: {
+      fontSize: width * 0.07,
+      fontWeight: "bold",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginBottom: height * 0.03,
+      textAlign: "center",
+    },
+    memoryList: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  });
+};
 
 export default PrivateModeScreen;

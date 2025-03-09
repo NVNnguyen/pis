@@ -1,21 +1,21 @@
-import { useCameraPermissions } from "expo-camera";
 import { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { useCameraPermissions } from "expo-camera";
 
 const useImagePickerChooseOne = () => {
-  const [images, setImages] = useState<string[]>([]); // Lưu danh sách ảnh
+  const [image, setImage] = useState<string | null>(null); // Single image URI
   const [permission, requestPermission] = useCameraPermissions();
   const [isModalVisible, setIsModalVisible] = useState(false);
+
   useEffect(() => {
     if (!permission) {
       requestPermission();
     }
   }, [permission, requestPermission]);
 
-  // Chọn ảnh từ thư viện
+  // Select a single image from the library
   const openImagePicker = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       alert("You need to enable permission to access images!");
       return;
@@ -24,28 +24,27 @@ const useImagePickerChooseOne = () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
-      allowsMultipleSelection: false,
+      allowsMultipleSelection: false, // Ensure only one image is selected
       quality: 1,
     });
 
-    
-  if (!result.canceled) {
-    setIsModalVisible(false); // Bắt đầu  tảiảnh
-    const newImages = result.assets.map((asset) => asset.uri);
-    setImages((prevImages) => [...prevImages, ...newImages]);
+    if (!result.canceled) {
+      setIsModalVisible(true); // Show loading modal (assuming this is intentional)
+      const selectedImageUri = result.assets[0].uri; // Get the single URI
+      setImage(selectedImageUri); // Set the single image URI
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate delay
 
-   
-    setIsModalVisible(true); // Đóng modal sau khi tải xong
-  }
+      setIsModalVisible(false); // Hide modal after loading
+    }
   };
 
-  const removeImage = ()=>{
-    setImages([])
-  }
+  const removeImage = () => {
+    setImage(null); // Clear the image
+  };
+
   return {
-    images,
+    image, // Return single image URI instead of "images"
     openImagePicker,
     permission,
     isModalVisible,

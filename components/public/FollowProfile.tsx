@@ -89,8 +89,9 @@ const FollowProfile = (userFollowers: FollowProfileProp) => {
               <Text style={styles.fullNameTxt}>
                 {userFollowers?.firstName} {userFollowers?.lastName}
               </Text>
-              {userFollowers.followers > 100000}
-              <MaterialIcons name="verified" style={styles.verifiedText} />
+              {userFollowers.followers > 100000 && (
+                <MaterialIcons name="verified" style={styles.verifiedText} />
+              )}
             </View>
 
             <Text style={styles.username}>{userFollowers?.username}</Text>

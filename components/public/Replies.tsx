@@ -106,14 +106,7 @@ const Replies = (item: any) => {
 
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
-          <Text style={styles.caption}>
-            {item?.content}{" "}
-            <MaterialIcons
-              name="favorite"
-              size={height * 0.014}
-              style={styles.icon}
-            />
-          </Text>
+          <Text style={styles.caption}>{item?.content} </Text>
         </View>
         <TouchableOpacity>
           <MaterialIcons

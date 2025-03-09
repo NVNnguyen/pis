@@ -158,11 +158,6 @@ const PostItem = ({
               }}
             >
               {caption}{" "}
-              <MaterialIcons
-                name="favorite"
-                size={height * 0.014}
-                style={styles.icon}
-              />
             </Text>
           </TouchableOpacity>
 
@@ -196,16 +191,30 @@ const PostItem = ({
             keyExtractor={(image) => image.id.toString()}
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                key={item.id} // Thêm key ở đúng vị trí
-                onPress={() => {
-                  showModal(item?.id);
-                }}
-              >
-                <Image source={{ uri: item.url }} style={styles.imagePost} />
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) =>
+              images.length > 1 ? (
+                <TouchableOpacity
+                  key={item.id} // Thêm key ở đúng vị trí
+                  onPress={() => {
+                    showModal(item?.id);
+                  }}
+                >
+                  <Image source={{ uri: item.url }} style={styles.imagePost} />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  key={item.id} // Thêm key ở đúng vị trí
+                  onPress={() => {
+                    showModal(item?.id);
+                  }}
+                >
+                  <Image
+                    source={{ uri: item.url }}
+                    style={styles.imageOnePost}
+                  />
+                </TouchableOpacity>
+              )
+            }
           />
         </ScrollView>
       )}
@@ -321,6 +330,7 @@ const getStyles = (isDarkMode: boolean) =>
     },
     audioContainer: {
       alignItems: "center",
+      marginLeft: width * 0.025,
     },
     imageContainer: {
       paddingLeft: height * 0.06,
@@ -329,6 +339,13 @@ const getStyles = (isDarkMode: boolean) =>
     },
     imagePost: {
       width: width * 0.6,
+      height: height * 0.35,
+      borderRadius: 10,
+      marginRight: width * 0.02,
+      resizeMode: "cover",
+    },
+    imageOnePost: {
+      width: width * 0.8,
       height: height * 0.35,
       borderRadius: 10,
       marginRight: width * 0.02,

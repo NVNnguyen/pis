@@ -109,7 +109,6 @@ const ProfileHeader = ({
 
   const { openPickImage } = useImagePickerSelectionOne();
 
-  // Sử dụng hook useHandleFollow với state cục bộ
   const {
     isFollowing,
     responseMessage,
@@ -118,7 +117,7 @@ const ProfileHeader = ({
     isLoading,
   } = useHandleFollow({
     userName: userInfo?.username || "",
-    following: isFollowingState, // Sử dụng state hiện tại thay vì route params
+    following: isFollowingState,
     userId: myUserId,
     friendId: userInfo?.id || 0,
   });

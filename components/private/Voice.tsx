@@ -20,7 +20,10 @@ const { width } = Dimensions.get("window");
 const ITEM_MARGIN = 4;
 const ITEM_SIZE = (width - ITEM_MARGIN * 4) / 3;
 
-const Gallery = ({ id, caption, images, type }: PostItemType) => {
+interface VoiceProp extends PostItemType {
+  isLoadingUrl: boolean;
+}
+const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
 
@@ -117,18 +120,19 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
 
   useEffect(() => {
     return () => {
-      sound?.unloadAsync();
+      if (sound) {
+        sound.unloadAsync();
+        setSound(null);
+      }
       stopWaveAnimation();
     };
-  }, []);
+  }, [sound]);
 
   return (
     <View style={styles.itemWrapper}>
-      {type === "Image" && (
-        <Image source={{ uri: images?.[0]?.url }} style={styles.image} />
-      )}
-
-      {type === "Voice" && (
+      {type === "Voice" && isLoadingUrl ? (
+        <ActivityIndicator />
+      ) : (
         <TouchableWithoutFeedback onPress={handlePress}>
           <View style={styles.audioWrapper}>
             {isLoading ? (
@@ -197,11 +201,6 @@ const getStyles = (isDarkMode: boolean) =>
       justifyContent: "center",
       alignItems: "center",
     },
-    image: {
-      width: "100%",
-      height: "100%",
-      resizeMode: "cover",
-    },
     audioWrapper: {
       width: "100%",
       height: "100%",
@@ -235,4 +234,4 @@ const getStyles = (isDarkMode: boolean) =>
     },
   });
 
-export default Gallery;
+export default Voice;

@@ -17,14 +17,17 @@ const MessageList: React.FC<MessageProps> = ({ userIdProp }) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const myUserid = getMyUserId() ?? 0;
-  const { message, isMessageLoading, messageError } = useMessage(
-    myUserid,
-    userIdProp
-  );
-  console.log("📡 MessageList:", message);
+  const [messageList, setMessageList] = useState();
+  const { message } = useMessage(myUserid, userIdProp);
+  useEffect(() => {
+    if (message) {
+      setMessageList(message);
+    }
+  }, [message]);
+
   return (
     <FlatList
-      data={message}
+      data={messageList}
       keyExtractor={(item, index) => index.toString()}
       renderItem={({ item }) => (
         <View

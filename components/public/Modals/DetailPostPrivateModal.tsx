@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
   Animated,
+  Modal,
 } from "react-native";
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import {
@@ -19,7 +20,6 @@ import {
   fontWeight,
   textPostFontSize,
 } from "@/styles/stylePrimary";
-import AudioPlayer from "../public/AudioPlayer";
 import { getMyUserId } from "@/hooks/getMyUserID";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
@@ -27,19 +27,25 @@ import { primaryColor } from "@/utils/colorPrimary";
 import { PostItemType } from "@/utils/types/PostItemType";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
+import AudioPlayer from "../AudioPlayer";
 
 const { width, height } = Dimensions.get("window");
 interface PostPrivateProps extends PostItemType {
   onTop?: (check: boolean) => void;
 }
-const PostPrivate = ({
+interface DetailPostPrivateModalProp extends PostPrivateProps {
+  visible: boolean;
+  onClose: () => void;
+}
+const DetailPostPrivateModal = ({
   userPostResponse,
   caption,
   images,
   type,
   createTime,
-  onTop,
-}: PostPrivateProps) => {
+  visible,
+  onClose,
+}: DetailPostPrivateModalProp) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const myUserId = Number(getMyUserId());
@@ -96,113 +102,88 @@ const PostPrivate = ({
     inputOriginalPosition.current = event.nativeEvent.layout.y;
   };
 
-  // Handler for capture button press
-  const handleCapturePress = () => {
-    if (onTop) {
-      onTop(true);
-    }
-  };
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   return (
-    <View style={styles.container}>
-      <View style={styles.mediaContainer}>
-        {type === "Voice" && images.length > 0 && (
-          <AudioPlayer audioUri={images[0]?.url} />
-        )}
-        {type === "Image" && images.length > 0 && (
-          <Image
-            source={{ uri: images[0]?.url }}
-            style={styles.photo}
-            resizeMode="cover"
-          />
-        )}
-      </View>
-
-      {/* Caption */}
-      {caption && (
-        <View style={styles.captionContainer}>
-          <Text style={styles.captionText}>{caption}</Text>
-        </View>
-      )}
-
-      <View style={styles.userHeader}>
-        {userPostResponse?.avatar ? (
-          <Image
-            source={{ uri: userPostResponse?.avatar }}
-            style={styles.avatar}
-          />
-        ) : (
-          <Image
-            source={require("@/assets/images/userAvatar.png")}
-            style={styles.avatar}
-          />
-        )}
-
-        <Text style={styles.username}>{userPostResponse?.username}</Text>
-        <Text style={styles.dateText}>{createTime}</Text>
-      </View>
-
-      {/* Absolute positioned animated comment input */}
-      {userPostResponse?.userId !== myUserId && (
-        <Animated.View
-          style={[
-            styles.commentInputContainer,
-            {
-              position: "absolute",
-              zIndex: 999,
-              transform: [{ translateY: inputPosition }],
-              top: null, // Remove any top property that might interfere
-              bottom: height * 0.05, // Position it near the bottom initially
-            },
-          ]}
-          onLayout={measureInputPosition}
-        >
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Add a comment..."
-            placeholderTextColor="gray"
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={() => Keyboard.dismiss()}
-          >
-            <AntDesign
-              name="arrowright"
-              size={width * 0.05}
-              color={iconColorMode}
-            />
-          </TouchableOpacity>
-        </Animated.View>
-      )}
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => {
-            navigation.navigate("HistoryPost", {
-              userId: userPostResponse?.userId,
-              avatar: userPostResponse?.avatar,
-              username: userPostResponse?.username,
-            });
-          }}
-        >
+    <Modal animationType="slide" transparent visible={visible}>
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => onClose()}>
           <AntDesign
-            name="appstore1"
-            size={width * 0.08}
-            color={iconColorMode}
+            name="close"
+            size={buttonFontsize}
+            color={isDarkMode ? darkTheme.text : lightTheme.text}
           />
         </TouchableOpacity>
+        <View style={styles.mediaContainer}>
+          {type === "Voice" && images.length > 0 && (
+            <AudioPlayer audioUri={images[0]?.url} />
+          )}
+          {type === "Image" && images.length > 0 && (
+            <Image
+              source={{ uri: images[0]?.url }}
+              style={styles.photo}
+              resizeMode="cover"
+            />
+          )}
+        </View>
 
-        <TouchableOpacity
-          onPress={handleCapturePress}
-          style={styles.captureButton}
-        >
-          <View style={styles.captureInner}></View>
-        </TouchableOpacity>
-        <TouchableOpacity></TouchableOpacity>
+        {/* Caption */}
+        {caption && (
+          <View style={styles.captionContainer}>
+            <Text style={styles.captionText}>{caption}</Text>
+          </View>
+        )}
+
+        <View style={styles.userHeader}>
+          {userPostResponse?.avatar ? (
+            <Image
+              source={{ uri: userPostResponse?.avatar }}
+              style={styles.avatar}
+            />
+          ) : (
+            <Image
+              source={require("@/assets/images/userAvatar.png")}
+              style={styles.avatar}
+            />
+          )}
+
+          <Text style={styles.username}>{userPostResponse?.username}</Text>
+          <Text style={styles.dateText}>{createTime}</Text>
+        </View>
+
+        {/* Absolute positioned animated comment input */}
+        {userPostResponse?.userId !== myUserId && (
+          <Animated.View
+            style={[
+              styles.commentInputContainer,
+              {
+                position: "absolute",
+                zIndex: 999,
+                transform: [{ translateY: inputPosition }],
+                top: null, // Remove any top property that might interfere
+                bottom: height * 0.05, // Position it near the bottom initially
+              },
+            ]}
+            onLayout={measureInputPosition}
+          >
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Add a comment..."
+              placeholderTextColor="gray"
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={() => Keyboard.dismiss()}
+            >
+              <AntDesign
+                name="arrowright"
+                size={width * 0.05}
+                color={iconColorMode}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </View>
-    </View>
+    </Modal>
   );
 };
 
@@ -329,14 +310,7 @@ const getStyles = (isDarkMode: any) => {
     sendButton: {
       padding: width * 0.02,
     },
-    footer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: width * 0.08,
-      paddingBottom: height * 0.02,
-      width: "100%",
-    },
+
     iconButton: {
       padding: width * 0.04,
       borderRadius: width * 0.1,
@@ -365,5 +339,4 @@ const getStyles = (isDarkMode: any) => {
     },
   });
 };
-
-export default PostPrivate;
+export default DetailPostPrivateModal;

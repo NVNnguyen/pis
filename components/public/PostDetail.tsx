@@ -179,14 +179,7 @@ const PostDetails = ({
             </TouchableOpacity>
           ))}
       </View>
-      <Text style={styles.caption}>
-        {caption}{" "}
-        <MaterialIcons
-          name="favorite"
-          size={height * 0.014}
-          style={styles.icon}
-        />
-      </Text>
+      <Text style={styles.caption}>{caption} </Text>
       {type === "Voice" && images.length > 0 && images[0].url && (
         <AudioPlayer audioUri={images[0].url} />
       )}

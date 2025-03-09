@@ -67,6 +67,19 @@ const infoAPI = {
         throw error;
       }
     },
+    searchFriend: async (text: string, userId: number) => {
+      try {
+        const response = await http.get(`${BASE_URL_USERS}/search`, {
+          params: { text, userId }
+        });
+        console.log("Search response: ",response?.data)
+        return response?.data;
+      } catch (error) {
+        const err = error as any;
+        console.error("Error search :", err.response?.data || err.message);
+        throw error;
+      }
+    },
 };
 
 export default infoAPI;

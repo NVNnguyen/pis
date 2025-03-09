@@ -1,5 +1,6 @@
 import {
   backgroundColor,
+  buttonFontsize,
   Color,
   fontWeight,
   textPostFontSize,
@@ -63,6 +64,9 @@ const CameraModal = ({ visible, onCapture, onClose }: CameraModalProp) => {
       }
     }
   };
+  const toggleFlash = () => {
+    setIsFlash(isFlash === "off" ? "on" : "off");
+  };
   return (
     <Modal
       animationType="slide"
@@ -72,21 +76,12 @@ const CameraModal = ({ visible, onCapture, onClose }: CameraModalProp) => {
     >
       <View style={styles.viewContainer}>
         <View style={styles.header}>
-          {resultImage === null && isFlash === "off" && (
-            <TouchableOpacity onPress={() => setIsFlash("on")}>
+          {resultImage === null && (
+            <TouchableOpacity onPress={toggleFlash}>
               <MaterialIcons
-                name="flash-on"
-                size={width * 0.08}
-                color={Color}
-              />
-            </TouchableOpacity>
-          )}
-          {resultImage === null && isFlash === "on" && (
-            <TouchableOpacity onPress={() => setIsFlash("off")}>
-              <MaterialIcons
-                name="flash-off"
-                size={width * 0.08}
-                color={Color}
+                name={isFlash === "on" ? "flash-on" : "flash-off"}
+                size={buttonFontsize}
+                color="#fff"
               />
             </TouchableOpacity>
           )}

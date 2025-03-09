@@ -35,8 +35,6 @@ import { UseCreateCommentType } from "@/utils/types/UseCreateCommentType";
 
 const { width, height } = Dimensions.get("window");
 
-
-
 interface CommentInputProps {
   userName: string;
   postId: number;
@@ -70,7 +68,7 @@ const CommentInput = ({
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode, parentCommentId);
   const myUserId = getMyUserId();
-  const { images, openImagePicker, removeImage } = useImagePickerChooseOne();
+  const { image, openImagePicker, removeImage } = useImagePickerChooseOne();
   const createCommentMutation = useCreateComment();
 
   // Xử lý khi chọn media type
@@ -122,9 +120,9 @@ const CommentInput = ({
     } else if (imageUri) {
       detectedType = "Image";
       filePayload = { uri: imageUri };
-    } else if (images.length > 0) {
+    } else if (image !== null) {
       detectedType = "Image";
-      filePayload = { uri: images[0] };
+      filePayload = { uri: image };
     }
 
     const payload: UseCreateCommentType = {
@@ -146,7 +144,7 @@ const CommentInput = ({
 
   // Kiểm tra nếu có bất kỳ media nào được chọn
   const hasMediaSelected =
-    recordUri !== null || imageUri !== null || images.length > 0;
+    recordUri !== null || imageUri !== null || image !== null;
 
   // Xử lý khi hoàn thành ghi âm
   const handleVoiceRecordComplete = (uri: string | null) => {
@@ -165,10 +163,10 @@ const CommentInput = ({
       <View style={styles.container}>
         {hasMediaSelected && (
           <View style={styles.mediaPreview}>
-            {(images.length > 0 || imageUri !== null) && (
+            {(image !== null || imageUri !== null) && (
               <View style={styles.imageContainer}>
                 <Image
-                  source={{ uri: imageUri !== null ? imageUri : images[0] }}
+                  source={{ uri: imageUri !== null ? imageUri : image || "" }}
                   style={styles.image}
                 />
                 <TouchableOpacity

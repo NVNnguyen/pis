@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
@@ -25,6 +25,7 @@ import {
   lightThemeInput,
   primaryColor,
 } from "@/utils/colorPrimary";
+import { getMyUserId } from "@/hooks/getMyUserID";
 
 const { width, height } = Dimensions.get("window"); // Lấy chiều rộng màn hình
 
@@ -33,6 +34,8 @@ interface chatInputProp {
 }
 const ChatInput = () => {
   const [message, setMessage] = useState(""); // State lưu nội dung tino nhắn
+  const myUserid = getMyUserId() ?? 0;
+  const [messageList, setMessageList] = useState();
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const handleSendMessage = () => {
@@ -43,7 +46,30 @@ const ChatInput = () => {
       console.log("Thumbs up!");
     }
   };
+  // console.log(myUserid, userIdProp);
+  // useEffect(() => {
+  //   const checkConversation = async () => {
+  //     const code = await conversationAPI.checkConversations(
+  //       myUserid,
+  //       userIdProp
+  //     );
+  //     if (code === 4020) {
+  //       const response = await conversationAPI.createConservations(
+  //         myUserid,
+  //         userIdProp
+  //       );
+  //       if (response?.code === 2000) {
+  //         const response = await conversationAPI.sendMessage(formdata);
+  //       }
+  //     } else {
+  //       const { message } = useMessage(myUserid, userIdProp);
+  //       setMessageList(message);
+  //     }
+  //   };
+  //   checkConversation();
+  // }, [myUserid, userIdProp]);
 
+  console.log("📡 MessageList:", messageList);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}

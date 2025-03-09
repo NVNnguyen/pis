@@ -21,6 +21,15 @@ const postsAPI = {
       throw error;
     }
   },
+  privatePosts: async (id: number) => {
+    try {
+      const response = await http.get(`${BASE_URL_POSTS}/private/${id}`);
+      return response?.data;
+    } catch (error) {
+      console.error("Error fetching  posts:", error);
+      throw error;
+    }
+  },
   createPost: async (formData: FormData) => {
     try {
       const response = await http.post(`${BASE_URL_POSTS}`, formData, {

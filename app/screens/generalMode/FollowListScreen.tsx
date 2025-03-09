@@ -83,7 +83,7 @@ const FollowListScreen = () => {
               : followStore?.userFollowing
           }
           keyExtractor={(item) => item?.userId.toString()}
-          renderItem={({ item }) => <FollowProfile {...item} />}
+          renderItem={({ item }) => <FollowProfile {...item} isFollow={item.follow} />}
           ListHeaderComponent={
             <View style={styles.searchContainer}>
               <AntDesign
