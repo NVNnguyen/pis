@@ -459,7 +459,7 @@ const getStyles = (isDarkMode: any) => {
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: width * 0.08,
-      marginBottom: height * 0.17,
+      marginBottom: height * 0.2,
       paddingBottom: 40,
       zIndex: 5,
     },
@@ -470,7 +470,7 @@ const getStyles = (isDarkMode: any) => {
     captureButton: {
       width: width * 0.18,
       height: width * 0.18,
-      borderRadius: width * 0.09,
+      borderRadius: (width * 0.18) / 2, // => hình tròn
       backgroundColor: isDarkMode
         ? lightTheme.background
         : darkTheme.background,
@@ -492,10 +492,14 @@ const getStyles = (isDarkMode: any) => {
     btnSend: {
       width: width * 0.18,
       height: width * 0.18,
-      borderRadius: width * 0.09,
-      backgroundColor: darkTheme ? darkTheme.background : lightTheme.background,
+      borderRadius: (width * 0.18) / 2,
+      backgroundColor: isDarkMode
+        ? lightTheme.background
+        : darkTheme.background,
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 2,
+      borderColor: primaryColor,
     },
 
     memoriesButton: {

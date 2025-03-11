@@ -10,7 +10,6 @@ const initHttp = async () => {
 };
 initHttp(); // Gọi khi app khởi động
 
-// **API với token**
 const postsAPI = {
   posts: async (id: number) => {
     try {

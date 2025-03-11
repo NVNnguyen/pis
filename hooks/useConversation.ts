@@ -9,11 +9,10 @@ const useConversation= (userId: number) => {
         } = useQuery({
             queryKey: ["conversation", userId],
             queryFn: async () => {
-            const response = await conversationAPI.conversations( userId );
+            const response = await conversationAPI.conversations(userId);
             return response?.data;
             },
             enabled: !!userId ,
-            staleTime: 1000 * 60 * 3,
          
         });
         return { conversation, isConversationLoading, conversationError };

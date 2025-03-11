@@ -2,42 +2,42 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   Modal,
   Alert,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { OPENSANS_REGULAR } from "@/utils/const";
 import {
   buttonFontsize,
   fontWeight,
   textFontSize,
+  textPostFontSize,
 } from "@/styles/stylePrimary";
-import useUpdateProfile from "@/hooks/useUpdateProfile";
-import { useQueryClient } from "@tanstack/react-query";
-import { emailRegex } from "@/utils/regex";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
-import { getToken } from "@/utils/storage";
 import useLogout from "@/hooks/useLogout";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { MainStackType } from "@/utils/types/MainStackType";
 
 const { width, height } = Dimensions.get("window");
 
-interface SettingModelProps {
+interface SettingModalPrivateProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const SettingModel = ({ visible, onClose }: SettingModelProps) => {
+const SettingModalPrivate = ({
+  visible,
+  onClose,
+}: SettingModalPrivateProps) => {
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertTitle, setAlertTitle] = useState<string>("");
   const [alertMessage, setAlertMessage] = useState<string>("");
   const { isDarkMode } = useTheme();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
   const styles = getStyle(isDarkMode);
   const { logout, isLoading } = useLogout();
   const handleLogout = () => {
@@ -73,16 +73,20 @@ const SettingModel = ({ visible, onClose }: SettingModelProps) => {
 
           {/* Profile Section */}
           <View style={styles.profileSection}>
-            {/* <View style={styles.inputContainer}>
-              <Text style={styles.label}>FirstName</Text>
-              <TextInput
-                style={styles.input}
-                value={firstNameEdit}
-                onChangeText={(text) => setFirstNameEdit(text)}
-                placeholder="Enter your firstname!"
-                placeholderTextColor="#999"
+            <TouchableOpacity
+              style={styles.inputContainer}
+              onPress={() => {
+                navigation.navigate("BlockList");
+                onClose();
+              }}
+            >
+              <FontAwesome5
+                name="users-slash"
+                size={buttonFontsize}
+                color={isDarkMode ? darkTheme.text : lightTheme.text}
               />
-            </View> */}
+              <Text style={styles.label}>Blocked list</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.btnLogout}
               onPress={handleLogout}
@@ -91,7 +95,7 @@ const SettingModel = ({ visible, onClose }: SettingModelProps) => {
               <FontAwesome
                 name="sign-out"
                 size={buttonFontsize}
-                color={"#rgb(253, 0, 0)"}
+                color={"rgb(253, 0, 0)"}
               />
               <Text style={styles.txtLogout}>
                 {isLoading ? "Logging out..." : "Logout"}
@@ -153,11 +157,15 @@ const getStyle = (isDarkMode: any) =>
     },
     inputContainer: {
       marginBottom: height * 0.015,
+      flexDirection: "row",
+      alignItems: "center",
     },
     label: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textFontSize,
+      fontSize: textPostFontSize,
+      marginLeft: width * 0.08,
       fontWeight: fontWeight,
+      textDecorationLine: "underline",
     },
     input: {
       backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
@@ -173,7 +181,7 @@ const getStyle = (isDarkMode: any) =>
       flexDirection: "row",
     },
     txtLogout: {
-      color: "#rgb(253, 0, 0)",
+      color: "rgb(253, 0, 0)",
       fontSize: textFontSize,
       fontWeight: fontWeight,
       textDecorationLine: "underline",
@@ -181,4 +189,4 @@ const getStyle = (isDarkMode: any) =>
     },
   });
 
-export default SettingModel;
+export default SettingModalPrivate;

@@ -14,11 +14,12 @@ const useBlockUser = () => {
       return await friendAPI.blockFriend(myUserId, userId); // Gọi API logout
     },
     onSuccess: async (response) => {
+       
          return response?.data
     },
     onError: (error) => {
-      Alert.alert("Error", "Logout failed. Please try again.");
-      console.error("Logout error:", error);
+     
+      console.error("blockFriend error:", error);
     },
   });
 

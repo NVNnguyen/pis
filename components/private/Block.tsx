@@ -18,6 +18,7 @@ import useRejectFriendRequest from "@/hooks/useRejectFriendRequest";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useQueryClient } from "@tanstack/react-query";
+import useUnblock from "@/hooks/useUnblock";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,29 +33,14 @@ const FriendRequest = ({
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const myUserId = Number(useMyUserId());
-  const acceptFriendRequest = useAcceptFriendRequest();
-  const rejectFriendRequest = useRejectFriendRequest();
-  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const unblock = useUnblock();
   const queryclient = useQueryClient();
-  console.log("accept and reject with id: ", myUserId, id);
-  const handleAcceptFriendRequest = () => {
-    if (myUserId !== 0 && myUserId && id) {
-      acceptFriendRequest.accept({ myUserId: myUserId, userId: id });
+  const handleUnblock = () => {
+    if (myUserId && id) {
+      unblock.unblock({ myUserId: myUserId, userId: id });
     }
-    if (acceptFriendRequest.isSuccess) {
-      queryclient.invalidateQueries({
-        queryKey: ["listFriendRequest", myUserId],
-      });
-    }
-  };
-  const handleRejectFriendRequest = () => {
-    if (myUserId !== 0 && myUserId && id) {
-      rejectFriendRequest.reject({ myUserId: myUserId, userId: id });
-    }
-    if (rejectFriendRequest.isSuccess) {
-      queryclient.invalidateQueries({
-        queryKey: ["listFriendRequest", myUserId],
-      });
+    if (unblock.isSuccess) {
+      queryclient.invalidateQueries({ queryKey: ["listBlock", myUserId] });
     }
   };
   return (
@@ -74,49 +60,17 @@ const FriendRequest = ({
         </Text>
         <Text style={styles.username}>{username}</Text>
       </View>
-      {/* Profile Button */}
-      {!acceptFriendRequest.isSuccess && !rejectFriendRequest.isSuccess && (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={handleRejectFriendRequest}
-            style={styles.profileButton}
-          >
-            {rejectFriendRequest.isLoading && (
-              <ActivityIndicator
-                color={isDarkMode ? darkTheme.text : lightTheme.text}
-              />
-            )}
-            <Text style={styles.buttonText}>Remove</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleAcceptFriendRequest}
-            style={styles.acceptBtn}
-          >
-            {acceptFriendRequest.isLoading && (
-              <ActivityIndicator
-                color={isDarkMode ? darkTheme.text : lightTheme.text}
-              />
-            )}
-            <Text style={styles.acceptTxt}>Accept</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {acceptFriendRequest.isSuccess && (
-        <View style={styles.profileCtn}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("HistoryPost", { userId: id })}
-            style={styles.profileTxt}
-          >
-            <Text style={styles.btnProfile}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      {rejectFriendRequest.isSuccess && (
-        <View style={styles.profileTxt}>
-          <Text style={styles.rejectedTxt}>Removed</Text>
-        </View>
-      )}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleUnblock} style={styles.profileButton}>
+          {unblock.isLoading && (
+            <ActivityIndicator
+              color={isDarkMode ? darkTheme.text : lightTheme.text}
+            />
+          )}
+          {!unblock.isSuccess && <Text style={styles.buttonText}>Unblock</Text>}
+          {unblock.isSuccess &&  <Text style={styles.fiendTxt}>Friend</Text>}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -126,6 +80,7 @@ const getStyles = (isDarkMode: any) => {
 
   return StyleSheet.create({
     container: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       paddingVertical: height * 0.015,
@@ -208,6 +163,9 @@ const getStyles = (isDarkMode: any) => {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
       fontWeight: fontWeight,
+    },
+    fiendTxt: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });
 };

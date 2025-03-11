@@ -3,7 +3,7 @@ import postsAPI from "@/api/postsAPI";
 import { UseCreateCommentType } from "@/utils/types/UseCreateCommentType";
 
 
-export const useCreateComment = () => {
+export const useCreateComment = (userId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -43,7 +43,6 @@ export const useCreateComment = () => {
         formData.append("parentCommentId", "-1"); // Sử dụng -1 thay vì chuỗi rỗng
       }
 
-      // Add other required fields
       formData.append("postId", String(postData.postId));
       formData.append("userId", String(postData.userId));
       formData.append("content", postData.content);
@@ -52,9 +51,9 @@ export const useCreateComment = () => {
       return response?.data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.refetchQueries({ queryKey: ["commentsLevel1", variables.userId, variables.postId] });
+      queryClient.refetchQueries({ queryKey: ["commentsLevel1", userId, variables.postId] });
       queryClient.refetchQueries({
-        queryKey: ["commentsLevel2", variables.userId, variables.parentCommentId],
+        queryKey: ["commentsLevel2", userId, variables.parentCommentId],
         });
     },
     onError: (error) => {

@@ -15,7 +15,8 @@ export type MainStackType = {
     ResetPassword: {email: string}
     PostDetails: {userId: number, postId: number; userName: string }
     FollowList: {tab: string, userId: number};
-    HistoryPost: {userId: number, username: string, avatar: string}
+    HistoryPost: {userId: number}
     FriendRequest: undefined;
     FriendList: {userId: number}
+    BlockList: undefined
   };

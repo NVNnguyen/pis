@@ -233,8 +233,6 @@ const PostPrivate = ({
           onPress={() => {
             navigation.navigate("HistoryPost", {
               userId: userPostResponse?.userId,
-              avatar: userPostResponse?.avatar,
-              username: userPostResponse?.username,
             });
           }}
         >

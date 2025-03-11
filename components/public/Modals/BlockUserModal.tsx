@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   Modal,
   Alert,
+  Pressable,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { OPENSANS_REGULAR } from "@/utils/const";
-import { fontWeight, textFontSize } from "@/styles/stylePrimary";
+import {
+  buttonFontsize,
+  fontWeight,
+  textFontSize,
+} from "@/styles/stylePrimary";
 import useBlockFriend from "@/hooks/useBlockUser";
+import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
+import useUnfriend from "@/hooks/useUnfriend";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width, height } = Dimensions.get("window");
 
@@ -32,134 +39,198 @@ const BlockUserModal = ({
   myUserId,
   userId,
 }: BlockModalProp) => {
-  const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
   const styles = getStyle(isDarkMode);
-  const { block, isLoading, isSuccess } = useBlockFriend();
-  console.log("myuserId: ", myUserId, "friendId", userId);
+  const block = useBlockFriend();
+  const unfriend = useUnfriend();
+  const queryClient = useQueryClient();
   const handleBlockFriend = () => {
     Alert.alert(
-      `Are you sure to block ${username}`,
-      `If you block ${username} you will not see ${username} posts`,
+      `Block ${username}`,
+      `If you block ${username}, you will not see ${username}'s posts!`,
       [
         {
           text: "Cancel",
-          onPress: () => Alert.alert("Cancel Pressed"),
+          onPress: () => {},
           style: "cancel",
         },
         {
-          text: "OK",
-          onPress: () => block({ myUserId, userId }),
+          text: "Confirm",
+          onPress: () => block.block({ myUserId, userId }),
+          style: "destructive",
         },
       ]
     );
+    if (block.isSuccess) {
+      queryClient.invalidateQueries({
+        queryKey: ["listFriend", myUserId],
+      });
+    }
   };
+
+  const handleUnfriend = () => {
+    if (myUserId && userId) {
+      Alert.alert(
+        `Are you sure unfriend with ${username}`,
+        `You will not see any posts from ${username}!`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Confirm",
+            onPress: () =>
+              unfriend.unfriend({ myUserId: myUserId, userId: userId }),
+            style: "destructive",
+          },
+        ]
+      );
+      if (unfriend.isSuccess) {
+        queryClient.invalidateQueries({
+          queryKey: ["listFriend", myUserId],
+        });
+      }
+    }
+  };
+
   return (
     <Modal
       animationType="slide"
       transparent
       visible={visible}
-      style={{ zIndex: 1000 }}
+      onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        {/* Chặn sự kiện onPress lan vào phần container */}
+        <Pressable style={styles.container} onPress={() => {}}>
+          {/* Drag Indicator */}
+          <View style={styles.dragIndicator} />
+
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            {/* <Text style={styles.headerTitle}>{username}</Text> */}
           </View>
 
-          {/* Profile Section */}
+          {/* Block Section */}
           <View style={styles.profileSection}>
             <TouchableOpacity
               style={styles.btnLogout}
               onPress={handleBlockFriend}
-              disabled={isLoading} // Disable khi đang tải
+              disabled={block.isLoading}
             >
-              <Text style={styles.txtLogout}>
-                {isLoading ? `Blocking...` : `Block`}
-              </Text>
-              {isSuccess && <Text style={styles.txtLogout}>Blocked</Text>}
+              <TouchableOpacity style={styles.icon}>
+                <FontAwesome5
+                  name="user-alt-slash"
+                  size={buttonFontsize}
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              </TouchableOpacity>
+              {!block.isSuccess && (
+                <Text style={styles.txtLogout}>
+                  {block.isLoading ? `Block...` : `Block`}
+                </Text>
+              )}
+
+              {block.isSuccess && <Text style={styles.txtLogout}>Blocked</Text>}
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+
+          <View style={styles.profileSection}>
+            <TouchableOpacity
+              style={styles.btnLogout}
+              onPress={handleUnfriend}
+              disabled={unfriend.isLoading}
+            >
+              <TouchableOpacity style={styles.icon}>
+                <FontAwesome
+                  name="user-times"
+                  size={buttonFontsize}
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              </TouchableOpacity>
+              {!unfriend.isSuccess && (
+                <Text style={styles.txtLogout}>
+                  {unfriend.isLoading ? `Unfriend...` : `Unfriend`}
+                </Text>
+              )}
+              {unfriend.isSuccess && (
+                <Text style={styles.txtLogout}>Not Friend</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
 
-const getStyle = (isDarkMode: any) =>
+const getStyle = (isDarkMode: boolean) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      justifyContent: "center",
-      alignItems: "center",
+      backgroundColor: "rgba(0, 0, 0, 0.4)",
+      justifyContent: "flex-end",
     },
     container: {
-      width: width * 0.9,
+      height: height * 0.4,
+      width: "100%",
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      borderRadius: 15,
-      padding: width * 0.05,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingHorizontal: width * 0.05,
+      paddingTop: height * 0.015,
+      paddingBottom: height * 0.03,
+    },
+    dragIndicator: {
+      alignSelf: "center",
+      width: 40,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: "#aaa",
+      marginBottom: 10,
     },
     header: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "flex-end",
       alignItems: "center",
       borderBottomWidth: 1,
-      borderBottomColor: "#444",
+      borderBottomColor: "#ccc",
       paddingBottom: height * 0.015,
     },
     cancelText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textFontSize,
     },
-    headerTitle: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textFontSize,
-      fontWeight: "bold",
-    },
-    doneText: {
-      color: "#1E90FF",
-      fontSize: textFontSize,
-    },
     profileSection: {
-      marginTop: height * 0.02,
+      marginTop: height * 0.03,
+    },
+    icon: {
+      backgroundColor: isDarkMode ? "#333" : "#f5f5f5",
+      width: width * 0.1,
+      height: width * 0.1,
+      borderRadius: width * 0.05,
       alignItems: "center",
       justifyContent: "center",
+      marginRight: 12,
     },
-    inputContainer: {
-      marginBottom: height * 0.015,
-    },
-    label: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textFontSize,
-      fontWeight: fontWeight,
-    },
-    input: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
-      padding: height * 0.012,
-      borderRadius: 8,
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textFontSize,
-    },
+
     btnLogout: {
-      alignContent: "center",
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
-      width: width * 0.3,
-      height: height * 0.04,
-      backgroundColor: "red",
-      borderRadius: 20,
+      paddingVertical: height * 0.012,
+      paddingHorizontal: width * 0.04,
+      backgroundColor: isDarkMode ? "#222" : "#eee",
+      borderRadius: 12,
+      marginBottom: height * 0.015,
     },
     txtLogout: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textFontSize,
-      fontWeight: fontWeight,
     },
   });
 

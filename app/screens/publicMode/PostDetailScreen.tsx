@@ -60,7 +60,7 @@ const PostDetailScreen = () => {
     userName: string
   ) => {
     setParentCommentId(commentId);
-    ref.current?.focus(); 
+    ref.current?.focus();
     setUserName(userName);
   };
 
@@ -113,6 +113,7 @@ const PostDetailScreen = () => {
               postId={postId}
               parentCommentId={parentCommentId || 0}
               inputRef={commentInputRef}
+              userId={userId}
             />
           </View>
         </View>

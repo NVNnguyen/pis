@@ -41,6 +41,7 @@ interface CommentInputProps {
   postId: number;
   parentCommentId: number;
   inputRef?: React.RefObject<TextInput>;
+  userId: number;
 }
 
 // Enum để quản lý loại media được chọn
@@ -56,6 +57,7 @@ const CommentInput = ({
   postId,
   parentCommentId,
   inputRef,
+  userId,
 }: CommentInputProps) => {
   const [message, setMessage] = useState("");
   const [recordUri, setRecordUri] = useState<string | null>(null);
@@ -70,7 +72,7 @@ const CommentInput = ({
   const styles = getStyles(isDarkMode, parentCommentId);
   const myUserId = useMyUserId() ?? 0;
   const { image, openImagePicker, removeImage } = useImagePickerChooseOne();
-  const createCommentMutation = useCreateComment();
+  const createCommentMutation = useCreateComment(userId);
   const queryClient = useQueryClient();
   // Xử lý khi chọn media type
   const handleSelectMediaType = (mediaType: MediaType) => {

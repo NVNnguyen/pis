@@ -1,8 +1,11 @@
 import postsAPI from "@/api/postsAPI";
 import Photo from "@/components/private/Photo";
 import Voice from "@/components/private/Voice";
+import BlockUserModal from "@/components/public/Modals/BlockUserModal";
+import SettingModalPrivate from "@/components/public/Modals/SettingModalPrivate";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMyUserId } from "@/hooks/useMyUserId";
+import useProfileInformation from "@/hooks/useProfileInformation";
 import {
   buttonFontsize,
   fontWeight,
@@ -13,6 +16,7 @@ import { primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { MainStackType } from "@/utils/types/MainStackType";
 import {
+  FontAwesome5,
   Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
@@ -42,6 +46,7 @@ import {
   Dimensions,
   Animated,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 const HistoryPostScreen = () => {
@@ -51,6 +56,14 @@ const HistoryPostScreen = () => {
   const navigation = useNavigation<NavigationProp<MainStackType, "Messages">>();
   const styles = getStyles(isDarkMode, width);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const [isVisibleModal, setIsVisibleModal] = useState<boolean>(false);
+  const [isVisibleSettingModel, setIsVisibleSettingModel] =
+    useState<boolean>(false);
+  const myUserId = Number(useMyUserId());
+
+  const { profileInformation, isProfileDetailLoading, postProfileError } =
+    useProfileInformation(myUserId, route?.params?.userId);
+  console.log("profile info: ", profileInformation);
   const {
     data: privatePosts,
     isLoading,
@@ -60,7 +73,7 @@ const HistoryPostScreen = () => {
     queryFn: () => postsAPI.postsPrivate(route?.params?.userId),
     enabled: !!route?.params?.userId,
   });
-  const myUserId = useMyUserId();
+
   const photoPosts = useMemo(
     () =>
       (privatePosts?.data || []).filter((item: any) => item.type === "Image"),
@@ -118,14 +131,13 @@ const HistoryPostScreen = () => {
     inputRange: [0, 1, 2],
     outputRange: ["#0078D7", "#0099BC", "#2D7D9A"],
   });
-
   useLayoutEffect(() => {
-    if (myUserId !== route?.params?.userId) {
+    if (myUserId === route?.params?.userId) {
       navigation.setOptions({
         headerRight: () => (
-          <TouchableOpacity onPress={() => {}}>
-            <MaterialIcons
-              name="more"
+          <TouchableOpacity onPress={() => setIsVisibleSettingModel(true)}>
+            <Ionicons
+              name="options"
               size={buttonFontsize}
               color={isDarkMode ? darkTheme.text : lightTheme.text}
             />
@@ -133,20 +145,20 @@ const HistoryPostScreen = () => {
         ),
       });
     }
-  }, [myUserId, route?.params?.userId, isDarkMode, navigation]);
+  }, [myUserId, isDarkMode, navigation]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.profileImageContainer}>
-          {isImageLoading && !route?.params?.avatar && (
+          {isImageLoading && (
             <ActivityIndicator
-              style={styles.imgLoader}
+              style={styles.profileImage}
               color={isDarkMode ? lightTheme.text : darkTheme.text}
             />
           )}
-          {route?.params?.avatar !== null ? (
+          {profileInformation?.avatar ? (
             <Image
-              source={{ uri: route.params.avatar }}
+              source={{ uri: profileInformation?.avatar }}
               style={styles.profileImage}
               onLoadStart={() => setIsImageLoading(true)}
               onLoadEnd={() => setIsImageLoading(false)}
@@ -160,10 +172,28 @@ const HistoryPostScreen = () => {
             />
           )}
         </View>
-        <Text style={styles.profileName}>{route.params.username}</Text>
+        <Text style={styles.profileName}>{profileInformation?.username}</Text>
         <View style={styles.friendBadge}>
+          {myUserId !== route?.params?.userId && (
+            <TouchableOpacity
+              style={styles.iconFriend}
+              onPress={() => setIsVisibleModal(true)}
+            >
+              <View style={styles.icon}>
+                <FontAwesome5
+                  name="user-check"
+                  size={textPostFontSize}
+                  color={isDarkMode ? lightTheme.text : darkTheme.text}
+                />
+              </View>
+
+              <Text style={styles.friendBadgeText}>
+                {myUserId !== route?.params?.userId && "Friend"}
+              </Text>
+            </TouchableOpacity>
+          )}
           <Text style={styles.friendBadgeText}>
-            {myUserId === route?.params?.userId ? "You" : "Friend"}
+            {myUserId === route?.params?.userId && "You"}
           </Text>
         </View>
 
@@ -238,6 +268,17 @@ const HistoryPostScreen = () => {
           }
         />
       )}
+      <BlockUserModal
+        visible={isVisibleModal}
+        onClose={() => setIsVisibleModal(false)}
+        username={profileInformation?.username}
+        myUserId={myUserId}
+        userId={route?.params?.userId}
+      />
+      <SettingModalPrivate
+        visible={isVisibleSettingModel}
+        onClose={() => setIsVisibleSettingModel(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -275,15 +316,21 @@ const getStyles = (isDarkMode: boolean, width: number) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: width * 0.01,
     },
+    iconFriend: {
+      flexDirection: "row",
+    },
+    icon: { marginRight: width * 0.01 },
     friendBadge: {
       backgroundColor: isDarkMode ? darkTheme.text : lightTheme.text,
       paddingHorizontal: width * 0.03,
       paddingVertical: width * 0.01,
       borderRadius: 15,
+      flexDirection: "row",
+      alignItems: "center",
     },
     friendBadgeText: {
-      fontSize: width * 0.03,
-      fontWeight: "500",
+      fontSize: textPostFontSize,
+      fontWeight: fontWeight,
       color: isDarkMode ? lightTheme.text : darkTheme.text,
     },
     divider: {

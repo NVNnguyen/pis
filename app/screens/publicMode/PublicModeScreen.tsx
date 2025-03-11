@@ -23,6 +23,7 @@ import usePostStore from "@/stores/usePostStore";
 import CreatePostModel from "@/components/public/Modals/CreatePostModal";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import PostItemSkeleton from "@/Loading/PostItemSkeleton";
+import { getToken } from "@/utils/storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -109,7 +110,7 @@ const PublicModeScreen = () => {
     }
     return <PostItem key={item.id} {...item} />;
   };
-
+  console.log("token", getToken());
   const ListHeaderComponent = () => (
     <NewPost
       userInfo={{

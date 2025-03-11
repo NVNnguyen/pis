@@ -14,7 +14,7 @@ const useRejectFriendRequest = () => {
          return response?.data
     },
     onError: (error) => {
-      console.error("Logout error:", error);
+      console.error("rejectFriend error:", error);
     },
   });
 

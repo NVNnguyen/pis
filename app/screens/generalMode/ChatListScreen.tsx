@@ -14,9 +14,10 @@ const ChatListScreen = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
-  const myUserId = useMyUserId();
+  const myUserId = Number(useMyUserId());
+  console.log(myUserId);
   const { conversation, isConversationLoading, conversationError } =
-    useConversation(myUserId ?? 0);
+    useConversation(myUserId);
 
   console.log("conversation: ", conversation);
 
@@ -35,7 +36,7 @@ const ChatListScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={conversation?.data}
+          data={conversation}
           keyExtractor={(chat) => chat.id.toString()}
           renderItem={({ item }) => <ChatListItem chat={item} />}
           contentContainerStyle={styles.listContainer}

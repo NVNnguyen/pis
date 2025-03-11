@@ -25,7 +25,6 @@ const useLogout = () => {
       }
     },
     onError: (error) => {
-      Alert.alert("Error", "Logout failed. Please try again.");
       console.error("Logout error:", error);
     },
   });

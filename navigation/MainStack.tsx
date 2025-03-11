@@ -24,6 +24,7 @@ import HistoryPostScreen from "@/app/screens/privateMode/HistoryPostScreen";
 import SearchScreen from "@/app/screens/generalMode/SearchScreen";
 import AddFriendScreen from "@/app/screens/privateMode/AddFriendScreen";
 import FriendListScreen from "@/app/screens/privateMode/FriendListScreen";
+import BlockListScreen from "@/app/screens/privateMode/BlockListScreen";
 
 const { width, height } = Dimensions.get("window");
 const Stack = createNativeStackNavigator<MainStackType>();
@@ -180,6 +181,13 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="FriendList"
         component={FriendListScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="BlockList"
+        component={BlockListScreen}
         options={{
           headerShown: true,
         }}

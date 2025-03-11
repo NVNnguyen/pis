@@ -36,42 +36,14 @@ const Friend = ({
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const unfriend = useUnfriend();
-  const myUserId = Number(useMyUserId());
-  console.log("unfiend with ");
-  const handleUnfriend = () => {
-    if (myUserId && id) {
-      Alert.alert(
-        `Are you sure unfriend with ${username}`,
-        `You will not see any posts from ${username}`,
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Confirm",
-            onPress: () =>
-              unfriend.unfriend({ myUserId: myUserId, userId: id }),
-            style: "destructive",
-          },
-        ]
-      );
-    }
-  };
+
   return (
     <View style={styles.container}>
       {/* Avatar Container */}
 
       <View style={styles.avatarContainer}>
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("HistoryPost", {
-              userId: id,
-              username: username,
-              avatar: avatar,
-            })
-          }
+          onPress={() => navigation.navigate("HistoryPost", { userId: id })}
         >
           <Image
             source={
@@ -86,13 +58,7 @@ const Friend = ({
 
       <View style={styles.infoContainer}>
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("HistoryPost", {
-              userId: id,
-              username: username,
-              avatar: avatar,
-            })
-          }
+          onPress={() => navigation.navigate("HistoryPost", { userId: id })}
         >
           <Text style={styles.fullName}>
             {firstName} {lastName}

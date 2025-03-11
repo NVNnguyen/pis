@@ -146,9 +146,8 @@ const PrivateModeScreen = () => {
         <PublicOrPrivate />
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate("Profile", {
+            navigation.navigate("HistoryPost", {
               userId: myUserId,
-              isFollow: false,
             })
           }
         >

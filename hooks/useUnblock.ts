@@ -1,22 +1,22 @@
 import friendAPI from "@/api/friendAPI";
 import { useMutation } from "@tanstack/react-query";
 
-const useUnfriend = () => {
+const useUnblock = () => {
  
-  const unfriend = useMutation({
+  const unblock = useMutation({
    
     mutationFn: async ({ myUserId, userId }: { myUserId: number, userId: number }) => {
-      return await friendAPI.unFriend(myUserId, userId);
+      return await friendAPI.unblockFriend(myUserId, userId);
     },
     onSuccess: async (response) => {
          return response?.data
     },
     onError: (error) => {
-      console.error("unFriend error", error);
+      console.error("unblock error", error);
     },
   });
 
-  return { unfriend: unfriend.mutate, isLoading: unfriend.isPending , isSuccess: unfriend.isSuccess };
+  return { unblock: unblock.mutate, isLoading: unblock.isPending , isSuccess: unblock.isSuccess };
 };
 
-export default useUnfriend;
+export default useUnblock;

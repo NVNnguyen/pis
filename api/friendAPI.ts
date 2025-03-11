@@ -8,10 +8,23 @@ const initHttp = async () => {
   const token = await getToken();
   http = new Http(token || "").instance;
 };
+
 initHttp(); // Gọi khi app khởi động
 
 
 const friendAPI = {
+  profile: async (userId: number, friendId: number) => {
+    try {
+      const response = await http.post(`${BASE_URL_FRIEND}/profile`, {
+      userId, 
+      friendId ,
+      });
+      return response?.data;
+    } catch (error) {
+      console.error("Error profile api for :", error);
+      throw error;
+    }
+  },
     follow: async (userId: number, friendId: number) => {
       try {
         const response = await http.post(`${BASE_URL_FRIEND}/follow`, {
@@ -43,7 +56,7 @@ const friendAPI = {
             "userId": userId, 
             "friendId": friendId ,
           });
-          return response?.data?.message;
+          return response?.data;
         } catch (error) {
           console.error("Error fetching addFriend api for :", error);
           throw error;
@@ -52,15 +65,18 @@ const friendAPI = {
       unFriend: async (userId: number, friendId: number) => {
         try {
           const response = await http.delete(`${BASE_URL_FRIEND}/unfriend`, {
-             userId, 
-            friendId ,
+            data: {
+              userId,
+              friendId,
+            },
           });
-        return response?.data?.message;
+          return response?.data;
         } catch (error) {
           console.error("Error fetching unFriend api for :", error);
           throw error;
         }
       },
+      
       acceptFriend: async (userId: number, friendId: number) => {
         try {
           const response = await http.put(`${BASE_URL_FRIEND}/acceptFriend`, {
@@ -112,7 +128,7 @@ const friendAPI = {
           throw error;
         }
       },
-      unClockFriend:  async (userId: number, friendId: number) => {
+      unblockFriend:  async (userId: number, friendId: number) => {
         try {
           const response = await http.put(`${BASE_URL_FRIEND}/unblockFriend`, {
             userId,
@@ -128,6 +144,16 @@ const friendAPI = {
       listRequestFriend: async (userId: number) => {
         try {
           const response = await http.get(`${BASE_URL_FRIEND}/requestFriends/${userId}`);
+          console.log("response requestFriend list: ", response?.data)
+          return response?.data
+        } catch (error) {
+          console.error("Error requestFriend list for :", error);
+          throw error;
+        }
+      },
+      listBlockFriend: async (userId: number) => {
+        try {
+          const response = await http.get(`${BASE_URL_FRIEND}/blockFriends/${userId}`);
           console.log("response requestFriend list: ", response?.data)
           return response?.data
         } catch (error) {
