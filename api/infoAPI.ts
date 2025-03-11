@@ -33,17 +33,11 @@ const infoAPI = {
   },
   uploadAvatar: async (formData: FormData, id: number) => {
       try {
-      
-  
-        console.log("🚀 Đang gửi formData:", formData);
-  
-        const response = await http.post(`${BASE_URL_USERS}/avatar/${id}`, formData, {
+         const response = await http.post(`${BASE_URL_USERS}/avatar/${id}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-  
-        console.log("✅ Kết quả upload:", response.data);
         return response?.data;
       } catch (error) {
         const err = error as any;
@@ -59,7 +53,6 @@ const infoAPI = {
           email,
           birthday
         });
-        console.log("update profile: ",response?.data)
         return response?.data;
       } catch (error) {
         const err = error as any;
@@ -72,7 +65,6 @@ const infoAPI = {
         const response = await http.get(`${BASE_URL_USERS}/search`, {
           params: { text, userId }
         });
-        console.log("Search response: ",response?.data)
         return response?.data;
       } catch (error) {
         const err = error as any;

@@ -2,7 +2,7 @@ import infoAPI from "@/api/infoAPI";
 import { useTheme } from "@/contexts/ThemeContext";
 import useUserInfo from "@/hooks/useUserInfo";
 import { buttonFontsize, Color, fontWeight } from "@/styles/stylePrimary";
-import { primaryColor } from "@/utils/colorPrimary";
+import { grey, primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -16,14 +16,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 interface ChatHeaderProps {
-  userIdProp: number;
+  avatar: string;
+  firstName: string;
+  lastName: string;
+  username: string;
 }
 const { width, height } = Dimensions.get("window");
-const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
+const ChatHeader = (userInfo: ChatHeaderProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
-  const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp);
+
   return (
     <View style={styles.header}>
       <View style={styles.backIcon}>
@@ -49,19 +52,23 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ userIdProp }) => {
         <Text style={styles.name}>
           {userInfo?.firstName} {userInfo?.lastName}
         </Text>
-        <Text style={styles.status}>Online</Text>
+        <Text style={styles.status}>{userInfo?.username}</Text>
       </View>
       <View style={styles.callIcons}>
         <View style={styles.audioIcon}>
-          <Ionicons
+          {/* <Ionicons
             name="call"
             size={buttonFontsize}
             color={Color}
             style={styles.iconColor}
-          />
+          /> */}
         </View>
         <View style={styles.videoIcon}>
-          <FontAwesome name="video-camera" size={buttonFontsize} style={styles.iconColor} />
+          {/* <FontAwesome
+            name="video-camera"
+            size={buttonFontsize}
+            style={styles.iconColor}
+          /> */}
         </View>
       </View>
     </View>
@@ -96,9 +103,8 @@ const getStyles = (isDarkMode: any) =>
     },
     textView: {},
     status: {
-      color: "green",
+      color: grey,
       marginLeft: width * 0.01,
-      fontWeight: fontWeight,
     },
     callIcons: {
       flexDirection: "row",

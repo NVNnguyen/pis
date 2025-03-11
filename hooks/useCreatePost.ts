@@ -34,7 +34,6 @@ export const useCreatePost = () => {
       Object.entries(postData).forEach(([key, value]) => {
         if (key !== "files") formData.append(key, value.toString());
       });
-      console.log("Formdata create post: ",formData);
       const response = await postsAPI.createPost(formData);
       return response?.data;
     },

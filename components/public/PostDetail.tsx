@@ -24,13 +24,13 @@ import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { PostItemType } from "@/utils/types/PostItemType";
 import useHandleLikePost from "@/hooks/useHandleLikePost";
 import useHandleFollow from "@/hooks/useHandleFollow";
 import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
 
@@ -54,7 +54,7 @@ const PostDetails = ({
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const myUserId = getMyUserId() ?? 0;
+  const myUserId = useMyUserId() ?? 0;
 
   // State để quản lý trạng thái follow
   const [isFollowingState, setIsFollowingState] = useState<boolean>(

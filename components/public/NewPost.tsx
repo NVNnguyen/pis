@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import {
@@ -7,13 +10,12 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import CreatePostModel from "./Modals/CreatePostModal";
-import { useState } from "react";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { MainStackType } from "@/utils/types/MainStackType";
+import { type NavigationProp, useNavigation } from "@react-navigation/native";
+import type { MainStackType } from "@/utils/types/MainStackType";
 import { buttonFontsize, textFontSize } from "@/styles/stylePrimary";
 
 interface newPostProps {
@@ -33,13 +35,22 @@ const NewPost = ({ userInfo }: newPostProps) => {
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(true);
   const [modalState, setModalState] = useState<{
     visible: boolean;
     key: string | null;
   }>({
     visible: false,
-    key: null, // Lưu key tùy chọn
+    key: null,
   });
+
+  const handleAvatarPress = () => {
+    navigation.navigate("Profile", {
+      userId: userInfo.userId,
+      isFollow: false,
+    });
+  };
+
   return (
     <TouchableOpacity
       style={styles.fullContainer}
@@ -52,35 +63,44 @@ const NewPost = ({ userInfo }: newPostProps) => {
       }
     >
       <View style={styles.container}>
-        <View style={styles.avatarContainer}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Profile", {
-                userId: userInfo.userId,
-                isFollow: false,
-              })
-            }
-          >
-            {userInfo?.avatar?.length == 0 ||
-              (userInfo?.avatar === null && (
-                <Image
-                  source={require("@/assets/images/userAvatar.png")}
-                  style={styles.avatar}
+        <TouchableOpacity
+          onPress={handleAvatarPress}
+          style={styles.avatarContainer}
+        >
+          {avatarLoading && (
+            <ActivityIndicator
+              style={styles.avatarLoader}
+              size="small"
+              color={isDarkMode ? "#ffffff" : "#000000"}
+            />
+          )}
+          {userInfo?.avatar?.length === 0 || userInfo?.avatar === null ? (
+            <Image
+              source={require("@/assets/images/userAvatar.png")}
+              style={styles.avatar}
+              onLoad={() => setAvatarLoading(false)}
+            />
+          ) : (
+            <Image
+              style={styles.avatar}
+              source={{ uri: userInfo.avatar }}
+              onLoadStart={() => setAvatarLoading(true)}
+              onLoadEnd={() => setAvatarLoading(false)}
+            />
+          )}
+        </TouchableOpacity>
+        <View style={styles.contentContainer}>
+          <TouchableOpacity onPress={handleAvatarPress}>
+            {userInfo?.username ? (
+              <Text style={styles.fullName}>{userInfo.username}</Text>
+            ) : (
+              <View style={styles.usernamePlaceholder}>
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? "#ffffff" : "#000000"}
                 />
-              ))}
-            <Image style={styles.avatar} source={{ uri: userInfo.avatar }} />
-          </TouchableOpacity>
-        </View>
-        <View>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Profile", {
-                userId: userInfo.userId,
-                isFollow: false,
-              })
-            }
-          >
-            <Text style={styles.fullName}>{userInfo?.username}</Text>
+              </View>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.createBtn}
@@ -170,14 +190,26 @@ const getStyles = (isDarkMode: boolean) =>
     },
     avatarContainer: {
       marginRight: width * 0.03,
-    },
-    avatar: {
       width: width * 0.1,
       height: width * 0.1,
       borderRadius: (width * 0.1) / 2,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: isDarkMode ? "#2a2a2a" : "#f0f0f0",
+      overflow: "hidden",
+    },
+    avatar: {
+      width: "100%",
+      height: "100%",
+      borderRadius: (width * 0.1) / 2,
+    },
+    avatarLoader: {
+      position: "absolute",
+    },
+    contentContainer: {
+      flex: 1,
     },
     createBtn: {
-      flex: 1,
       width: "100%",
     },
     inputCation: {
@@ -194,6 +226,11 @@ const getStyles = (isDarkMode: boolean) =>
       fontSize: textFontSize,
       fontWeight: "bold",
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    usernamePlaceholder: {
+      width: width * 0.3,
+      height: textFontSize * 1.5,
+      justifyContent: "center",
     },
   });
 

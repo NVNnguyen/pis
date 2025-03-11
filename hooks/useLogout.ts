@@ -19,8 +19,8 @@ const useLogout = () => {
         await AsyncStorage.removeItem("token");
         await AsyncStorage.removeItem("userID");
         await AsyncStorage.removeItem("toggleOption");
+        console.log("toggleOption", await AsyncStorage.getItem("toggleOption"))
         const tokenAfter = await AsyncStorage.getItem("token");
-        console.log("Token sau khi xóa:", tokenAfter); // Log token sau khi xóa (phải là null)
         navigation.reset({ index: 0, routes: [{ name: "Login" as never }] }); // Điều hướng về Login
       }
     },

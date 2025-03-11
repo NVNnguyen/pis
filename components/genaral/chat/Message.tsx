@@ -1,105 +1,210 @@
 import { useTheme } from "@/contexts/ThemeContext";
-import { getMyUserId } from "@/hooks/getMyUserID";
+import { useMyUserId } from "@/hooks/useMyUserId";
 import { textPostFontSize } from "@/styles/stylePrimary";
 import { grey, primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { View, StyleSheet, Image, Text, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
+import AudioMessage from "../AudioMessage";
+import { useState } from "react";
+
 const { width, height } = Dimensions.get("window");
+
 const Message = (item: any) => {
-  const myyUserid = getMyUserId();
-  const isOwnMessage = item?.userId === myyUserid;
+  const myUserId = useMyUserId();
+  const isOwnMessage = item?.userId === myUserId;
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+  const [isLoadingUrl, setIsLoadingUrl] = useState<boolean>(false);
+  const hasMedia = item?.type === "Image" || item?.type === "Voice";
+
   return (
     <View style={styles.container}>
-      <View style={styles.messageContainer}>
-        <View style={styles.avatarContainer}>
-          {!isOwnMessage && item?.avatar === null && (
+      <View
+        style={[
+          styles.messageRow,
+          isOwnMessage ? styles.ownMessageRow : styles.theirMessageRow,
+        ]}
+      >
+        {/* Avatar - only show for messages from others */}
+        {!isOwnMessage && (
+          <View style={styles.avatarContainer}>
             <Image
-              source={require("@/assets/images/userAvatar.png")}
+              source={
+                item?.avatar
+                  ? { uri: item.avatar }
+                  : require("@/assets/images/userAvatar.png")
+              }
               style={styles.avatar}
             />
+          </View>
+        )}
+
+        <View style={styles.messageGroup}>
+          {/* Media container (Image or Voice) */}
+          {hasMedia && (
+            <View
+              style={[
+                styles.mediaContainer,
+                isOwnMessage
+                  ? styles.ownMediaContainer
+                  : styles.theirMediaContainer,
+              ]}
+            >
+              {item?.type === "Image" && (
+                <>
+                  {isLoadingUrl && (
+                    <ActivityIndicator
+                      color={isDarkMode ? darkTheme.text : lightTheme.text}
+                    />
+                  )}
+                  <Image
+                    source={{ uri: item?.url }}
+                    style={styles.imageContent}
+                    resizeMode="cover"
+                    onLoadStart={() => setIsLoadingUrl(true)}
+                    onLoadEnd={() => setIsLoadingUrl(false)}
+                  />
+                </>
+              )}
+
+              {item?.type === "Voice" && (
+                <AudioMessage voiceUri={item?.url} onRemove={() => {}} />
+              )}
+            </View>
           )}
-          {!isOwnMessage && item?.avatar !== null && (
-            <Image source={{ uri: item?.avatar }} style={styles.avatar} />
+
+          {/* Text content - only render if there's content */}
+          {item?.content && (
+            <View
+              style={[
+                styles.textContainer,
+                isOwnMessage
+                  ? styles.ownTextContainer
+                  : styles.theirTextContainer,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.messageText,
+                  isOwnMessage
+                    ? styles.ownMessageText
+                    : styles.theirMessageText,
+                ]}
+              >
+                {item?.content}
+              </Text>
+              <Text style={styles.messageTime}>{item?.createTime}</Text>
+            </View>
           )}
-        </View>
-        <View
-          style={
-            isOwnMessage ? styles.textOwnContainer : styles.textTheirContainer
-          }
-        >
-          <Text
-            style={isOwnMessage ? styles.ownMessageCt : styles.theirMessageCt}
-          >
-            {item?.content}
-          </Text>
-          <Text style={styles.messageTime}>{item?.createTime}</Text>
         </View>
       </View>
 
-      <View style={styles.seenMs}>
-        {isOwnMessage && item?.status === "SEEN" && (
-          <Text style={styles.seenText}>Seen</Text>
-        )}
-        {isOwnMessage && item?.status === "NOT SEEN" && (
-          <Text style={styles.seenText}>Delivered</Text>
-        )}
-      </View>
+      {/* Delivery status indicators - only for own messages */}
+      {isOwnMessage && (
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>
+            {item?.status === "SEEN" ? "Seen" : "Delivered"}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
-const getStyles = (isDarkMode: any) =>
+
+const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     container: {
-      flexDirection: "column",
-      margin: width * 0.01,
+      marginVertical: width * 0.01,
+      marginHorizontal: width * 0.02,
     },
-    messageContainer: {
+    messageRow: {
       flexDirection: "row",
+      alignItems: "flex-end",
     },
-    avatarContainer: {},
-    textOwnContainer: {
-      maxWidth: "80%",
-      padding: width * 0.01,
-      borderRadius: 10,
-      backgroundColor: primaryColor,
-      marginLeft: "auto",
+    ownMessageRow: {
+      justifyContent: "flex-end",
     },
-    textTheirContainer: {
-      maxWidth: "80%",
-      padding: 10,
-      borderRadius: 10,
-      backgroundColor: grey,
-      marginRight: "auto",
+    theirMessageRow: {
+      justifyContent: "flex-start",
     },
-    messageTime: {
-      fontSize: Math.min(RFValue(12, 680), 20),
-      color: "#ddd",
-      marginTop: height * 0.002,
+    messageGroup: {
+      maxWidth: "70%",
+      flexDirection: "column",
+      gap: 8,
     },
-    seenMs: {
+    avatarContainer: {
+      marginRight: width * 0.02,
       alignSelf: "flex-end",
     },
-    seenText: {
-      fontSize: Math.min(RFValue(12, 680), 20),
-      color: "#a0a0a0",
-      marginTop: height * 0.002,
-    },
     avatar: {
-      width: width * 0.08, // Tăng kích thước một chút để rõ hơn
-      height: width * 0.08, // Dùng width thay vì height để avatar luôn cân đối
-      borderRadius: (width * 0.08) / 2, // Đảm bảo hình tròn hoàn hảo
-      marginRight: width * 0.02,
+      width: width * 0.08,
+      height: width * 0.08,
+      borderRadius: width * 0.04,
     },
-    ownMessageCt: {
-      color: "#fff",
+    mediaContainer: {
+      borderRadius: 16,
+      overflow: "hidden",
+    },
+    ownMediaContainer: {
+      borderBottomRightRadius: 4,
+      alignSelf: "flex-end",
+    },
+    theirMediaContainer: {
+      borderBottomLeftRadius: 4,
+      alignSelf: "flex-start",
+    },
+    textContainer: {
+      borderRadius: 16,
+      padding: 12,
+      minWidth: "50%",
+    },
+    ownTextContainer: {
+      backgroundColor: primaryColor,
+      borderBottomRightRadius: 4,
+      alignSelf: "flex-end",
+    },
+    theirTextContainer: {
+      backgroundColor: isDarkMode ? "#2A2A2A" : "#D3D3D3",
+      borderBottomLeftRadius: 4,
+      alignSelf: "flex-start",
+    },
+    messageText: {
       fontSize: textPostFontSize,
+      lineHeight: textPostFontSize * 1.3,
     },
-    theirMessageCt: {
+    ownMessageText: {
+      color: "#FFFFFF",
+    },
+    theirMessageText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textPostFontSize,
+    },
+    messageTime: {
+      fontSize: Math.min(RFValue(10, 680), 16),
+      color: isDarkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)",
+      marginTop: 4,
+      alignSelf: "flex-end",
+    },
+    imageContent: {
+      width: width * 0.6,
+      height: width * 0.5,
+    },
+    statusContainer: {
+      alignSelf: "flex-end",
+      marginTop: 2,
+      marginRight: 4,
+    },
+    statusText: {
+      fontSize: Math.min(RFValue(10, 680), 16),
+      color: "rgba(160,160,160,0.8)",
     },
   });
+
 export default Message;

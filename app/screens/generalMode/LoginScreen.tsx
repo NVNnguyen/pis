@@ -61,8 +61,6 @@ const LoginScreen = () => {
     onSuccess: async (response) => {
       getDecodedToken(response?.data?.token);
       await AsyncStorage.setItem("token", response?.data?.token);
-
-      console.log("login successfully!");
       navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
     },
     onError: () => {

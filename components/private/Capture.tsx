@@ -37,10 +37,11 @@ import VoiceModal from "../public/Modals/VoiceModal";
 import AudioPlayer from "../public/AudioPlayer";
 import useImagePickerChooseOne from "@/hooks/useImagePickerChooseOne";
 import { useCreatePost } from "@/hooks/useCreatePost";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { primaryColor } from "@/utils/colorPrimary";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width, height } = Dimensions.get("window");
 
@@ -61,9 +62,9 @@ const CapTure = () => {
   const styles = getStyles(isDarkMode);
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
   const textInputRef = useRef<TextInput | null>(null);
-  const myUserId = Number(getMyUserId());
+  const myUserId = useMyUserId() ?? 0;
   const createPostMutation = useCreatePost();
-
+  const queryClient = useQueryClient();
   const handleToggleCameraFacing = () => {
     setFacing((prevFacing) => (prevFacing === "back" ? "front" : "back"));
   };
@@ -161,6 +162,9 @@ const CapTure = () => {
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["postsPrivate", myUserId],
+          });
           setIsLoadingCreatePost(false);
           setUriVoice(null);
           setResultImage(null);
@@ -262,7 +266,7 @@ const CapTure = () => {
                         style={styles.btnSentContent}
                         name="send"
                         size={width * 0.08}
-                        color={isDarkMode ? darkTheme.text : lightTheme.text}
+                        color={lightTheme.text}
                       />
                     )
                   )}
@@ -316,7 +320,7 @@ const CapTure = () => {
               <FontAwesome
                 name="send"
                 size={width * 0.08}
-                color={isDarkMode ? darkTheme.text : lightTheme.text}
+                color={isDarkMode ? lightTheme.text : darkTheme.text}
               />
             )}
           </TouchableOpacity>

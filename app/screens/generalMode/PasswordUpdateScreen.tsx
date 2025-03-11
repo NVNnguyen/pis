@@ -12,8 +12,6 @@ const { width, height } = Dimensions.get("window");
 
 const PasswordUpdateScreen: React.FC = () => {
   const handleLoginPress = () => {
-    // Điều hướng đến màn hình Login hoặc xử lý tương ứng
-    console.log("Navigating to Login...");
   };
 
   return (

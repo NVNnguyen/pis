@@ -20,7 +20,6 @@ import {
   fontWeight,
   textPostFontSize,
 } from "@/styles/stylePrimary";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { primaryColor } from "@/utils/colorPrimary";
@@ -28,6 +27,7 @@ import { PostItemType } from "@/utils/types/PostItemType";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
 import AudioPlayer from "../AudioPlayer";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
 interface PostPrivateProps extends PostItemType {
@@ -48,7 +48,7 @@ const DetailPostPrivateModal = ({
 }: DetailPostPrivateModalProp) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const myUserId = Number(getMyUserId());
+  const myUserId = useMyUserId() ?? 0;
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
 
   // Animated value for the comment input position

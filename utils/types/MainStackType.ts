@@ -16,4 +16,6 @@ export type MainStackType = {
     PostDetails: {userId: number, postId: number; userName: string }
     FollowList: {tab: string, userId: number};
     HistoryPost: {userId: number, username: string, avatar: string}
+    FriendRequest: undefined;
+    FriendList: {userId: number}
   };

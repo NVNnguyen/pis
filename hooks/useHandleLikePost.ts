@@ -9,7 +9,6 @@ const useHandleLikePost = (myUserId: number, id: number, like: boolean, likes: n
       console.error("User ID is undefined or null");
       return;
     }
-    console.log(myUserId, id);
    try {
          const response = isLiked
            ? await postsAPI.dislike(myUserId, id)

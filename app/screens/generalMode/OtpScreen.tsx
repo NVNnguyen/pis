@@ -45,9 +45,7 @@ const OtpScreen = () => {
     try {
       if (!isLoading) {
         const response = await authApi.resetPassword(email, otp);
-        console.log(response?.data);
         if (response?.data?.exceedTime === true) {
-          console.log(response?.data?.exceedTime);
           setAlertMessage("OTP has expired!");
           setAlertVisible(true);
         } else if (response?.data?.valid === false) {

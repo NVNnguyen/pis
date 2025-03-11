@@ -11,11 +11,10 @@ const useMessage= (myUserId: number, userIdProp: number) => {
             queryKey: ["message", myUserId, userIdProp],
             queryFn: async () => {
                 const response = await conversationAPI.messages(myUserId, userIdProp);
+                console.log("Message in useMessage: ", response?.data)
             return response?.data;
             },
             enabled: !!myUserId && !!userIdProp,
-            staleTime: 1000 * 60 * 3,
-         
         });
         return { message, isMessageLoading, messageError };
 };

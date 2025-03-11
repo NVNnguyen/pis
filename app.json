@@ -6,18 +6,43 @@
     "orientation": "portrait",
     "icon": "",
     "scheme": "myapp",
+    "deepLinks": [
+      "https://myapp.com",
+      "myapp://"
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "com.pis",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "associatedDomains": [
+        "applinks:myapp.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.pis"
+      "package": "com.pis",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "myapp.com"
+            },
+            {
+              "scheme": "myapp"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -25,7 +50,6 @@
       "favicon": ""
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {

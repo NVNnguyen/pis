@@ -100,7 +100,6 @@ const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
             }
 
             if (!status.isLoaded && status.error) {
-              console.log("Playback Error:", status.error);
               setIsPlaying(false);
               stopWaveAnimation();
               setSound(null);
@@ -112,7 +111,6 @@ const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
           startWaveAnimation();
         }
       } catch (err) {
-        console.log("Error loading audio:", err);
         setIsLoading(false);
       }
     }
@@ -131,7 +129,10 @@ const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
   return (
     <View style={styles.itemWrapper}>
       {type === "Voice" && isLoadingUrl ? (
-        <ActivityIndicator />
+        <ActivityIndicator
+          style={styles.voiceLoader}
+          color={isDarkMode ? lightTheme.text : darkTheme.text}
+        />
       ) : (
         <TouchableWithoutFeedback onPress={handlePress}>
           <View style={styles.audioWrapper}>
@@ -229,8 +230,12 @@ const getStyles = (isDarkMode: boolean) =>
     },
     audioText: {
       fontSize: 12,
-      color: isDarkMode ? "#fff" : "#000",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
       textAlign: "center",
+    },
+    voiceLoader: {
+      width: "100%",
+      height: "100%",
     },
   });
 

@@ -48,23 +48,14 @@ export const useCreateComment = () => {
       formData.append("userId", String(postData.userId));
       formData.append("content", postData.content);
       formData.append("type", postData.type ?? detectedType);
-      
-      console.log("formData Comment: ", formData);
       const response = await postsAPI.createComment(formData);
       return response?.data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["commentsLevel1", variables.userId, variables.postId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["posts", variables.userId],
-      });
-      if (variables.parentCommentId !== null && variables.parentCommentId !== undefined) {
-        queryClient.invalidateQueries({
-          queryKey: ["commentsLevel2", variables.userId, variables.parentCommentId],
+      queryClient.refetchQueries({ queryKey: ["commentsLevel1", variables.userId, variables.postId] });
+      queryClient.refetchQueries({
+        queryKey: ["commentsLevel2", variables.userId, variables.parentCommentId],
         });
-      }
     },
     onError: (error) => {
       console.error("Lỗi khi tạo comment:", error);

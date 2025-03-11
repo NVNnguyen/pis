@@ -1,12 +1,12 @@
 import postsAPI from "@/api/postsAPI";
 import { useQuery } from "@tanstack/react-query";
 
-const usePrivatePosts = (userIdProp: number)=>{
-    
+const usePrivatePosts = (userIdProp: number) => {
   const {
-    data: postsPrivate ,
+    data: postsPrivate,
     isLoading: isPostsPrivateLoading,
     error: postsPrivateError,
+    refetch, // ✅ Thêm refetch để gọi lại query khi cần
   } = useQuery({
     queryKey: ["postsPrivate", userIdProp],
     queryFn: async () => {
@@ -15,10 +15,13 @@ const usePrivatePosts = (userIdProp: number)=>{
     },
     enabled: !!userIdProp,
   });
-return {
+
+  return {
     postsPrivate,
     isPostsPrivateLoading,
-    postsPrivateError
-}
+    postsPrivateError,
+    refetch, // ✅ Trả về refetch để có thể gọi từ component
+  };
 };
+
 export default usePrivatePosts;

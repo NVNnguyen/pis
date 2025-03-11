@@ -1,8 +1,8 @@
 import FollowProfile from "@/components/public/FollowProfile";
 import TabBar from "@/components/public/TabBar/TabBar";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useDebounce } from "@/hooks/useDebounce ";
+import { useMyUserId } from "@/hooks/useMyUserId";
 import useSearchUsers from "@/hooks/useSearchUsers";
 import FollowProfileSkeleton from "@/Loading/FollowProfileSkeleton";
 import useFollowStore from "@/stores/useFollowStore";
@@ -35,10 +35,10 @@ const SearchScreen = () => {
   const styles = getStyles(isDarkMode);
   const [searchText, setSearchText] = useState("");
   const debouncedText = useDebounce(searchText, 500);
-  const userId = Number(getMyUserId());
+  const userId = useMyUserId();
   const { search, isSearchLoading, searchError } = useSearchUsers(
     debouncedText,
-    userId
+    userId ?? 0
   );
   return (
     <View style={styles.container}>

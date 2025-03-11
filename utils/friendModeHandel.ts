@@ -31,10 +31,6 @@ export const captureImage = async (cameraRef: React.RefObject<any>): Promise<voi
         quality: 1,
         format: "png",
       });
-
-      console.log("Image captured at temporary path:", tempPath);
-
-      // Upload the image to the server
      
     }
   } catch (error) {

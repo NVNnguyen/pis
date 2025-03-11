@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  View,
 } from "react-native";
 import ImageViewer from "react-native-image-zoom-viewer";
 
@@ -28,11 +30,33 @@ const PostImageDetailModal = ({
 }: PostImageDetailModalProps) => {
   const { isDarkMode } = useTheme();
   const closeIconColor = isDarkMode ? darkTheme.text : lightTheme.text;
+  const loaderColor = isDarkMode ? darkTheme.text : lightTheme.text;
+
+  const renderLoader = () => (
+    <View style={styles.loaderContainer}>
+      <ActivityIndicator size="large" color={loaderColor} />
+    </View>
+  );
 
   return (
     <Modal visible={isModalVisible} transparent animationType="fade">
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: isDarkMode ? "black" : "white" },
+        ]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.closeIcon,
+            {
+              backgroundColor: isDarkMode
+                ? "rgba(255,255,255,0.3)"
+                : "rgba(0,0,0,0.3)",
+            },
+          ]}
+          onPress={onClose}
+        >
           <AntDesign
             name="close"
             size={buttonFontsize}
@@ -45,6 +69,9 @@ const PostImageDetailModal = ({
             index={currentIndex}
             onSwipeDown={onClose}
             enableSwipeDown
+            loadingRender={renderLoader}
+            backgroundColor={isDarkMode ? "black" : "white"}
+            renderIndicator={() => <></>} // Hide default indicator
           />
         )}
       </SafeAreaView>
@@ -55,17 +82,20 @@ const PostImageDetailModal = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
   },
   closeIcon: {
     position: "absolute",
     top: height * 0.07,
     left: width * 0.07,
     zIndex: 10,
-    backgroundColor: "grey",
     borderRadius: width * 0.035,
     width: width * 0.07,
     height: width * 0.07,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loaderContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },

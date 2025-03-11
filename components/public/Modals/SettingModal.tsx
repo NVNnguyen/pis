@@ -28,14 +28,13 @@ interface SettingModelProps {
   onClose: () => void;
 }
 
-const SettingModel: React.FC<SettingModelProps> = ({ visible, onClose }) => {
+const SettingModel = ({ visible, onClose }: SettingModelProps) => {
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertTitle, setAlertTitle] = useState<string>("");
   const [alertMessage, setAlertMessage] = useState<string>("");
   const { isDarkMode } = useTheme();
   const styles = getStyle(isDarkMode);
   const { logout, isLoading } = useLogout();
-
   const handleLogout = () => {
     Alert.alert(
       "Confirm Logout",
@@ -48,7 +47,12 @@ const SettingModel: React.FC<SettingModelProps> = ({ visible, onClose }) => {
     );
   };
   return (
-    <Modal animationType="slide" transparent visible={visible}>
+    <Modal
+      animationType="slide"
+      transparent
+      visible={visible}
+      style={{ zIndex: 1000 }}
+    >
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header */}
@@ -57,7 +61,7 @@ const SettingModel: React.FC<SettingModelProps> = ({ visible, onClose }) => {
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Setting</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={onClose}>
               <Text style={styles.doneText}>Done</Text>
             </TouchableOpacity>
           </View>
@@ -80,7 +84,7 @@ const SettingModel: React.FC<SettingModelProps> = ({ visible, onClose }) => {
               disabled={isLoading} // Disable khi đang tải
             >
               <Text style={styles.txtLogout}>
-                {isLoading ? "Logging out..." : "Logout"}{" "}
+                {isLoading ? "Logging out..." : "Logout"}
                 {/* Hiển thị trạng thái */}
               </Text>
             </TouchableOpacity>

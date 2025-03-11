@@ -1,5 +1,4 @@
 import conversationAPI from "@/api/conversationAPI";
-import postsAPI from "@/api/postsAPI";
 import { useQuery } from "@tanstack/react-query";
 
 const useConversation= (userId: number) => {

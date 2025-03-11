@@ -37,9 +37,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ chat }) => {
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Profile", { userId: chat?.id })}
-      >
+      <TouchableOpacity>
         {/* Avatar */}
         {chat?.avatar === null ? (
           <Image

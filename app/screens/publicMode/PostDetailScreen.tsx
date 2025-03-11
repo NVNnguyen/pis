@@ -17,7 +17,6 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   Keyboard,
-  TouchableOpacity,
   TextInput,
 } from "react-native";
 import Comments from "@/components/public/Comments";
@@ -49,7 +48,6 @@ const PostDetailScreen = () => {
   useFocusEffect(
     useCallback(() => {
       const post = getPostById(postId);
-      console.log("PostDetailScreen focused - Post data:", post);
       setCurrentPost(post);
     }, [postId, getPostById])
   );
@@ -62,15 +60,14 @@ const PostDetailScreen = () => {
     userName: string
   ) => {
     setParentCommentId(commentId);
-    ref.current?.focus(); // Focus vào ô nhập comment
+    ref.current?.focus(); 
     setUserName(userName);
   };
 
   const handleChatBubblePress = () => {
-    commentInputRef.current?.focus(); // Gọi focus để mở bàn phím
+    commentInputRef.current?.focus();
     setParentCommentId(null);
     setUserName(currentPost?.userPostResponse?.username ?? "");
-    console.log("parentCommentId: ", parentCommentId);
   };
 
   return (

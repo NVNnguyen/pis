@@ -28,9 +28,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import CameraModal from "./CameraModal";
 import VoiceModal from "./VoiceModal";
 import AudioPlayer from "../AudioPlayer";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useCreatePost } from "@/hooks/useCreatePost";
 import * as FileSystem from "expo-file-system";
+import { useMyUserId } from "@/hooks/useMyUserId";
 interface CreatePostModelProps {
   openModel: {
     visible: boolean;
@@ -54,7 +54,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
   const [recordUri, setRecordUri] = useState<string | null>(null);
   const [isLoadingCreatePost, setIsLoadingCreatePost] =
     useState<boolean>(false);
-  const myUserId = getMyUserId() ?? 0;
+  const myUserId = useMyUserId() ?? 0;
   const queryClient = useQueryClient();
   const userInfo = queryClient.getQueryData<{
     avatar: string;
@@ -107,9 +107,6 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
     removeAllImages();
     setIsOpenVoiceModal(true);
   };
-
-  console.log(userInfo);
-
   useEffect(() => {
     if (openModel.key === "photo") {
       openImagePicker();

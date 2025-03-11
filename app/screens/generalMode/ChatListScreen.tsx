@@ -1,32 +1,41 @@
-import conversationAPI from "@/api/conversationAPI";
 import ChatListItem from "@/components/genaral/chat/ChatList";
 import TabBar from "@/components/public/TabBar/TabBar";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import useConversation from "@/hooks/useConversation";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import ChatListSkeletons from "@/Loading/ChatListSkeletons";
 import { textFontSize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import React from "react";
 import { FlatList, StyleSheet, View, Text } from "react-native";
 
 const ChatListScreen = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
-  const myUserId = getMyUserId();
+  const myUserId = useMyUserId();
   const { conversation, isConversationLoading, conversationError } =
     useConversation(myUserId ?? 0);
 
+  console.log("conversation: ", conversation);
+
   return (
     <View style={styles.container}>
-      {conversation?.length === 0 ? (
+      {isConversationLoading ? (
+        <FlatList
+          data={Array.from({ length: 10 })}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={() => <ChatListSkeletons />}
+          contentContainerStyle={styles.chatLoadingCentered}
+        />
+      ) : conversation?.length === 0 || conversationError ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Not message yet!</Text>
         </View>
       ) : (
         <FlatList
-          data={conversation}
+          data={conversation?.data}
           keyExtractor={(chat) => chat.id.toString()}
           renderItem={({ item }) => <ChatListItem chat={item} />}
           contentContainerStyle={styles.listContainer}
@@ -56,6 +65,14 @@ const getStyles = (isDarkMode: any) =>
     emptyText: {
       fontSize: textFontSize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    chatLoading: {
+      flex: 1,
+    },
+    chatLoadingCentered: {
+      flexGrow: 1,
+
+      paddingVertical: 16,
     },
   });
 

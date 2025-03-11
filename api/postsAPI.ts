@@ -47,7 +47,6 @@ const postsAPI = {
        "userId": userId, 
         "postId": postId
     });
-      console.log(response);
       return response?.data;
     } catch (error) {
       console.error("Error fetching comments level1:", error);
@@ -61,7 +60,6 @@ const postsAPI = {
         commentId: commentId,
       });
 
-      console.log(response);
       return response?.data;
     } catch (error) {
       console.error("Error fetching comments level2:", error);
@@ -112,7 +110,7 @@ const postsAPI = {
   postsPublic: async (id: number) => {
     try {
       const response = await http.get(`${BASE_URL_POSTS}/${id}/public`);
-      console.log(response?.data);
+
       return response?.data;
     } catch (error) {
       console.error("Error fetching posts public:", error);
@@ -122,7 +120,6 @@ const postsAPI = {
   postsPrivate: async (id: number) => {
     try {
       const response = await http.get(`${BASE_URL_POSTS}/${id}/private`);
-      console.log(response?.data);
       return response?.data;
     } catch (error) {
       console.error("Error fetching posts private:", error);

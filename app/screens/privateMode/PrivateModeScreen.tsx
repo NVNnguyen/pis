@@ -1,4 +1,6 @@
-import React, { useState, useRef } from "react";
+"use client";
+
+import { useState, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -9,26 +11,30 @@ import {
   Animated,
   FlatList,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { backgroundColor, buttonFontsize, Color } from "@/styles/stylePrimary";
+import { backgroundColor, buttonFontsize } from "@/styles/stylePrimary";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
-import { getMyUserId } from "@/hooks/getMyUserID";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { MainStackType } from "@/utils/types/MainStackType";
+import {
+  type NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
+import type { MainStackType } from "@/utils/types/MainStackType";
 import CapTure from "@/components/private/Capture";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import usePrivatePosts from "@/hooks/usePrivatePosts";
 import PostPrivate from "@/components/private/PostPrivate";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import PostPrivateSkeleton from "@/Loading/PostPrivateSkeleton";
 
 const { width, height } = Dimensions.get("window");
 
 const PrivateModeScreen = () => {
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const myUserId = getMyUserId() ?? 0;
+  const myUserId = useMyUserId() ?? 0;
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showAlternate, setShowAlternate] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -36,13 +42,15 @@ const PrivateModeScreen = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [onTopCheck, setOnTopCheck] = useState<boolean>(false);
-  // Fetch private posts
-  const { postsPrivate, isPostsPrivateLoading, postsPrivateError } =
+  const { postsPrivate, isPostsPrivateLoading, postsPrivateError, refetch } =
     usePrivatePosts(myUserId);
-
+  useFocusEffect(
+    useCallback(() => {
+      refetch(); // 🔄 Tự động cập nhật khi quay lại màn hình
+    }, [])
+  );
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
 
-  // Setup scroll handler to manage page transitions
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
     {
@@ -56,13 +64,11 @@ const PrivateModeScreen = () => {
     }
   );
 
-  // Prepare data for FlatList - combine capture view with posts
   const flatListData = [
-    { id: "capture", type: "capture" }, // First screen is capture
-    ...(postsPrivate || []), // Then add all posts with their original IDs
+    { id: "capture", type: "capture" },
+    ...(postsPrivate || []),
   ];
 
-  // Function to handle scroll to top when capture button is pressed
   const handleOnTop = (check: boolean) => {
     setOnTopCheck(check);
     if (check && flatListRef.current) {
@@ -71,57 +77,53 @@ const PrivateModeScreen = () => {
   };
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    // Only render components near current page to optimize performance
     if (Math.abs(index - currentPage) > 1) {
       return <View style={{ height }} />;
     }
 
-    // If it's the first item in the list, render Capture
     if (index === 0) {
       return (
         <View style={{ height }}>
           <CapTure />
         </View>
       );
-    }
-
-    // Otherwise render the post
-    else {
-      // For all posts, render the memories view with PostPrivate component
+    } else {
       return (
         <View style={styles.memoriesContainer}>
-          <PostPrivate
-            userPostResponse={{
-              userId: item?.userPostResponse?.userId,
-              username: item?.userPostResponse?.username,
-              avatar: item?.userPostResponse?.avatar,
-              followers: item?.userPostResponse?.followers,
-              isFollow: item?.userPostResponse?.isFollow,
-              likes: item?.userPostResponse?.likes,
-              comments: item?.userPostResponse?.comments,
-              like: item?.userPostResponse?.like,
-            }}
-            id={item?.id || ""}
-            caption={item?.caption || ""}
-            images={item?.images || []}
-            likes={item?.likes || 0}
-            comments={item?.comments || 0}
-            type={item?.type || ""}
-            like={item?.like || false}
-            createTime={item?.createTime}
-            onTop={handleOnTop}
-          />
+          {isPostsPrivateLoading ? (
+            <PostPrivateSkeleton />
+          ) : (
+            <PostPrivate
+              userPostResponse={{
+                userId: item?.userPostResponse?.userId,
+                username: item?.userPostResponse?.username,
+                avatar: item?.userPostResponse?.avatar,
+                followers: item?.userPostResponse?.followers,
+                isFollow: item?.userPostResponse?.isFollow,
+                likes: item?.userPostResponse?.likes,
+                comments: item?.userPostResponse?.comments,
+                like: item?.userPostResponse?.like,
+              }}
+              id={item?.id || ""}
+              caption={item?.caption || ""}
+              images={item?.images || []}
+              likes={item?.likes || 0}
+              comments={item?.comments || 0}
+              type={item?.type || ""}
+              like={item?.like || false}
+              createTime={item?.createTime}
+              onTop={handleOnTop}
+            />
+          )}
         </View>
       );
     }
   };
 
-  // Function to navigate to the Memories screen
   const goToMemories = () => {
     if (flatListRef.current && postsPrivate && postsPrivate.length > 0) {
       flatListRef.current.scrollToIndex({ index: 1, animated: true });
     } else {
-      // Show alert if no memories available
       Alert.alert("No Memories", "You don't have any memories yet.");
     }
   };
@@ -130,6 +132,18 @@ const PrivateModeScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("FriendList", { userId: myUserId })
+          }
+        >
+          <FontAwesome
+            name="users"
+            size={height * 0.03}
+            color={iconColorMode}
+          />
+        </TouchableOpacity>
+        <PublicOrPrivate />
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("Profile", {
@@ -144,44 +158,21 @@ const PrivateModeScreen = () => {
             color={iconColorMode}
           />
         </TouchableOpacity>
-        <PublicOrPrivate />
-        <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>
-          <MaterialCommunityIcons
-            name="chat"
-            size={height * 0.03}
-            color={iconColorMode}
-          />
-        </TouchableOpacity>
       </View>
 
-      {isPostsPrivateLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={iconColorMode} />
-          <Text style={[styles.memoriesButtonText, { marginTop: 10 }]}>
-            Loading memories...
-          </Text>
-        </View>
-      ) : postsPrivateError ? (
-        <View style={styles.errorContainer}>
-          <Text style={[styles.memoriesButtonText, { color: "red" }]}>
-            Error loading memories
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={flatListData}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          snapToInterval={height}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          pagingEnabled
-        />
-      )}
+      <FlatList
+        ref={flatListRef}
+        data={flatListData}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        pagingEnabled
+      />
 
       {/* Scroll indicator only shown on the first page */}
       {currentPage === 0 && (
@@ -211,6 +202,11 @@ const getStyles = (isDarkMode: any) => {
       justifyContent: "space-between",
       alignItems: "center",
       marginHorizontal: width * 0.04,
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      paddingTop: height * 0.04,
+      paddingBottom: height * 0.02,
     },
     safeArea: {
       flex: 1,
@@ -235,7 +231,6 @@ const getStyles = (isDarkMode: any) => {
       marginBottom: 5,
       fontSize: width * 0.04,
     },
-    // Memories screen styles
     memoriesContainer: {
       flex: 1,
       height: height,

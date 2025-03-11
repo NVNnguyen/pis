@@ -8,6 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -22,15 +23,17 @@ import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { PostItemType } from "@/utils/types/PostItemType";
 import useHandleLikePost from "@/hooks/useHandleLikePost";
 import useHandleFollow from "@/hooks/useHandleFollow";
+import { grey } from "@/utils/colorPrimary";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
-const PostItem = ({
+
+const Posts = ({
   userPostResponse,
   id,
   caption,
@@ -46,19 +49,26 @@ const PostItem = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
-  const [numberLine, setNumberLine] = useState(3);
-  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const INITIAL_LINES = 3;
+  const [numberLine, setNumberLine] = useState<number>(INITIAL_LINES);
   const [isExpandable, setIsExpandable] = useState<boolean>(false);
-  const myUserId = getMyUserId() ?? 0;
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const myUserId = useMyUserId() ?? 0;
+
+  const [isAvatarLoading, setIsAvatarLoading] = useState(true);
+  const [areImagesLoading, setAreImagesLoading] = useState(true);
+
   const getIndexById = (id: number) =>
     images.findIndex((image) => image.id === id);
+
   const showModal = (id: number) => {
     const index = getIndexById(id);
     if (index !== -1) {
-      setCurrentIndex(index); // Lưu index của ảnh được chọn
-      setIsVisiblePostImageDetail(true); // Mở modal
+      setCurrentIndex(index);
+      setIsVisiblePostImageDetail(true);
     }
   };
+
   const { numberLike, isLiked, handleLike } = useHandleLikePost(
     myUserId,
     id,
@@ -72,19 +82,7 @@ const PostItem = ({
     userId: myUserId,
     friendId: userPostResponse?.userId || 0,
   });
-  console.log(
-    "PostItem: ",
-    userPostResponse,
-    id,
-    caption,
-    images,
-    likes,
-    comments,
-    type,
-    like,
-    createTime
-  );
-  console.log("userId: ", userPostResponse?.userId, "MyId", myUserId);
+
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -98,16 +96,26 @@ const PostItem = ({
               })
             }
           >
+            {isAvatarLoading && (
+              <ActivityIndicator
+                style={styles.avatarLoader}
+                color={isDarkMode ? darkTheme.text : lightTheme.text}
+              />
+            )}
             {userPostResponse?.avatar != null && (
               <Image
                 source={{ uri: userPostResponse.avatar }}
                 style={styles.avatar}
+                onLoadStart={() => setIsAvatarLoading(true)}
+                onLoadEnd={() => setIsAvatarLoading(false)}
               />
             )}
             {userPostResponse?.avatar == null && (
               <Image
                 source={require("@/assets/images/userAvatar.png")}
                 style={styles.avatar}
+                onLoadStart={() => setIsAvatarLoading(true)}
+                onLoadEnd={() => setIsAvatarLoading(false)}
               />
             )}
           </TouchableOpacity>
@@ -152,29 +160,42 @@ const PostItem = ({
               numberOfLines={numberLine}
               onTextLayout={(event) => {
                 const lineCount = event.nativeEvent.lines.length;
-                if (lineCount > numberLike) {
+                if (lineCount > INITIAL_LINES) {
                   setIsExpandable(true);
+                } else {
+                  setIsExpandable(false);
                 }
               }}
             >
-              {caption}{" "}
+              {caption}
             </Text>
           </TouchableOpacity>
 
-          {isExpandable && numberLine < caption.length && (
-            <TouchableOpacity onPress={() => setNumberLine(caption.length)}>
-              <Text>See more</Text>
+          {isExpandable && (
+            <TouchableOpacity
+              onPress={() => {
+                if (numberLine === INITIAL_LINES) {
+                  setNumberLine(0);
+                } else {
+                  setNumberLine(INITIAL_LINES);
+                }
+              }}
+            >
+              <Text style={styles.seeMoreTxt}>
+                {numberLine === INITIAL_LINES ? "See more" : "See less"}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity>
-          <MaterialIcons
+          {/* <MaterialIcons
             name="more-horiz"
             size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
-          />
+          /> */}
         </TouchableOpacity>
       </View>
+
       {type === "Voice" && images?.length > 0 && (
         <View style={styles.audioContainer}>
           <AudioPlayer audioUri={images[0]?.url} />
@@ -191,35 +212,36 @@ const PostItem = ({
             keyExtractor={(image) => image.id.toString()}
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) =>
-              images.length > 1 ? (
-                <TouchableOpacity
-                  key={item.id} // Thêm key ở đúng vị trí
-                  onPress={() => {
-                    showModal(item?.id);
-                  }}
-                >
-                  <Image source={{ uri: item.url }} style={styles.imagePost} />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  key={item.id} // Thêm key ở đúng vị trí
-                  onPress={() => {
-                    showModal(item?.id);
-                  }}
-                >
-                  <Image
-                    source={{ uri: item.url }}
-                    style={styles.imageOnePost}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => showModal(item?.id)}
+              >
+                {areImagesLoading && (
+                  <ActivityIndicator
+                    style={[
+                      styles.imageLoader,
+                      images.length > 1
+                        ? styles.imagePost
+                        : styles.imageOnePost,
+                    ]}
+                    color={isDarkMode ? darkTheme.text : lightTheme.text}
                   />
-                </TouchableOpacity>
-              )
-            }
+                )}
+                <Image
+                  source={{ uri: item.url }}
+                  style={
+                    images.length > 1 ? styles.imagePost : styles.imageOnePost
+                  }
+                  onLoadStart={() => setAreImagesLoading(true)}
+                  onLoadEnd={() => setAreImagesLoading(false)}
+                />
+              </TouchableOpacity>
+            )}
           />
         </ScrollView>
       )}
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
@@ -229,7 +251,6 @@ const PostItem = ({
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
           />
-          {}
           <Text style={styles.iconText}>{formatNumber(numberLike)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -250,9 +271,7 @@ const PostItem = ({
           <Text style={styles.iconText}>{formatNumber(comments)}</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Modal hiển thị ảnh toàn màn hình */}
-      <PostImageDetailModal // Thay đổi thành PostImageDetailModal
+      <PostImageDetailModal
         images={images}
         currentIndex={currentIndex}
         isModalVisible={isVisiblePostImageDetail}
@@ -268,7 +287,6 @@ const getStyles = (isDarkMode: boolean) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      // marginBottom: height * 0.01,
       paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
       borderBottomWidth: 1,
@@ -283,6 +301,26 @@ const getStyles = (isDarkMode: boolean) =>
       position: "relative",
       marginRight: width * 0.03,
     },
+    avatarLoader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    imageLoader: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
     avatar: {
       width: width * 0.1,
       height: width * 0.1,
@@ -296,7 +334,7 @@ const getStyles = (isDarkMode: boolean) =>
       padding: width * 0.002,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: (height * 0.02) / 2, // Sửa thành giá trị số
+      borderRadius: (height * 0.02) / 2,
     },
     icon: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -326,6 +364,10 @@ const getStyles = (isDarkMode: boolean) =>
     },
     caption: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+    },
+    seeMoreTxt: {
+      color: grey,
       fontSize: textPostFontSize,
     },
     audioContainer: {
@@ -368,4 +410,4 @@ const getStyles = (isDarkMode: boolean) =>
     },
   });
 
-export default PostItem;
+export default Posts;

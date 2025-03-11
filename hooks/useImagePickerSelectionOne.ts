@@ -41,9 +41,6 @@ const useImagePickerSelectionOne = () => {
 
       setImage(uri);
       setFormData(newFormData);
-
-      console.log("📸 File đã chọn:", { filename, fileType, uri });
-      console.log("📂 FormData:", newFormData);
     }
   };
 

@@ -1,10 +1,6 @@
 import { backgroundColor, Color } from "@/styles/stylePrimary";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  useNavigation,
-  NavigationProp,
-  useRoute,
-} from "@react-navigation/native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import {
   View,
   TouchableOpacity,
@@ -21,21 +17,28 @@ import { RFValue } from "react-native-responsive-fontsize";
 const { width, height } = Dimensions.get("window");
 
 const PublicOrPrivate = () => {
-  const toggleOptionRef = useRef<boolean>(false); // Tránh re-render
-  const [toggleOption, setToggleOption] = useState<boolean>(false);
+  const toggleOptionRef = useRef<boolean>(true); // Mặc định là Public
+  const [toggleOption, setToggleOption] = useState<boolean | null>(null); // Sử dụng null để chờ dữ liệu
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+
   useEffect(() => {
     const loadToggleOption = async () => {
-      const savedOption = await AsyncStorage.getItem("toggleOption");
-      if (savedOption !== null) {
-        toggleOptionRef.current = JSON.parse(savedOption);
-        setToggleOption(toggleOptionRef.current);
+      try {
+        const savedOption = await AsyncStorage.getItem("toggleOption");
+        const option = savedOption !== null ? JSON.parse(savedOption) : true; // Mặc định Public nếu null
+        toggleOptionRef.current = option;
+        setToggleOption(option);
+        navigation.navigate(option ? "PublicMode" : "PrivateMode");
+      } catch (error) {
+        console.error("Lỗi khi tải toggleOption:", error);
+        setToggleOption(true); // Mặc định Public nếu có lỗi
+        navigation.navigate("PublicMode");
       }
     };
     loadToggleOption();
-  }, []);
+  }, [navigation]);
 
   const handleToggle = useCallback(
     async (option: boolean) => {
@@ -48,6 +51,11 @@ const PublicOrPrivate = () => {
     [navigation]
   );
 
+  // Nếu toggleOption chưa load xong, không render giao diện tránh lỗi UI
+  if (toggleOption === null) {
+    return null;
+  }
+
   return (
     <View style={styles.toggleSwitch}>
       <TouchableOpacity
@@ -59,7 +67,11 @@ const PublicOrPrivate = () => {
             styles.toggleText,
             toggleOption
               ? styles.activeText
-              : { color: isDarkMode ? "black" : Color },
+              : {
+                  color: isDarkMode
+                    ? darkTheme.background
+                    : lightTheme.background,
+                },
           ]}
         >
           Public
@@ -74,7 +86,11 @@ const PublicOrPrivate = () => {
             styles.toggleText,
             !toggleOption
               ? styles.activeText
-              : { color: isDarkMode ? "black" : Color },
+              : {
+                  color: isDarkMode
+                    ? darkTheme.background
+                    : lightTheme.background,
+                },
           ]}
         >
           Friends
@@ -84,7 +100,7 @@ const PublicOrPrivate = () => {
   );
 };
 
-const getStyles = (isDarkMode: any) =>
+const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     toggleSwitch: {
       flexDirection: "row",

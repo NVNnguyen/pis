@@ -19,14 +19,13 @@ import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
 import { MainStackType } from "@/utils/types/MainStackType";
 import useHandleLikeComment from "@/hooks/useHandleLikeComment";
 import useHandleFollow from "@/hooks/useHandleFollow";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
-interface RepliesProp {}
 const Replies = (item: any) => {
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
@@ -34,7 +33,7 @@ const Replies = (item: any) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const myUserId = getMyUserId() ?? 0;
+  const myUserId = useMyUserId() ?? 0;
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
     myUserId,
     item?.id,
@@ -47,8 +46,6 @@ const Replies = (item: any) => {
     userId: myUserId,
     friendId: item?.userPostResponse?.userId || 0,
   });
-  console.log("item replises: ", item);
-  console.log("Replies", item);
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -109,11 +106,11 @@ const Replies = (item: any) => {
           <Text style={styles.caption}>{item?.content} </Text>
         </View>
         <TouchableOpacity>
-          <MaterialIcons
+          {/* <MaterialIcons
             name="more-horiz"
             size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
-          />
+          /> */}
         </TouchableOpacity>
       </View>
       <View style={styles.cmtContainer}>

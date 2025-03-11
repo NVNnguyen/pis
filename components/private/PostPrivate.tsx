@@ -10,8 +10,13 @@ import {
   Keyboard,
   Platform,
   Animated,
+  ActivityIndicator,
 } from "react-native";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import {
+  AntDesign,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import {
   backgroundColor,
   buttonFontsize,
@@ -20,13 +25,16 @@ import {
   textPostFontSize,
 } from "@/styles/stylePrimary";
 import AudioPlayer from "../public/AudioPlayer";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { primaryColor } from "@/utils/colorPrimary";
 import { PostItemType } from "@/utils/types/PostItemType";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { MainStackType } from "@/utils/types/MainStackType";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import { useSendMessage } from "@/hooks/useSendMessage";
+import { SendMessageType } from "@/utils/types/SendMessageType";
+import conversationAPI from "@/api/conversationAPI";
 
 const { width, height } = Dimensions.get("window");
 interface PostPrivateProps extends PostItemType {
@@ -42,26 +50,20 @@ const PostPrivate = ({
 }: PostPrivateProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const myUserId = Number(getMyUserId());
+  const myUserId = useMyUserId() ?? 0;
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
-
-  // Animated value for the comment input position
   const [inputPosition] = useState(new Animated.Value(0));
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  // Reference to store the original position of the input
+  const [comment, setComment] = useState<string>();
+  const [isLoadingUri, setIsLoadingUri] = useState<boolean>(true);
   const inputOriginalPosition = useRef(0);
 
   useEffect(() => {
-    // Add keyboard show and hide listeners
     const keyboardWillShowListener = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (event) => {
         setKeyboardVisible(true);
-        // Calculate center position of screen minus input height
-        const screenCenter = height / 2 - 30; // 30 is approximate input height
-
-        // Animate the input to the center of the screen
+        const screenCenter = height / 2 - 30;
         Animated.timing(inputPosition, {
           toValue: screenCenter - inputOriginalPosition.current,
           duration: 300,
@@ -74,7 +76,6 @@ const PostPrivate = ({
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
       () => {
         setKeyboardVisible(false);
-        // Animate the input back to its original position
         Animated.timing(inputPosition, {
           toValue: 0,
           duration: 300,
@@ -82,27 +83,67 @@ const PostPrivate = ({
         }).start();
       }
     );
-
-    // Clean up listeners
     return () => {
       keyboardWillShowListener.remove();
       keyboardWillHideListener.remove();
     };
   }, []);
-
-  // Function to measure the position of the input
   const measureInputPosition = (event: any) => {
-    // Store the y position of the input
     inputOriginalPosition.current = event.nativeEvent.layout.y;
   };
-
-  // Handler for capture button press
   const handleCapturePress = () => {
     if (onTop) {
       onTop(true);
     }
   };
+  const sendComment = useSendMessage();
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const handleSendMessage = async () => {
+    if (sendComment.isPending || myUserId === null || !comment?.trim()) return;
+
+    try {
+      let conversationIdToUse = 0; // Biến tạm để giữ conversationId
+
+      if (conversationIdToUse === 0) {
+        // 🛠 Nếu chưa có `conversationId`, kiểm tra và tạo mới
+        const existing = await conversationAPI.checkConversations(
+          myUserId,
+          userPostResponse?.userId
+        );
+        conversationIdToUse = existing?.data?.conversationId;
+
+        if (conversationIdToUse === 0 || !conversationIdToUse) {
+          const created = await conversationAPI.createConservations(
+            myUserId,
+            userPostResponse?.userId
+          );
+          conversationIdToUse = created?.data?.conversationId;
+        }
+
+        if (!conversationIdToUse) {
+          console.error("Failed to get or create conversation");
+          return;
+        }
+      }
+      const payload: SendMessageType = {
+        conversationId: conversationIdToUse,
+        senderId: myUserId,
+        content: comment.trim(), // Chỉ gửi nội dung
+        file: "", // Không gửi file
+        type: "Text",
+        userId: userPostResponse?.userId,
+      };
+
+      sendComment.mutate(payload, {
+        onSuccess: () => {
+          setComment(""); // Xóa nội dung sau khi gửi thành công
+        },
+      });
+    } catch (error) {
+      console.error("Error handling message send:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.mediaContainer}>
@@ -110,11 +151,21 @@ const PostPrivate = ({
           <AudioPlayer audioUri={images[0]?.url} />
         )}
         {type === "Image" && images.length > 0 && (
-          <Image
-            source={{ uri: images[0]?.url }}
-            style={styles.photo}
-            resizeMode="cover"
-          />
+          <>
+            {isLoadingUri && !images && (
+              <ActivityIndicator
+                style={styles.imgLoader}
+                color={isDarkMode ? lightTheme.text : darkTheme.text}
+              />
+            )}
+            <Image
+              source={{ uri: images[0]?.url }}
+              style={styles.photo}
+              resizeMode="cover"
+              onLoadStart={() => setIsLoadingUri(true)}
+              onLoadEnd={() => setIsLoadingUri(false)}
+            />
+          </>
         )}
       </View>
 
@@ -151,8 +202,8 @@ const PostPrivate = ({
               position: "absolute",
               zIndex: 999,
               transform: [{ translateY: inputPosition }],
-              top: null, // Remove any top property that might interfere
-              bottom: height * 0.05, // Position it near the bottom initially
+              top: null,
+              bottom: height * 0.05,
             },
           ]}
           onLayout={measureInputPosition}
@@ -161,16 +212,16 @@ const PostPrivate = ({
             style={styles.commentInput}
             placeholder="Add a comment..."
             placeholderTextColor="gray"
+            value={comment}
+            onChangeText={(text) => setComment(text)}
           />
           <TouchableOpacity
             style={styles.sendButton}
-            onPress={() => Keyboard.dismiss()}
+            onPress={() => {
+              handleSendMessage();
+            }}
           >
-            <AntDesign
-              name="arrowright"
-              size={width * 0.05}
-              color={iconColorMode}
-            />
+            <AntDesign name="arrowright" size={width * 0.05} color={"black"} />
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -200,7 +251,31 @@ const PostPrivate = ({
         >
           <View style={styles.captureInner}></View>
         </TouchableOpacity>
-        <TouchableOpacity></TouchableOpacity>
+
+        {myUserId !== userPostResponse?.userId && (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("Messages", {
+                userId: userPostResponse?.userId,
+              })
+            }
+          >
+            <MaterialCommunityIcons
+              name="chat"
+              size={height * 0.03}
+              color={iconColorMode}
+            />
+          </TouchableOpacity>
+        )}
+        {myUserId === userPostResponse?.userId && (
+          <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>
+            <MaterialCommunityIcons
+              name="chat"
+              size={height * 0.03}
+              color={iconColorMode}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -213,7 +288,6 @@ const getStyles = (isDarkMode: any) => {
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      borderRadius: 15,
       alignItems: "center",
       position: "relative", // Add this to allow absolute positioning of children
     },
@@ -362,6 +436,10 @@ const getStyles = (isDarkMode: any) => {
         : lightTheme.background,
       borderWidth: 5,
       borderColor: primaryColor,
+    },
+    imgLoader: {
+      position: "absolute",
+      zIndex: 1,
     },
   });
 };

@@ -1,4 +1,7 @@
-import React, { useRef, useState } from "react";
+"use client";
+
+import type React from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +11,8 @@ import {
   TouchableOpacity,
   FlatList,
   Button,
-  TextInput,
+  type TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -22,14 +26,13 @@ import {
 import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
 import { useNavigation } from "@react-navigation/native";
-import { NavigationProp } from "@react-navigation/native";
-import { getMyUserId } from "@/hooks/getMyUserID";
+import type { NavigationProp } from "@react-navigation/native";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
-import { MainStackType } from "@/utils/types/MainStackType";
+import type { MainStackType } from "@/utils/types/MainStackType";
 import Replies from "./Replies";
 import useHandleLikeComment from "@/hooks/useHandleLikeComment";
-import useHandleFollow from "@/hooks/useHandleFollow";
 import useCommentLevel2 from "@/hooks/useCommentLevel2";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
 interface CommentProp {
@@ -52,7 +55,7 @@ const Comment: React.FC<CommentProp> = ({
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const myUserId = getMyUserId() ?? 0;
+  const myUserId = useMyUserId() ?? 0;
   const { commentsLevel2, isLoading, error } = useCommentLevel2(
     myUserId,
     item?.id
@@ -65,6 +68,7 @@ const Comment: React.FC<CommentProp> = ({
     item?.like,
     item?.likes
   );
+  const [imageLoading, setImageLoading] = useState<boolean>(true);
 
   return (
     <View style={styles.postContainer}>
@@ -115,11 +119,11 @@ const Comment: React.FC<CommentProp> = ({
           <Text style={styles.caption}>{item?.content} </Text>
         </View>
         <TouchableOpacity>
-          <MaterialIcons
+          {/* <MaterialIcons
             name="more-horiz"
             size={buttonFontsize}
             color={isDarkMode ? darkTheme.text : lightTheme.text}
-          />
+          /> */}
         </TouchableOpacity>
       </View>
       <View style={styles.cmtContainer}>
@@ -128,7 +132,21 @@ const Comment: React.FC<CommentProp> = ({
         )}
         <TouchableOpacity onPress={() => setIsVisiblePostImageDetail(true)}>
           {item?.type === "Image" && item?.url !== null && (
-            <Image source={{ uri: item?.url }} style={styles.image} />
+            <View style={styles.imageWrapper}>
+              {imageLoading && (
+                <ActivityIndicator
+                  style={styles.imageLoader}
+                  size="large"
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              )}
+              <Image
+                source={{ uri: item?.url }}
+                style={styles.image}
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+              />
+            </View>
           )}
         </TouchableOpacity>
       </View>
@@ -176,6 +194,7 @@ const Comment: React.FC<CommentProp> = ({
           <Text style={styles.txtViewReply}>
             View {commentsLevel2?.length} Replies...
           </Text>
+          {isLoading && <ActivityIndicator />}
         </TouchableOpacity>
       )}
 
@@ -346,6 +365,15 @@ const getStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginLeft: width * 0.13,
       marginTop: height * 0.02,
+    },
+    imageWrapper: {
+      position: "relative",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    imageLoader: {
+      position: "absolute",
+      zIndex: 1,
     },
   });
 

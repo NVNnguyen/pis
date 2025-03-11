@@ -1,53 +1,88 @@
 import conversationAPI from "@/api/conversationAPI";
 import Message from "@/components/genaral/chat/Message";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import useMessage from "@/hooks/useMessage";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import { textPostFontSize } from "@/styles/stylePrimary";
+import { darkTheme, lightTheme } from "@/utils/themes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Dimensions, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  View,
+  Image,
+  Text,
+} from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
 interface MessageProps {
-  userIdProp: number;
+  id: number;
+  avatar: string;
+  firstName: string;
+  lastName: string;
+  username: string;
 }
 
-const MessageList: React.FC<MessageProps> = ({ userIdProp }) => {
+const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const myUserid = getMyUserId() ?? 0;
-  const [messageList, setMessageList] = useState();
-  const { message } = useMessage(myUserid, userIdProp);
+  const myUserid = useMyUserId() ?? 0;
+  const [messageList, setMessageList] = useState<any[]>([]);
+  console.log("Get message with myid and usserId: ", myUserid, userInfo?.id);
+  const { message } = useMessage(myUserid, userInfo?.id);
   useEffect(() => {
     if (message) {
+      console.log("Okkk");
       setMessageList(message);
     }
   }, [message]);
+  console.log("Message: ", messageList);
 
   return (
-    <FlatList
-      data={messageList}
-      keyExtractor={(item, index) => index.toString()}
-      renderItem={({ item }) => (
-        <View
-          style={
-            item?.userId === myUserid
-              ? styles.ownerMessage
-              : styles.theirMessage
-          }
-        >
-          <Message
-            {...item}
-            style={
-              item?.userId === myUserid
-                ? styles.ownerMessage
-                : styles.theirMessage
+    <>
+      {messageList.length > 0 ? (
+        <FlatList
+          data={messageList}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View
+              style={
+                item?.userId === myUserid
+                  ? styles.ownerMessage
+                  : styles.theirMessage
+              }
+            >
+              <Message
+                {...item}
+                style={
+                  item?.userId === myUserid
+                    ? styles.ownerMessage
+                    : styles.theirMessage
+                }
+              />
+            </View>
+          )}
+        />
+      ) : (
+        <View style={styles.noMsgContainer}>
+          <Image
+            source={
+              userInfo.avatar === null
+                ? require("@/assets/images/userAvatar.png")
+                : { uri: userInfo?.avatar }
             }
+            style={styles.avatar}
           />
+          <Text style={styles.nameText}>
+            {userInfo?.firstName} {userInfo?.lastName}
+          </Text>
+          <Text style={styles.infoText}>{userInfo?.username}</Text>
         </View>
       )}
-    />
+    </>
   );
 };
 
@@ -63,6 +98,35 @@ const getStyles = (isDarkMode: any) =>
       alignSelf: "flex-start",
       marginVertical: height * 0.01,
       marginLeft: width * 0.01,
+    },
+    noMsgContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: isDarkMode
+        ? darkTheme.background
+        : lightTheme.background,
+      paddingHorizontal: width * 0.1,
+      paddingVertical: height * 0.05,
+    },
+    avatar: {
+      width: width * 0.3,
+      height: width * 0.3,
+      borderRadius: (width * 0.3) / 2,
+      marginBottom: height * 0.02,
+    },
+    nameText: {
+      fontSize: width * 0.05,
+      fontWeight: "600",
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      marginBottom: height * 0.01,
+      textAlign: "center",
+    },
+    infoText: {
+      fontSize: width * 0.04,
+      color: isDarkMode ? "#aaa" : "#555",
+      marginBottom: height * 0.005,
+      textAlign: "center",
     },
   });
 

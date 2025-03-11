@@ -43,8 +43,6 @@ export const useCreateMessage = () => {
       formData.append("senderId", String(postData.postId));
       formData.append("content", postData.content);
       formData.append("type", postData.type ?? detectedType);
-      
-      console.log("formData Comment: ", formData);
       const response = await conversationAPI.sendMessage(formData);
       return response?.data;
     },

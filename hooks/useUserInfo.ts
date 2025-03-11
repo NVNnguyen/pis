@@ -11,7 +11,6 @@ const useUserInfo = (userIdProp: number) => {
     queryKey: ["userInfo", userIdProp],
     queryFn: async () => {
       if (!userIdProp) throw new Error("User ID invalid!");
-      console.log("📡 Fetching user info for User ID:", userIdProp);
       const response = await infoAPI.userInfo(userIdProp);
       if (!response.data) throw new Error("UserIfo not found!");
       return response?.data;

@@ -22,6 +22,8 @@ import FollowListScreen from "@/app/screens/generalMode/FollowListScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HistoryPostScreen from "@/app/screens/privateMode/HistoryPostScreen";
 import SearchScreen from "@/app/screens/generalMode/SearchScreen";
+import AddFriendScreen from "@/app/screens/privateMode/AddFriendScreen";
+import FriendListScreen from "@/app/screens/privateMode/FriendListScreen";
 
 const { width, height } = Dimensions.get("window");
 const Stack = createNativeStackNavigator<MainStackType>();
@@ -164,6 +166,20 @@ const MainStack: React.FC = () => {
       <Stack.Screen
         name="Search"
         component={SearchScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="FriendRequest"
+        component={AddFriendScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="FriendList"
+        component={FriendListScreen}
         options={{
           headerShown: true,
         }}

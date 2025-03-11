@@ -1,5 +1,6 @@
 import FollowProfile from "@/components/public/FollowProfile";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useMyUserId } from "@/hooks/useMyUserId";
 import useFollowStore from "@/stores/useFollowStore";
 import {
   fontWeight,
@@ -9,7 +10,7 @@ import {
 import { darkThemeInput, grey, lightThemeInput } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute } from "@react-navigation/native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -23,9 +24,14 @@ import {
 } from "react-native";
 const { width, height } = Dimensions.get("window");
 const FollowListScreen = () => {
-  const route = useRoute();
-  const params = route.params as { tab?: string };
+  const route =
+    useRoute<
+      RouteProp<{ params: { tab: string; userId: number } }, "params">
+    >();
+  const params = route.params;
   const tabName = params?.tab;
+  const userId = params?.userId;
+  const myUserId = useMyUserId();
   const [isTab, setIsTab] = useState<string>(String(tabName));
   const { followStore } = useFollowStore();
   const { isDarkMode } = useTheme();
@@ -61,18 +67,6 @@ const FollowListScreen = () => {
             {followStore.followingNumbers} Following
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setIsTab("friend")}
-          style={[
-            styles.tabBarBtn,
-            isTab === "friend" && {
-              borderBottomWidth: 1,
-              borderBottomColor: isDarkMode ? darkTheme.text : lightTheme.text,
-            },
-          ]}
-        >
-          <Text style={styles.tabBarTxt}>{} Friends</Text>
-        </TouchableOpacity>
       </View>
 
       {followStore.followers > 0 && (
@@ -83,18 +77,12 @@ const FollowListScreen = () => {
               : followStore?.userFollowing
           }
           keyExtractor={(item) => item?.userId.toString()}
-          renderItem={({ item }) => <FollowProfile {...item} isFollow={item.follow} />}
-          ListHeaderComponent={
-            <View style={styles.searchContainer}>
-              <AntDesign
-                name="search1"
-                size={width * 0.05}
-                color={grey}
-                style={styles.searchIcon}
-              />
-              <TextInput placeholder="Search" style={styles.searchInput} />
-            </View>
-          }
+          renderItem={({ item }) => (
+            <>
+              {console.log("item", item)}
+              <FollowProfile {...item} isFollow={item?.isFollow} />
+            </>
+          )}
         />
       )}
     </View>
@@ -111,7 +99,8 @@ const getStyles = (isDarkMode: any, isTab: string) => {
     },
     tabBarContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-around",
+      marginBottom: height * 0.02,
     },
     tabBarBtn: {
       paddingVertical: height * 0.01,

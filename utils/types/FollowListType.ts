@@ -8,7 +8,7 @@ export type FollowListType = {
             followers: number,
             firstName: string,
             lastName: string,
-            follow: boolean
+            isFollow: boolean
             }[],
           
     followingNumbers: number,
@@ -19,6 +19,6 @@ export type FollowListType = {
             followers: number,
             firstName: string,
             lastName: string,
-            follow: boolean
+            isFollow: boolean
         } []
     }

@@ -26,12 +26,13 @@ import {
   primaryColor,
 } from "@/utils/colorPrimary";
 import useImagePickerChooseOne from "@/hooks/useImagePickerChooseOne";
-import { getMyUserId } from "@/hooks/getMyUserID";
 import { useCreateComment } from "@/hooks/useCreateComment";
 import AudioPlayer from "./AudioPlayer";
 import VoiceModal from "./Modals/VoiceModal";
 import CameraModal from "./Modals/CameraModal";
 import { UseCreateCommentType } from "@/utils/types/UseCreateCommentType";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width, height } = Dimensions.get("window");
 
@@ -67,10 +68,10 @@ const CommentInput = ({
 
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode, parentCommentId);
-  const myUserId = getMyUserId();
+  const myUserId = useMyUserId() ?? 0;
   const { image, openImagePicker, removeImage } = useImagePickerChooseOne();
   const createCommentMutation = useCreateComment();
-
+  const queryClient = useQueryClient();
   // Xử lý khi chọn media type
   const handleSelectMediaType = (mediaType: MediaType) => {
     // Reset tất cả dữ liệu media
@@ -136,6 +137,12 @@ const CommentInput = ({
 
     createCommentMutation.mutate(payload, {
       onSuccess: () => {
+        queryClient.refetchQueries({
+          queryKey: ["commentsLevel1", myUserId, postId],
+        });
+        queryClient.refetchQueries({
+          queryKey: ["commentsLevel2", myUserId, parentCommentId],
+        });
         setMessage("");
         clearSelectedMedia();
       },

@@ -7,11 +7,20 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { View, StyleSheet } from "react-native";
+import * as Linking from "expo-linking";
 
 // ✅ Giữ splash screen khi app khởi động
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+// ✅ Cấu hình Deep Linking
+const linking = {
+  prefixes: ["https://myapp.com", "myapp://"],
+  config: {
+    screens: {},
+  },
+};
 
 const App: React.FC = () => {
   const [fontsLoaded] = useFonts({
@@ -23,7 +32,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const prepare = async () => {
       try {
-        // Có thể thêm logic preload thêm dữ liệu ở đây (nếu cần)
         if (fontsLoaded) {
           setAppIsReady(true);
         }
@@ -42,7 +50,6 @@ const App: React.FC = () => {
   }, [appIsReady]);
 
   if (!appIsReady) {
-    // Tránh return null => giữ splash screen tự nhiên
     return null;
   }
 
@@ -53,7 +60,7 @@ const App: React.FC = () => {
     >
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <NavigationContainer>
+          <NavigationContainer linking={linking}>
             <MainStack />
           </NavigationContainer>
         </QueryClientProvider>

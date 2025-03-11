@@ -15,8 +15,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import CreatePostModel from "../Modals/CreatePostModal";
 import { MainStackType } from "@/utils/types/MainStackType";
-import { getMyUserId } from "@/hooks/getMyUserID";
-import { userInfo } from "@/utils/mockAPI";
+import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,7 +32,7 @@ const TabBar = () => {
   });
   const route = useRoute();
   const screenName = route.name;
-  const myUserId = getMyUserId();
+  const myUserId = useMyUserId() ?? 0;
   return (
     <View style={styles.container}>
       <View style={styles.bottomNav}>

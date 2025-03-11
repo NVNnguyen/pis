@@ -14,7 +14,8 @@ import { Audio } from "expo-av";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { PostItemType } from "@/utils/types/PostItemType";
-import { Ionicons } from "@expo/vector-icons";
+import { buttonFontsize, fontWeight } from "@/styles/stylePrimary";
+import { grey } from "@/utils/colorPrimary";
 
 const { width } = Dimensions.get("window");
 const ITEM_MARGIN = 4;
@@ -33,10 +34,24 @@ const Photo = ({
 }: PhotoProp) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   return (
     <View style={styles.itemWrapper}>
       {type === "Image" && (
-        <Image source={{ uri: images?.[0]?.url }} style={styles.image} />
+        <>
+          {isImageLoading && images && (
+            <ActivityIndicator
+              style={styles.imgLoader}
+              color={isDarkMode ? lightTheme.text : darkTheme.text}
+            />
+          )}
+          <Image
+            source={{ uri: images?.[0]?.url }}
+            style={styles.image}
+            onLoadStart={() => setIsImageLoading(true)}
+            onLoadEnd={() => setIsImageLoading(false)}
+          />
+        </>
       )}
     </View>
   );
@@ -48,18 +63,23 @@ const getStyles = (isDarkMode: boolean) =>
       height: ITEM_SIZE,
       margin: ITEM_MARGIN,
       backgroundColor: isDarkMode
-        ? darkTheme.background
-        : lightTheme.background,
+        ? lightTheme.background
+        : darkTheme.background,
       borderRadius: 10,
       overflow: "hidden",
       justifyContent: "center",
       alignItems: "center",
+    },
+    imgLoader: {
+      position: "absolute",
+      zIndex: 1,
     },
     image: {
       width: "100%",
       height: "100%",
       resizeMode: "cover",
     },
+
   });
 
 export default Photo;

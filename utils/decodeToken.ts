@@ -8,11 +8,9 @@ export const getDecodedToken = async (token: string) => {
     try {
    // Đợi token từ AsyncStorage
       if (!token) {
-        console.log("Token not exit.");
         return null;
       }
       const decodedToken: DecodedToken = jwtDecode(token);
-      console.log("Decoded Token:", decodedToken);
       await AsyncStorage.setItem("userID", decodedToken?.userId.toString()); // Đợi token từ AsyncStorage
       return decodedToken;
     } catch (error) {

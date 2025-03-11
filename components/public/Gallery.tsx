@@ -97,7 +97,6 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
             }
 
             if (!status.isLoaded && status.error) {
-              console.log("Playback Error:", status.error);
               setIsPlaying(false);
               stopWaveAnimation();
               setSound(null);
@@ -109,7 +108,6 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
           startWaveAnimation();
         }
       } catch (err) {
-        console.log("Error loading audio:", err);
         setIsLoading(false);
       }
     }

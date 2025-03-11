@@ -18,9 +18,7 @@ const friendAPI = {
         userId, 
         friendId ,
         });
-        console.log(response.message)
-        console.log("follow with: ", userId, friendId);
-        console.log(response?.data?.message)
+     
         return response?.data?.message;
       } catch (error) {
         console.error("Error fetching follow api for :", error);
@@ -32,7 +30,7 @@ const friendAPI = {
             const response = await http.delete(`${BASE_URL_FRIEND}/unfollow`, {
               data: { userId, friendId }, 
         });
-            console.log(response?.data?.message)
+
             return response?.data?.message;
         } catch (error) {
             console.error("Error fetching unFollow api for :", error);
@@ -45,7 +43,6 @@ const friendAPI = {
             "userId": userId, 
             "friendId": friendId ,
           });
-          console.log(response?.data?.message)
           return response?.data?.message;
         } catch (error) {
           console.error("Error fetching addFriend api for :", error);
@@ -54,11 +51,10 @@ const friendAPI = {
       },
       unFriend: async (userId: number, friendId: number) => {
         try {
-          const response = await http.delete(`${BASE_URL_FRIEND}/cancelFriendRequest`, {
-            "userId": userId, 
-            "friendId": friendId ,
+          const response = await http.delete(`${BASE_URL_FRIEND}/unfriend`, {
+             userId, 
+            friendId ,
           });
-          console.log(response?.data?.message)
         return response?.data?.message;
         } catch (error) {
           console.error("Error fetching unFriend api for :", error);
@@ -71,7 +67,6 @@ const friendAPI = {
             "userId": userId, 
             "friendId": friendId ,
           });
-          console.log(response?.data?.message)
           return response?.data?.message;;
         } catch (error) {
           console.error("Error fetching acceptFriend API for :", error);
@@ -84,10 +79,59 @@ const friendAPI = {
             "userId": userId, 
             "friendId": friendId ,
           });
-          console.log(response?.data?.message)
           return response?.data?.message;
         } catch (error) {
           console.error("Error fetching rejectFriend for :", error);
+          throw error;
+        }
+      },
+      listFriend: async (userId: number) => {
+        try {
+          const response = await http.get(`${BASE_URL_FRIEND}/${userId}`);
+          return response?.data
+        } catch (error) {
+          console.error("Error fetching rejectFriend for :", error);
+          throw error;
+        }
+      },
+      blockFriend: async (userId: number, friendId: number) => {
+        // Kiểm tra dữ liệu đầu vào (optional)
+        if (!userId || !friendId) {
+          throw new Error("userId and friendId are required");
+        }
+        
+        try {
+          const response = await http.put(`${BASE_URL_FRIEND}/blockFriend`, {
+            userId: userId,
+            friendId: friendId
+          });
+          console.log("Response block friend:", response?.data);
+          return response?.data;
+        } catch (error) {
+          console.error("Error blocking friend:", error);
+          throw error;
+        }
+      },
+      unClockFriend:  async (userId: number, friendId: number) => {
+        try {
+          const response = await http.put(`${BASE_URL_FRIEND}/unblockFriend`, {
+            userId,
+            friendId
+          });
+          console.log("response unCLock: ", response?.data)
+          return response?.data
+        } catch (error) {
+          console.error("Error fetching rejectFriend for :", error);
+          throw error;
+        }
+      },
+      listRequestFriend: async (userId: number) => {
+        try {
+          const response = await http.get(`${BASE_URL_FRIEND}/requestFriends/${userId}`);
+          console.log("response requestFriend list: ", response?.data)
+          return response?.data
+        } catch (error) {
+          console.error("Error requestFriend list for :", error);
           throw error;
         }
       },

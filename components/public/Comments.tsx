@@ -1,27 +1,33 @@
-import React, { useRef } from "react";
+import type React from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   Dimensions,
-  TextInput,
+  type TextInput,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import Loading from "@/components/genaral/loading/Loading";
 import useCommentLevel1 from "@/hooks/useCommentLevel1";
 import { textFontSize } from "@/styles/stylePrimary";
-import Comment from "./Comment"; // Ensure this path is correct
+import Comment from "./Comment";
+import CommentSkeleton from "@/Loading/CommentSkeleton";
+
 
 const { width, height } = Dimensions.get("window");
 
 interface commentProps {
   userId: number;
   postId: number;
-  onCommentPress: (commentId: number, ref: React.RefObject<TextInput>, userName: string) => void;
+  onCommentPress: (
+    commentId: number,
+    ref: React.RefObject<TextInput>,
+    userName: string
+  ) => void;
   commentInputRef: React.RefObject<TextInput>;
 }
+
 const Comments = ({
   userId,
   postId,
@@ -32,6 +38,7 @@ const Comments = ({
   const styles = getStyles(isDarkMode);
   const { commentsLevel1, isCommentLevel1Loading, commentLevel1Error } =
     useCommentLevel1(userId, postId);
+
   const handleCommentPress = (
     commentId: number,
     ref: React.RefObject<TextInput>,
@@ -40,21 +47,34 @@ const Comments = ({
     ref.current?.focus(); // Focus vào ô nhập comment
     onCommentPress(commentId, ref, userName); // Truyền commentId và ref lên PostDetailScreen
   };
-  return (
-    <View style={styles.container}>
-      {isCommentLevel1Loading ||
-        (commentLevel1Error && (
-          <Loading
-            isLoading={isCommentLevel1Loading}
-            error={commentLevel1Error}
-          />
+
+  // Render loading skeletons
+  if (isCommentLevel1Loading) {
+    return (
+      <View style={styles.container}>
+        {[1, 2, 3].map((item) => (
+          <CommentSkeleton key={`skeleton-${item}`} />
         ))}
-      {commentsLevel1?.length === 0 && (
+      </View>
+    );
+  }
+
+  // Render empty state
+  if (
+    !isCommentLevel1Loading &&
+    (!commentsLevel1 || commentsLevel1.length === 0)
+  ) {
+    return (
+      <View style={styles.container}>
         <View style={styles.notCommentContainer}>
           <Text style={styles.notCommentTxt}>Not comment yet!</Text>
         </View>
-      )}
+      </View>
+    );
+  }
 
+  return (
+    <View style={styles.container}>
       <FlatList
         data={commentsLevel1}
         keyExtractor={(item) => item.id.toString()}
@@ -82,10 +102,16 @@ const getStyles = (isDarkMode: any) =>
     notCommentContainer: {
       alignContent: "center",
       alignItems: "center",
+      paddingVertical: height * 0.05,
     },
     notCommentTxt: {
       fontSize: textFontSize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
     },
   });
 
