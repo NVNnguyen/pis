@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -184,28 +185,23 @@ const PostDetails = ({
         <AudioPlayer audioUri={images[0].url} />
       )}
       {type === "Image" && images.length > 0 && (
-        <ScrollView
+        <FlatList
+          data={images}
+          keyExtractor={(image) => image.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.imageContainer}
-        >
-          <FlatList
-            data={images}
-            keyExtractor={(image) => image.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => {
-                  showModal(item?.id);
-                }}
-              >
-                <Image source={{ uri: item.url }} style={styles.image} />
-              </TouchableOpacity>
-            )}
-          />
-        </ScrollView>
+          renderItem={({ item }) => (
+            <TouchableWithoutFeedback
+              key={item.id}
+              onPress={() => {
+                showModal(item?.id);
+              }}
+            >
+              <Image source={{ uri: item.url }} style={styles.image} />
+            </TouchableWithoutFeedback>
+          )}
+        />
       )}
 
       {/* Footer */}

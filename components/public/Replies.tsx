@@ -6,6 +6,8 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  TextInput,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -26,7 +28,13 @@ import useHandleFollow from "@/hooks/useHandleFollow";
 import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
-const Replies = (item: any) => {
+interface RepliesProp {
+  item: any;
+  repliesComment: (username: string, ref: React.RefObject<TextInput>) => void;
+  commentInputRef: React.RefObject<TextInput>;
+}
+
+const Replies = ({ item, repliesComment, commentInputRef }: RepliesProp) => {
   const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
     useState<boolean>(false);
   const [isOpenReplies, setIsOpenReplies] = useState<boolean>(false);
@@ -46,6 +54,10 @@ const Replies = (item: any) => {
     userId: myUserId,
     friendId: item?.userPostResponse?.userId || 0,
   });
+
+  const words = item?.content.split(" ");
+  const highLighUsername = words[0];
+  const currentContent = words.slice(1).join(" ");
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -74,18 +86,21 @@ const Replies = (item: any) => {
           </TouchableOpacity>
 
           {!isFollowing && myUserId !== item?.userPostResponse?.userId && (
-            <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
+            <TouchableWithoutFeedback
+              onPress={handleFollowing}
+              style={styles.addIcon}
+            >
               <MaterialIcons
                 name="add"
                 size={height * 0.012}
                 color={isDarkMode ? lightTheme.text : darkTheme.text}
               />
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
           )}
         </View>
         <View style={styles.userInfo}>
           <View style={styles.userRow}>
-            <TouchableOpacity
+            <TouchableWithoutFeedback
               onPress={() =>
                 navigation.navigate("Profile", {
                   userId: item?.userPostResponse.userId,
@@ -96,14 +111,21 @@ const Replies = (item: any) => {
               <Text style={styles.username}>
                 {item?.userPostResponse.username}
               </Text>
-            </TouchableOpacity>
+            </TouchableWithoutFeedback>
             {item?.userPostResponse?.followers > 100000 && (
               <MaterialIcons name="verified" style={styles.verifiedText} />
             )}
 
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
-          <Text style={styles.caption}>{item?.content} </Text>
+          <View style={{ flexDirection: "row" }}>
+            {highLighUsername === item?.userPostResponse.username ? (
+              <Text style={{ color: "#1da1f2" }}>{highLighUsername}</Text>
+            ) : (
+              <Text style={styles.caption}> {highLighUsername}</Text>
+            )}
+            <Text style={styles.caption}> {currentContent}</Text>
+          </View>
         </View>
         <TouchableOpacity>
           {/* <MaterialIcons
@@ -137,7 +159,12 @@ const Replies = (item: any) => {
           {}
           <Text style={styles.iconText}>{formatNumber(numberLike ?? 0)}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconContainer} onPress={() => {}}>
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() =>
+            repliesComment(item?.userPostResponse?.username, commentInputRef)
+          }
+        >
           <Ionicons
             name="chatbubble-outline"
             size={height * 0.02}

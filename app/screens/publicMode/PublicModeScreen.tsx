@@ -110,7 +110,7 @@ const PublicModeScreen = () => {
     }
     return <PostItem key={item.id} {...item} />;
   };
-  console.log("token", getToken());
+
   const ListHeaderComponent = () => (
     <NewPost
       userInfo={{

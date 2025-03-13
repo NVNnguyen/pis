@@ -1,5 +1,5 @@
 {
-  "name": "v-fusion-app",
+  "name": "pis",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -9,7 +9,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "buildAAB": "npx react-native build-android --mode=release",
+    "buildAPK": "npm run android -- --mode=release"
   },
   "jest": {
     "preset": "jest-expo"
@@ -73,7 +75,8 @@
     "react-native-web": "0.19.13",
     "react-native-webview": "13.12.4",
     "react-query": "3.39.3",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "expo-dev-client": "~5.0.13"
   },
   "devDependencies": {
     "@babel/core": "7.25.2",

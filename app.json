@@ -1,14 +1,17 @@
 {
   "expo": {
-    "name": "v-fusion-app",
-    "slug": "v-fusion-app",
+    "name": "pis",
+    "slug": "pis",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "",
-    "scheme": "myapp",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "scheme": "vpis",
     "deepLinks": [
-      "https://myapp.com",
-      "myapp://"
+      "https://vpis.me",
+      "vpis://"
     ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,8 +19,12 @@
       "bundleIdentifier": "com.pis",
       "supportsTablet": true,
       "associatedDomains": [
-        "applinks:myapp.com"
-      ]
+        "applinks:vpis.me",
+        "applinks:vpis.me"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,10 +38,10 @@
           "data": [
             {
               "scheme": "https",
-              "host": "myapp.com"
+              "host": "vpis.me"
             },
             {
-              "scheme": "myapp"
+              "scheme": "vpis"
             }
           ],
           "category": [
@@ -62,6 +69,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5ca64d4b-1644-495f-b7dc-ecb066a3b65d"
+      }
     }
   }
 }

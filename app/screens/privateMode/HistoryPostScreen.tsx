@@ -3,6 +3,7 @@ import Photo from "@/components/private/Photo";
 import Voice from "@/components/private/Voice";
 import BlockUserModal from "@/components/public/Modals/BlockUserModal";
 import SettingModalPrivate from "@/components/public/Modals/SettingModalPrivate";
+import MediaModal from "@/components/public/Modals/MediaModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import useProfileInformation from "@/hooks/useProfileInformation";
@@ -59,11 +60,13 @@ const HistoryPostScreen = () => {
   const [isVisibleModal, setIsVisibleModal] = useState<boolean>(false);
   const [isVisibleSettingModel, setIsVisibleSettingModel] =
     useState<boolean>(false);
+  const [mediaModalVisible, setMediaModalVisible] = useState(false);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const myUserId = Number(useMyUserId());
 
   const { profileInformation, isProfileDetailLoading, postProfileError } =
     useProfileInformation(myUserId, route?.params?.userId);
-  console.log("profile info: ", profileInformation);
+
   const {
     data: privatePosts,
     isLoading,
@@ -90,16 +93,32 @@ const HistoryPostScreen = () => {
   const NUM_COLUMNS = 3;
   const ITEM_SIZE = (width - ITEM_MARGIN * (NUM_COLUMNS + 1)) / NUM_COLUMNS;
 
-  const renderPhotoItem = ({ item }: any) => (
-    <View style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: ITEM_MARGIN }}>
+  const handlePhotoPress = (index: number) => {
+    setSelectedMediaIndex(index);
+    setMediaModalVisible(true);
+  };
+
+  const handleVoicePress = (index: number) => {
+    setSelectedMediaIndex(index);
+    setMediaModalVisible(true);
+  };
+
+  const renderPhotoItem = ({ item, index }: any) => (
+    <TouchableOpacity
+      style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: ITEM_MARGIN }}
+      onPress={() => handlePhotoPress(index)}
+    >
       <Photo {...item} size={ITEM_SIZE} />
-    </View>
+    </TouchableOpacity>
   );
 
-  const renderVoiceItem = ({ item }: any) => (
-    <View style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: ITEM_MARGIN }}>
+  const renderVoiceItem = ({ item, index }: any) => (
+    <TouchableOpacity
+      style={{ width: ITEM_SIZE, height: ITEM_SIZE, margin: ITEM_MARGIN }}
+      onPress={() => handleVoicePress(index)}
+    >
       <Voice {...item} size={ITEM_SIZE} />
-    </View>
+    </TouchableOpacity>
   );
 
   // ✅ Animation State for Button Color
@@ -131,6 +150,7 @@ const HistoryPostScreen = () => {
     inputRange: [0, 1, 2],
     outputRange: ["#0078D7", "#0099BC", "#2D7D9A"],
   });
+
   useLayoutEffect(() => {
     if (myUserId === route?.params?.userId) {
       navigation.setOptions({
@@ -146,6 +166,7 @@ const HistoryPostScreen = () => {
       });
     }
   }, [myUserId, isDarkMode, navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.profileHeader}>
@@ -268,6 +289,8 @@ const HistoryPostScreen = () => {
           }
         />
       )}
+
+      {/* Block User Modal */}
       <BlockUserModal
         visible={isVisibleModal}
         onClose={() => setIsVisibleModal(false)}
@@ -275,9 +298,20 @@ const HistoryPostScreen = () => {
         myUserId={myUserId}
         userId={route?.params?.userId}
       />
+
+      {/* Settings Modal */}
       <SettingModalPrivate
         visible={isVisibleSettingModel}
         onClose={() => setIsVisibleSettingModel(false)}
+      />
+
+      {/* Media Modal for Photos and Voice */}
+      <MediaModal
+        visible={mediaModalVisible}
+        onClose={() => setMediaModalVisible(false)}
+        mediaType={activeTab}
+        mediaItems={activeTab === "photo" ? photoPosts : voicePosts}
+        initialIndex={selectedMediaIndex}
       />
     </SafeAreaView>
   );

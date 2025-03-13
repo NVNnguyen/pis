@@ -47,6 +47,7 @@ export const useCreateComment = (userId: number) => {
       formData.append("userId", String(postData.userId));
       formData.append("content", postData.content);
       formData.append("type", postData.type ?? detectedType);
+      console.log("creeate comment: ", formData);
       const response = await postsAPI.createComment(formData);
       return response?.data;
     },

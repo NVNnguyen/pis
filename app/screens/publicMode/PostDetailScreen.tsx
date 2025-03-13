@@ -1,12 +1,12 @@
-import Posts from "@/components/public/Posts";
+"use client";
 import usePostStore from "@/stores/usePostStore";
 import {
-  RouteProp,
+  type RouteProp,
   useRoute,
   useFocusEffect,
-  useNavigation,
 } from "@react-navigation/native";
-import React, { useState, useCallback, useRef } from "react";
+import type React from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -17,17 +17,17 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   Keyboard,
-  TextInput,
+  type TextInput,
 } from "react-native";
 import Comments from "@/components/public/Comments";
-import { MainStackType } from "@/utils/types/MainStackType";
+import type { MainStackType } from "@/utils/types/MainStackType";
 import PostDetails from "@/components/public/PostDetail";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { grey } from "@/utils/colorPrimary";
 import { fontWeight, textPostFontSize } from "@/styles/stylePrimary";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
-import { PostItemType } from "@/utils/types/PostItemType";
+import type { PostItemType } from "@/utils/types/PostItemType";
 import CommentInput from "@/components/public/CommentInput";
 
 const { width, height } = Dimensions.get("window");
@@ -74,16 +74,16 @@ const PostDetailScreen = () => {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 85 : 0}
-      style={{ flex: 1 }}
+      style={styles.keyboardView}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.mainContainer}>
           <FlatList
             style={styles.container}
             data={currentPost ? [currentPost] : []}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <>
+              <View style={styles.contentContainer}>
                 <PostDetails {...item} isOpenComment={handleChatBubblePress} />
                 <View style={styles.repliesContainer}>
                   <Text style={styles.repliesTxt}>Replies</Text>
@@ -100,11 +100,14 @@ const PostDetailScreen = () => {
                     commentInputRef={commentInputRef}
                   />
                 </View>
-              </>
+              </View>
             )}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 60 }}
+            contentContainerStyle={styles.flatListContent}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            horizontal={false}
           />
 
           <View style={styles.commentInputContainer}>
@@ -124,15 +127,34 @@ const PostDetailScreen = () => {
 
 const getStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
+    keyboardView: {
+      flex: 1,
+      width: "100%",
+    },
+    mainContainer: {
+      flex: 1,
+      width: "100%",
+    },
     container: {
       flex: 1,
+      width: "100%",
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
     },
+    contentContainer: {
+      width: width, // Ensure full width
+      flexDirection: "column",
+    },
+    flatListContent: {
+      flexGrow: 1,
+      paddingBottom: 60,
+      width: "100%",
+    },
     commentSection: {
       flexGrow: 1,
       minHeight: height * 0.25,
+      width: "100%",
     },
     commentInputContainer: {
       position: "absolute",
@@ -153,6 +175,7 @@ const getStyles = (isDarkMode: boolean) =>
       borderColor: grey,
       paddingVertical: height * 0.01,
       paddingHorizontal: width * 0.02,
+      width: "100%",
     },
     repliesTxt: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -172,6 +195,7 @@ const getStyles = (isDarkMode: boolean) =>
       alignItems: "center",
       paddingVertical: height * 0.01,
       paddingHorizontal: width * 0.02,
+      width: "100%",
     },
     commentCount: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,

@@ -16,10 +16,9 @@ import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 const { width, height } = Dimensions.get("window");
 interface AudioPreviewProps {
   voiceUri: string;
-  onRemove: () => void;
 }
 
-const AudioMessage: React.FC<AudioPreviewProps> = ({ voiceUri, onRemove }) => {
+const AudioMessage: React.FC<AudioPreviewProps> = ({ voiceUri }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [soundDuration, setSoundDuration] = useState<number>(0);
   const [playbackPosition, setPlaybackPosition] = useState<number>(0);

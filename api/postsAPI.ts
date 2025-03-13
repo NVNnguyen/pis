@@ -2,16 +2,10 @@ import { getToken } from "@/utils/storage";
 import Http from "@/utils/Http";
 
 const BASE_URL_POSTS = `/posts`;
-let http: any;
-
-const initHttp = async () => {
-  const token = await getToken();
-  http = new Http(token || "").instance;
-};
-initHttp(); // Gọi khi app khởi động
-
+const http = new Http().instance;
 const postsAPI = {
   posts: async (id: number) => {
+    console.log("token", await getToken());
     try {
       const response = await http.get(`${BASE_URL_POSTS}/public/${id}`);
       return response.data;

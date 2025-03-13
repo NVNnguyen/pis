@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   backgroundColor,
@@ -29,20 +30,21 @@ import { darkTheme, lightTheme } from "@/utils/themes";
 import authAPI from "@/api/authAPI";
 import { RFValue } from "react-native-responsive-fontsize";
 import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
+import useRegisterAccount from "@/hooks/useRegisterAccount";
 
 const { width, height } = Dimensions.get("window");
 
 const RegisterScreen = () => {
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [password, setPassword] = useState("");
-  const [rePassword, setRePassword] = useState("");
+  const [email, setEmail] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [rePassword, setRePassword] = useState<string>("");
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isDarkMode } = useTheme();
+  const register = useRegisterAccount(navigation);
 
   const styles = getStyles(isDarkMode);
   const handelRegister = async () => {
@@ -71,21 +73,17 @@ const RegisterScreen = () => {
       setAlertVisible(true);
       return;
     }
-    try {
-      if (!isLoading) {
-        const response = await authAPI.register(
-          email,
-          password,
-          firstName,
-          lastName
-        );
-        navigation.navigate("Login");
-      }
-    } catch (error) {
-      setAlertMessage("Register failed!");
-      setAlertVisible(true);
-    } finally {
-      setIsLoading(false);
+    console.log(
+      "email, password, firstName, lastName",
+      email,
+      password,
+      firstName,
+      lastName
+    );
+    await register.register({ email, password, firstName, lastName });
+
+    if (register.isSuccess) {
+      navigation.navigate("Login");
     }
   };
 
@@ -104,7 +102,7 @@ const RegisterScreen = () => {
               style={styles.input}
               placeholder="Email"
               placeholderTextColor="#bdbdbd"
-              value={email.trim()}
+              value={email}
               onChangeText={setEmail}
             />
             <Text style={styles.label}>First name</Text>
@@ -112,7 +110,7 @@ const RegisterScreen = () => {
               style={styles.input}
               placeholder="First name"
               placeholderTextColor="#bdbdbd"
-              value={firstName.trim()}
+              value={firstName}
               onChangeText={setFirstName}
             />
             <Text style={styles.label}>Last name</Text>
@@ -120,7 +118,7 @@ const RegisterScreen = () => {
               style={styles.input}
               placeholder="Last name"
               placeholderTextColor="#bdbdbd"
-              value={lastName.trim()}
+              value={lastName}
               onChangeText={setLastName}
             />
 
@@ -130,7 +128,7 @@ const RegisterScreen = () => {
               placeholder="Password"
               placeholderTextColor="#bdbdbd"
               secureTextEntry
-              value={password.trim()}
+              value={password}
               onChangeText={setPassword}
             />
 
@@ -140,15 +138,23 @@ const RegisterScreen = () => {
               placeholder="Re-enter password"
               placeholderTextColor="#bdbdbd"
               secureTextEntry
-              value={rePassword.trim()}
+              value={rePassword}
               onChangeText={setRePassword}
             />
 
             <TouchableOpacity
               style={styles.registerButton}
               onPress={handelRegister}
+              disabled={register.isLoading} // disable khi loading
             >
-              <Text style={styles.registerButtonText}>Register</Text>
+              {register.isLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? lightTheme.text : darkTheme.text}
+                />
+              ) : (
+                <Text style={styles.registerButtonText}>Register</Text>
+              )}
             </TouchableOpacity>
           </ScrollView>
           {/* Custom Alert */}
@@ -216,6 +222,7 @@ const getStyles = (isDarkMode: any) =>
       width: "100%",
       alignItems: "center",
       marginTop: height * 0.03,
+      opacity: 1,
     },
     registerButtonText: {
       color: isDarkMode ? lightTheme.text : darkTheme.text,

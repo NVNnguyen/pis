@@ -3,10 +3,10 @@ import Message from "@/components/genaral/chat/Message";
 import { useTheme } from "@/contexts/ThemeContext";
 import useMessage from "@/hooks/useMessage";
 import { useMyUserId } from "@/hooks/useMyUserId";
+import useNewestMessage from "@/hooks/useNewestMessage";
 import { textPostFontSize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -30,22 +30,34 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const myUserid = useMyUserId() ?? 0;
+
+  const flatListRef = useRef<FlatList<any>>(null);
   const [messageList, setMessageList] = useState<any[]>([]);
-  console.log("Get message with myid and usserId: ", myUserid, userInfo?.id);
+
   const { message } = useMessage(myUserid, userInfo?.id);
+  const { newMessage } = useNewestMessage(myUserid, userInfo?.id);
   useEffect(() => {
-    if (message) {
-      console.log("Okkk");
+    if (message && message.length > 0) {
       setMessageList(message);
     }
   }, [message]);
-  console.log("Message: ", messageList);
+
+  // 👉 Scroll xuống cuối khi messageList thay đổi
+  useEffect(() => {
+    if (messageList.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100); // delay 100ms đảm bảo layout đã render xong
+    }
+  }, [messageList]);
 
   return (
     <>
       {messageList.length > 0 ? (
         <FlatList
-          data={messageList}
+          ref={flatListRef}
+          showsVerticalScrollIndicator={false}
+          data={messageList || newMessage}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View
@@ -65,6 +77,7 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
               />
             </View>
           )}
+          contentContainerStyle={{ paddingBottom: height * 0.05 }}
         />
       ) : (
         <View style={styles.noMsgContainer}>

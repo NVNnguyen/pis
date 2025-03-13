@@ -231,6 +231,7 @@ const getStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: width * 0.05,
       fontWeight: fontWeight,
+      marginTop: "50%",
     },
     galleryItem: {
       width: (width - 4 * 4) / 3,

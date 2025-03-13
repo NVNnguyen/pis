@@ -2,14 +2,7 @@ import Http from "@/utils/Http";
 import { getToken } from "@/utils/storage";
 
 const BASE_URL_USERS = `/users`;
-let http: any;
-
-const initHttp = async () => {
-  const token = await getToken();
-  http = new Http(token || "").instance;
-};
-initHttp(); // Gọi khi app khởi động
-
+const http = new Http().instance;
 
 // **API với token**
 const infoAPI = {

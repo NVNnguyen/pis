@@ -8,7 +8,7 @@ import {
   Dimensions,
   Keyboard,
   TouchableWithoutFeedback,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -29,8 +29,9 @@ import { FontAwesome } from "@expo/vector-icons";
 import { darkThemeInput, grey, lightThemeInput } from "@/utils/colorPrimary";
 import authAPI from "@/api/authAPI";
 import { getDecodedToken } from "@/utils/decodeToken";
+import useLogin from "@/hooks/useLogin";
 
-const { width, height } = Dimensions.get("window"); // Get device dimensions
+const { width, height } = Dimensions.get("window");
 
 const LoginScreen = () => {
   const { isDarkMode } = useTheme();
@@ -41,6 +42,12 @@ const LoginScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
+
+  const showAlert = (message: string) => {
+    setAlertMessage(message);
+    setAlertVisible(true);
+  };
+  const login = useLogin(navigation);
   const handleLogin = async () => {
     const trimmedEmail = email.toLowerCase().trim();
     if (!trimmedEmail) {
@@ -51,27 +58,9 @@ const LoginScreen = () => {
       showAlert("Invalid email format! Please enter a valid email.");
       return;
     }
-    loginMutation.mutate({ email: trimmedEmail, password });
-  };
-
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) => {
-      return await authAPI.login(credentials.email, credentials.password);
-    },
-    onSuccess: async (response) => {
-      getDecodedToken(response?.data?.token);
-
-      await AsyncStorage.setItem("token", response?.data?.token);
-      console.log("token login: ", await AsyncStorage.getItem("token"));
-      navigation.navigate("PublicMode"); // Chuyển hướng sau khi đăng nhập thành công
-    },
-    onError: () => {
-      showAlert("Email or password is incorrect!");
-    },
-  });
-  const showAlert = (message: string) => {
-    setAlertMessage(message);
-    setAlertVisible(true);
+    if (email && password) {
+      login.login({ email, password });
+    }
   };
 
   return (
@@ -109,46 +98,29 @@ const LoginScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* <TouchableOpacity
-          style={styles.checkboxContainer}
-          onPress={() => setIsChecked(!isChecked)}
+        <TouchableOpacity
+          style={[styles.button, login.isLoading && { opacity: 0.7 }]}
+          onPress={handleLogin}
+          disabled={login.isLoading}
         >
-          {isChecked ? (
-            <MaterialIcons name="check-box" size={buttonFontsize} color={Color} />
-          ) : (
-            <MaterialIcons
-              name="check-box-outline-blank"
-              size={buttonFontsize}
-              color={Color}
+          {login.isLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={isDarkMode ? lightTheme.text : darkTheme.text}
             />
+          ) : (
+            <Text style={styles.buttonText}>Sign in</Text>
           )}
-          <Text style={styles.checkboxText}>Remember me</Text>
-        </TouchableOpacity> */}
-
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Sign in</Text>
         </TouchableOpacity>
+
         <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
           <Text style={styles.forgotPassword}>Forgot password?</Text>
         </TouchableOpacity>
-
-        {/* <Text style={styles.signInWith}>Sign in with</Text>
-        <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="apple" size={20} color={Color} />
-            <Text style={styles.socialText}>Apple ID</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="google" size={20} color={Color} />
-            <Text style={styles.socialText}>Google</Text>
-          </TouchableOpacity>
-        </View> */}
 
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text style={styles.registerText}>Register an account</Text>
         </TouchableOpacity>
 
-        {/* Custom Alert */}
         <CustomAlert
           visible={alertVisible}
           title="Error"
@@ -172,7 +144,7 @@ const getStyles = (isDarkMode: any) =>
       alignItems: "center",
     },
     title: {
-      fontSize: titleFontsize, // Dynamic font size
+      fontSize: titleFontsize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginBottom: height * 0.02,
       fontWeight: fontWeight,
@@ -207,16 +179,6 @@ const getStyles = (isDarkMode: any) =>
       flex: 1,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
-    checkboxContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: height * 0.02,
-    },
-    checkboxText: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      marginLeft: width * 0.02,
-      fontSize: textFontSize,
-    },
     button: {
       backgroundColor: isDarkMode
         ? lightTheme.background
@@ -238,30 +200,6 @@ const getStyles = (isDarkMode: any) =>
       marginBottom: height * 0.03,
       fontSize: textFontSize,
       textDecorationLine: "underline",
-    },
-    signInWith: {
-      color: grey,
-      fontSize: textFontSize,
-      marginBottom: height * 0.01,
-    },
-    socialButtons: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      width: "100%",
-      marginBottom: height * 0.02,
-    },
-    socialButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#000",
-      borderRadius: 10,
-      padding: width * 0.03,
-      paddingHorizontal: width * 0.07,
-    },
-    socialText: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      marginLeft: width * 0.02,
-      fontSize: textFontSize,
     },
     registerText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,

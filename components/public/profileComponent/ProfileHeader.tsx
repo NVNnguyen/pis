@@ -48,6 +48,7 @@ import type { MainStackType } from "@/utils/types/MainStackType";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import friendAPI from "@/api/friendAPI";
 import BlockUserModal from "../Modals/BlockUserModal";
+import useUploadAvatar from "@/hooks/useUploadAvatar";
 
 const { width, height } = Dimensions.get("window");
 
@@ -112,8 +113,10 @@ const ProfileHeader = React.memo(
         });
       }
     }, [myUserId, userIdProp, isDarkMode, navigation]);
+    const { image, formData, openPickImage } = useImagePickerSelectionOne();
+    const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
+      useUploadAvatar(formData, userIdProp);
 
-    const { openPickImage } = useImagePickerSelectionOne();
     const { isFollowing, responseMessage, performFollowAction, isLoading } =
       useHandleFollow({
         userName: userInfo?.username || "",
@@ -197,6 +200,12 @@ const ProfileHeader = React.memo(
         ) : myUserId === userIdProp ? (
           <View style={styles.avatarIconContainer}>
             <TouchableOpacity style={styles.avatarIcon} onPress={openPickImage}>
+              {isUpLoadAvatarLoading && (
+                <ActivityIndicator
+                  size={"small"}
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              )}
               <AntDesign
                 name="adduser"
                 size={width * 0.06}
@@ -272,9 +281,9 @@ const ProfileHeader = React.memo(
             >
               <Text style={styles.editProfileButtonText}>Edit profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.shareProfileButton}>
+            {/* <TouchableOpacity style={styles.shareProfileButton}>
               <Text style={styles.shareProfileButtonText}>Share profile</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         );
       }

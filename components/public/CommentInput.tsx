@@ -33,6 +33,8 @@ import CameraModal from "./Modals/CameraModal";
 import { UseCreateCommentType } from "@/utils/types/UseCreateCommentType";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import { useQueryClient } from "@tanstack/react-query";
+import Voice from "../private/Voice";
+import AudioMessage from "../genaral/AudioMessage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -67,6 +69,8 @@ const CommentInput = ({
   const [selectedMediaType, setSelectedMediaType] = useState<MediaType>(
     MediaType.None
   );
+  // Add state for username to allow updating it
+  const [currentUserName, setCurrentUserName] = useState<string>(userName);
 
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode, parentCommentId);
@@ -74,6 +78,17 @@ const CommentInput = ({
   const { image, openImagePicker, removeImage } = useImagePickerChooseOne();
   const createCommentMutation = useCreateComment(userId);
   const queryClient = useQueryClient();
+
+  // Update username when prop changes (when clicking on a different user)
+  useEffect(() => {
+    setCurrentUserName(userName);
+  }, [userName]);
+
+  // Function to clear the username
+  const clearUsername = () => {
+    setCurrentUserName("");
+  };
+
   // Xử lý khi chọn media type
   const handleSelectMediaType = (mediaType: MediaType) => {
     // Reset tất cả dữ liệu media
@@ -117,6 +132,12 @@ const CommentInput = ({
     let detectedType: "Voice" | "Image" | "Text" = "Text";
     let filePayload: { uri: string } | null = null;
 
+    // Append username to message if it exists
+    let finalMessage = message;
+    if (currentUserName && currentUserName !== "") {
+      finalMessage = `${currentUserName} ${message}`;
+    }
+
     if (recordUri) {
       detectedType = "Voice";
       filePayload = { uri: recordUri };
@@ -133,7 +154,7 @@ const CommentInput = ({
       userId: myUserId,
       parentCommentId: parentCommentId !== 0 ? parentCommentId : null,
       postId,
-      content: message.trim(),
+      content: finalMessage.trim(),
       type: detectedType,
     };
 
@@ -146,6 +167,8 @@ const CommentInput = ({
           queryKey: ["commentsLevel2", myUserId, parentCommentId],
         });
         setMessage("");
+        // Reset username after successful comment submission
+        setCurrentUserName("");
         clearSelectedMedia();
       },
     });
@@ -192,7 +215,7 @@ const CommentInput = ({
             )}
             {recordUri && (
               <View style={styles.audioContainer}>
-                <AudioPlayer audioUri={recordUri} />
+                <AudioMessage voiceUri={recordUri} />
                 <TouchableOpacity
                   style={styles.clearAudio}
                   onPress={clearSelectedMedia}
@@ -259,21 +282,34 @@ const CommentInput = ({
             </View>
           )}
           <View style={styles.inputContainer}>
-            {parentCommentId !== 0 && (
-              <Text style={styles.userName}>{userName + " "} </Text>
-            )}
-
-            <TextInput
-              ref={inputRef}
-              placeholder={
-                parentCommentId === 0 ? `Comment on ${userName} post...` : ""
-              }
-              style={styles.textInput}
-              placeholderTextColor={grey}
-              value={message}
-              onChangeText={setMessage}
-              multiline
-            />
+            {/* Username inside the TextInput with blue highlight and clear button */}
+            <View style={styles.textInputWrapper}>
+              {currentUserName && (
+                <View style={styles.usernameContainer}>
+                  <Text style={styles.userName}>{currentUserName}</Text>
+                  <TouchableOpacity
+                    style={styles.clearUsernameButton}
+                    onPress={clearUsername}
+                  >
+                    <AntDesign name="close" size={14} color={primaryColor} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <TextInput
+                ref={inputRef}
+                placeholder={
+                  parentCommentId === 0 ? `Comment on ${userName} post...` : ""
+                }
+                style={[
+                  styles.textInput,
+                  currentUserName ? styles.textInputWithUsername : null,
+                ]}
+                placeholderTextColor={grey}
+                value={message}
+                onChangeText={setMessage}
+                multiline
+              />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -386,18 +422,37 @@ const getStyles = (isDarkMode: boolean, parentCommentId: number) =>
       marginRight: width * 0.02,
       alignItems: "flex-start",
     },
+    textInputWrapper: {
+      width: "100%",
+    },
+    usernameContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(0, 184, 148, 0.1)",
+      borderRadius: 10,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      marginBottom: 4,
+      alignSelf: "flex-start",
+    },
     userName: {
       color: primaryColor,
       fontSize: text12FontSize,
       fontWeight: "bold",
-      alignSelf: "flex-start",
+      marginRight: 4,
+    },
+    clearUsernameButton: {
+      padding: 2,
     },
     textInput: {
-      alignSelf: "stretch",
+      width: "100%",
       fontSize: text12FontSize,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       maxHeight: height * 0.2,
       textAlignVertical: "top",
+    },
+    textInputWithUsername: {
+      marginTop: 2,
     },
     sendButton: {
       paddingHorizontal: width * 0.02,

@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import useCommentLevel1 from "@/hooks/useCommentLevel1";
 import { textFontSize } from "@/styles/stylePrimary";
 import Comment from "./Comment";
 import CommentSkeleton from "@/Loading/CommentSkeleton";
-
+import Replies from "./Replies";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,7 +38,7 @@ const Comments = ({
   const styles = getStyles(isDarkMode);
   const { commentsLevel1, isCommentLevel1Loading, commentLevel1Error } =
     useCommentLevel1(userId, postId);
-
+  console.log("comment level 1: ", commentsLevel1);
   const handleCommentPress = (
     commentId: number,
     ref: React.RefObject<TextInput>,
@@ -85,6 +85,16 @@ const Comments = ({
             commentInputRef={commentInputRef}
           />
         )}
+        nestedScrollEnabled={true}
+        contentContainerStyle={styles.flatListContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        horizontal={false}
+        initialNumToRender={10} // Giới hạn số lượng phần tử render ban đầu
+        maxToRenderPerBatch={10} // Giới hạn số lượng phần tử render mỗi lần
+        windowSize={5} // Điều chỉnh kích thước cửa sổ render
       />
     </View>
   );
@@ -112,6 +122,11 @@ const getStyles = (isDarkMode: any) =>
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
+    },
+    flatListContent: {
+      flexGrow: 1,
+      paddingBottom: 60,
+      width: "100%",
     },
   });
 

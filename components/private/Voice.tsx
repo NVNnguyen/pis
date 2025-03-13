@@ -1,19 +1,20 @@
-import React, { useState, useRef, useEffect } from "react";
+"use client";
+
+import { useState, useRef, useEffect } from "react";
 import {
   View,
-  Image,
   StyleSheet,
   Dimensions,
-  TouchableWithoutFeedback,
   Text,
   Animated,
   Easing,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { Audio } from "expo-av";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { PostItemType } from "@/utils/types/PostItemType";
+import type { PostItemType } from "@/utils/types/PostItemType";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
@@ -21,18 +22,28 @@ const ITEM_MARGIN = 4;
 const ITEM_SIZE = (width - ITEM_MARGIN * 4) / 3;
 
 interface VoiceProp extends PostItemType {
-  isLoadingUrl: boolean;
+  isLoadingUrl?: boolean;
+  size?: number;
+  onPress?: () => void;
 }
-const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
+
+const Voice = ({
+  id,
+  caption,
+  images,
+  type,
+  isLoadingUrl,
+  size = ITEM_SIZE,
+  onPress,
+}: VoiceProp) => {
   const { isDarkMode } = useTheme();
-  const styles = getStyles(isDarkMode);
+  const styles = getStyles(isDarkMode, size);
 
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const lastTap = useRef<number | null>(null);
   const waveAnimations = useRef(
     [...Array(5)].map(() => new Animated.Value(0))
   ).current;
@@ -62,17 +73,10 @@ const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
     waveAnimations.forEach((anim) => anim.stopAnimation());
   };
 
-  const handlePress = async () => {
-    const now = Date.now();
-    if (lastTap.current && now - lastTap.current < 300) {
-      setShowDetail((prev) => !prev);
-    } else {
-      handlePlayPause();
-    }
-    lastTap.current = now;
-  };
+  const handlePlayPause = async (e: any) => {
+    // Stop event propagation to prevent modal from opening
+    e.stopPropagation();
 
-  const handlePlayPause = async () => {
     if (!images?.[0]?.url) return;
 
     if (isPlaying && sound) {
@@ -134,66 +138,68 @@ const Voice = ({ id, caption, images, type, isLoadingUrl }: VoiceProp) => {
           color={isDarkMode ? lightTheme.text : darkTheme.text}
         />
       ) : (
-        <TouchableWithoutFeedback onPress={handlePress}>
-          <View style={styles.audioWrapper}>
-            {isLoading ? (
-              <ActivityIndicator
-                size="small"
-                color={isDarkMode ? lightTheme.text : darkTheme.text}
-              />
-            ) : (
-              <>
+        <View style={styles.audioWrapper}>
+          {isLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={isDarkMode ? lightTheme.text : darkTheme.text}
+            />
+          ) : (
+            <>
+              <TouchableOpacity
+                onPress={handlePlayPause}
+                style={styles.playButton}
+              >
                 <Ionicons
                   name={isPlaying ? "pause-circle" : "play-circle"}
                   size={36}
                   color={isDarkMode ? lightTheme.text : darkTheme.text}
-                  style={{ marginBottom: 4 }}
                 />
-                {/* Sóng âm động */}
-                <View style={styles.waveContainer}>
-                  {waveAnimations.map((anim, index) => (
-                    <Animated.View
-                      key={index}
-                      style={[
-                        styles.waveBar,
-                        {
-                          transform: [
-                            {
-                              scaleY: anim.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [1, 2],
-                              }),
-                            },
-                          ],
-                        },
-                      ]}
-                    />
-                  ))}
-                </View>
+              </TouchableOpacity>
 
-                {/* Hiển thị thông tin nếu double tap */}
-                {showDetail && (
-                  <View style={styles.audioDetail}>
-                    <Text style={styles.audioText}>
-                      🎵 {caption || "Audio Detail"}
-                    </Text>
-                  </View>
-                )}
-              </>
-            )}
-          </View>
-        </TouchableWithoutFeedback>
+              {/* Sóng âm động */}
+              <View style={styles.waveContainer}>
+                {waveAnimations.map((anim, index) => (
+                  <Animated.View
+                    key={index}
+                    style={[
+                      styles.waveBar,
+                      {
+                        transform: [
+                          {
+                            scaleY: anim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 2],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {/* Hiển thị thông tin nếu double tap */}
+              {showDetail && (
+                <View style={styles.audioDetail}>
+                  <Text style={styles.audioText}>
+                    🎵 {caption || "Audio Detail"}
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
       )}
     </View>
   );
 };
 
-const getStyles = (isDarkMode: boolean) =>
+const getStyles = (isDarkMode: boolean, size: number) =>
   StyleSheet.create({
     itemWrapper: {
-      width: ITEM_SIZE,
-      height: ITEM_SIZE,
-      margin: ITEM_MARGIN,
+      width: size,
+      height: size,
       backgroundColor: isDarkMode
         ? lightTheme.background
         : darkTheme.background,
@@ -208,6 +214,10 @@ const getStyles = (isDarkMode: boolean) =>
       justifyContent: "center",
       alignItems: "center",
       padding: 10,
+    },
+    playButton: {
+      marginBottom: 4,
+      zIndex: 10,
     },
     waveContainer: {
       flexDirection: "row",

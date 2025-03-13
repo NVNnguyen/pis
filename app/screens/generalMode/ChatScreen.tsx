@@ -42,31 +42,7 @@ const ChatScreen = () => {
   const initializeConversation = useCallback(async () => {
     if (!myUserId || myUserId <= 0) return;
 
-    if (!partnerUserId || partnerUserId <= 0) {
-      setChatState({
-        conversationId: 0,
-        loading: false,
-        error: "Invalid user ID",
-      });
-      return;
-    }
-
-    if (myUserId === partnerUserId) {
-      setChatState({
-        conversationId: 0,
-        loading: false,
-        error: "Cannot create conversation with yourself",
-      });
-      return;
-    }
-
     try {
-      console.log(
-        "Checking for existing conversation:",
-        myUserId,
-        partnerUserId
-      );
-
       try {
         const existing = await conversationAPI.checkConversations(
           myUserId,
@@ -76,11 +52,6 @@ const ChatScreen = () => {
         const existingId = existing?.data?.conversationId;
 
         if (existingId) {
-          console.log(
-            "Update seen al msg: ",
-            existing?.data?.conversationId,
-            myUserId
-          );
           const response = await conversationAPI.messageSeen(
             existing?.data?.conversationId,
             partnerUserId
@@ -90,8 +61,6 @@ const ChatScreen = () => {
               queryKey: ["conversation", myUserId],
             });
           }
-          console.log("message seen: ", response);
-          console.log("Found existing conversation:", existingId);
           setChatState({
             conversationId: existingId,
             loading: false,
@@ -117,10 +86,9 @@ const ChatScreen = () => {
           myUserId,
           partnerUserId
         );
-        const newConversationId = createRes?.data?.conversationId;
+        const newConversationId = createRes?.conversationId;
 
         if (newConversationId) {
-          console.log("Created new conversation:", newConversationId);
           setChatState({
             conversationId: newConversationId,
             loading: false,

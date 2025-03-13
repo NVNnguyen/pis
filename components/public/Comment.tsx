@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { useState } from "react";
 import {
   View,
@@ -13,6 +13,8 @@ import {
   Button,
   type TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -35,6 +37,11 @@ import useCommentLevel2 from "@/hooks/useCommentLevel2";
 import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
+interface RepliesProp {
+  item: any;
+  repliesComment: (username: string, ref: React.RefObject<TextInput>) => void;
+  commentInputRef: React.RefObject<TextInput>;
+}
 interface CommentProp {
   item: any;
   onCommentPress: (
@@ -60,6 +67,7 @@ const Comment: React.FC<CommentProp> = ({
     myUserId,
     item?.id
   );
+  console.log("comment level 2: ", commentsLevel2);
   const seeEnum = commentsLevel2?.length > 5 ? 5 : commentsLevel2?.length;
   const [seeMore, setSeeMore] = useState<number>(seeEnum);
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
@@ -68,8 +76,27 @@ const Comment: React.FC<CommentProp> = ({
     item?.like,
     item?.likes
   );
-  const [imageLoading, setImageLoading] = useState<boolean>(true);
+  const ReplyItem = React.memo(
+    ({ item, repliesComment, commentInputRef }: RepliesProp) => (
+      <Replies
+        item={item}
+        repliesComment={repliesComment}
+        commentInputRef={commentInputRef}
+      />
+    )
+  );
 
+  const words = item?.content.split(" ");
+  const highLighUsername = words[0];
+  const currentContent = words.slice(1).join(" ");
+  const [imageLoading, setImageLoading] = useState<boolean>(true);
+  const handleReplyPress = (
+    username: string,
+    ref: React.RefObject<TextInput>
+  ) => {
+    // Gọi lại onCommentPress để focus input hoặc thực hiện hành động gì đó
+    onCommentPress(item?.id, commentInputRef, username);
+  };
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -116,7 +143,14 @@ const Comment: React.FC<CommentProp> = ({
             )}
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
-          <Text style={styles.caption}>{item?.content} </Text>
+          <View style={{ flexDirection: "row" }}>
+            {highLighUsername === item?.userPostResponse.username ? (
+              <Text style={{ color: "#1da1f2" }}>{highLighUsername}</Text>
+            ) : (
+              <Text style={styles.caption}> {highLighUsername}</Text>
+            )}
+            <Text style={styles.caption}> {currentContent}</Text>
+          </View>
         </View>
         <TouchableOpacity>
           {/* <MaterialIcons
@@ -200,12 +234,32 @@ const Comment: React.FC<CommentProp> = ({
 
       {isOpenReplies && commentsLevel2?.length > 0 && (
         <View style={styles.repliesContainer}>
-          <FlatList
-            data={commentsLevel2.slice(0, seeMore)}
-            keyExtractor={(item) => item.id.toString()}
-            nestedScrollEnabled={true}
-            renderItem={({ item }) => <Replies {...item} />}
-          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <FlatList
+              data={commentsLevel2.slice(0, seeMore)}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <ReplyItem
+                  item={item}
+                  repliesComment={handleReplyPress}
+                  commentInputRef={commentInputRef}
+                />
+              )}
+              nestedScrollEnabled={true}
+              contentContainerStyle={styles.flatListContent}
+              keyboardShouldPersistTaps="always"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              horizontal={false}
+              initialNumToRender={10} // Giới hạn số lượng phần tử render ban đầu
+              maxToRenderPerBatch={10} // Giới hạn số lượng phần tử render mỗi lần
+              windowSize={5} // Điều chỉnh kích thước cửa sổ render
+            />
+          </KeyboardAvoidingView>
           {commentsLevel2?.length > seeMore && (
             <Button title="see more" onPress={() => setSeeMore(seeMore + 5)} />
           )}
@@ -360,6 +414,8 @@ const getStyles = (isDarkMode: boolean) =>
       borderLeftWidth: 1,
       borderLeftColor: "grey",
       borderBottomLeftRadius: 100,
+      zIndex: 1000,
+      flex: 2,
     },
     txtViewReply: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -374,6 +430,11 @@ const getStyles = (isDarkMode: boolean) =>
     imageLoader: {
       position: "absolute",
       zIndex: 1,
+    },
+    flatListContent: {
+      flexGrow: 1,
+      paddingBottom: 60,
+      width: "100%",
     },
   });
 

@@ -4,12 +4,7 @@ import { getToken } from "@/utils/storage";
 import Http from "@/utils/Http";
 
 const BASE_URL_CONVERSATIONS = `/conversations`;
-let http: any;
-const initHttp = async () => {
-  const token = await getToken();
-  http = new Http(token || "").instance;
-};initHttp(); // Gọi khi app khởi động
-
+const http = new Http().instance;
 // **API với token**
 const conversationAPI = {
   conversations: async (id: number) => {
@@ -38,7 +33,6 @@ const conversationAPI = {
       const response = await http.get(
         `${BASE_URL_CONVERSATIONS}/messages/${ownerId}/${otherId}`
       );
-      console.log("message: ", response?.data);
       return response?.data;
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -50,7 +44,6 @@ const conversationAPI = {
       const response = await http.get(
         `${BASE_URL_CONVERSATIONS}/getId/${ownerId}/${otherId}`
       );
-      console.log(response?.data)
       return response?.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -78,7 +71,7 @@ const conversationAPI = {
         `${BASE_URL_CONVERSATIONS}/create/${ownerId}/${otherId}`
       );
 
-      return response;
+      return response?.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {

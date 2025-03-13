@@ -2,15 +2,7 @@ import Http from "@/utils/Http";
 import { getToken } from "@/utils/storage";
 
 const BASE_URL_FRIEND = `/friends`;
-let http: any;
-
-const initHttp = async () => {
-  const token = await getToken();
-  http = new Http(token || "").instance;
-};
-
-initHttp(); // Gọi khi app khởi động
-
+const http = new Http().instance;
 
 const friendAPI = {
   profile: async (userId: number, friendId: number) => {
@@ -121,7 +113,6 @@ const friendAPI = {
             userId: userId,
             friendId: friendId
           });
-          console.log("Response block friend:", response?.data);
           return response?.data;
         } catch (error) {
           console.error("Error blocking friend:", error);

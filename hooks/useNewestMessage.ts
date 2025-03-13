@@ -1,0 +1,22 @@
+import conversationAPI from "@/api/conversationAPI";
+import postsAPI from "@/api/postsAPI";
+import { useQuery } from "@tanstack/react-query";
+
+const useNewestMessage= (myUserId: number, userIdProp: number) => {
+        const {
+            data: newMessage,
+            isLoading: isNewMessageLoading,
+            error: newMessageError,
+        } = useQuery({
+            queryKey: ["message", myUserId, userIdProp],
+            queryFn: async () => {
+                const response = await conversationAPI.newMessage(myUserId, userIdProp);
+                console.log("Message in useMessage: ", response?.data)
+            return response?.data;
+            },
+            enabled: !!myUserId && !!userIdProp,
+        });
+        return { newMessage, isNewMessageLoading, newMessageError };
+};
+export default useNewestMessage;
+
