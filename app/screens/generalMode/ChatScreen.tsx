@@ -16,8 +16,6 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import useUserInfo from "@/hooks/useUserInfo";
 import { useMyUserId } from "@/hooks/useMyUserId";
-import conversationAPI from "@/api/conversationAPI";
-import { useQueryClient } from "@tanstack/react-query";
 
 const { height } = Dimensions.get("window");
 
@@ -27,135 +25,14 @@ const ChatScreen = () => {
 
   const { isDarkMode } = useTheme();
   const myUserIdStr = useMyUserId();
-  const myUserId = Number(myUserIdStr);
-  const queryClient = useQueryClient();
   const { userInfo, isUserLoading } = useUserInfo(partnerUserId);
-
   const styles = useMemo(() => getStyles(isDarkMode), [isDarkMode]);
-
-  const [chatState, setChatState] = useState({
-    conversationId: 0,
-    loading: true,
-    error: "",
-  });
-
-  const initializeConversation = useCallback(async () => {
-    if (!myUserId || myUserId <= 0) return;
-
-    try {
-      try {
-        const existing = await conversationAPI.checkConversations(
-          myUserId,
-          partnerUserId
-        );
-        console.log("conversation id", existing?.data);
-        const existingId = existing?.data?.conversationId;
-
-        if (existingId) {
-          const response = await conversationAPI.messageSeen(
-            existing?.data?.conversationId,
-            partnerUserId
-          );
-          if (response?.code === 2000) {
-            queryClient.invalidateQueries({
-              queryKey: ["conversation", myUserId],
-            });
-          }
-          setChatState({
-            conversationId: existingId,
-            loading: false,
-            error: "",
-          });
-          return;
-        }
-      } catch (checkError: any) {
-        const errorCode = checkError?.response?.data?.code;
-        if (errorCode !== 4020) {
-          console.error(
-            "Unexpected error when checking conversations:",
-            checkError
-          );
-        }
-        console.log(
-          "No existing conversation found. Proceeding to create one."
-        );
-      }
-
-      try {
-        const createRes = await conversationAPI.createConservations(
-          myUserId,
-          partnerUserId
-        );
-        const newConversationId = createRes?.conversationId;
-
-        if (newConversationId) {
-          setChatState({
-            conversationId: newConversationId,
-            loading: false,
-            error: "",
-          });
-        } else {
-          console.error("Conversation created but no ID returned:", createRes);
-          setChatState({
-            conversationId: 0,
-            loading: false,
-            error: "Failed to get conversation ID",
-          });
-        }
-      } catch (createError: any) {
-        const errorMessage =
-          createError?.response?.data?.message || "Unknown error";
-        console.error(
-          "Error creating conversation:",
-          createError?.response?.data || createError
-        );
-        setChatState({
-          conversationId: 0,
-          loading: false,
-          error: `Failed to create conversation: ${errorMessage}`,
-        });
-      }
-    } catch (error) {
-      setChatState({
-        conversationId: 0,
-        loading: false,
-        error: "Failed to initialize conversation",
-      });
-    }
-  }, [myUserId, partnerUserId]);
-
-  useEffect(() => {
-    if (chatState.conversationId || !myUserId) return;
-
-    setChatState((prev) => ({ ...prev, loading: true, error: "" }));
-    initializeConversation();
-  }, [
-    myUserId,
-    partnerUserId,
-    initializeConversation,
-    chatState.conversationId,
-  ]);
-
-  if (!myUserId && chatState.loading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator
-          size="large"
-          color={isDarkMode ? lightTheme.primary : darkTheme.primary}
-        />
-        <Text style={styles.loadingText}>Loading user information...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
       {userInfo && <ChatHeader {...userInfo} />}
       <MessageList {...userInfo} />
-      <ChatInput
-        conversationId={chatState.conversationId}
-        userId={partnerUserId}
-      />
+      <ChatInput />
     </View>
   );
 };

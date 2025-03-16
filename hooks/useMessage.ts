@@ -1,5 +1,4 @@
 import conversationAPI from "@/api/conversationAPI";
-import postsAPI from "@/api/postsAPI";
 import { useQuery } from "@tanstack/react-query";
 
 const useMessage= (myUserId: number, userIdProp: number) => {
@@ -12,7 +11,7 @@ const useMessage= (myUserId: number, userIdProp: number) => {
             queryFn: async () => {
                 const response = await conversationAPI.messages(myUserId, userIdProp);
                 console.log("Message in useMessage: ", response?.data)
-            return response?.data;
+            return response?.data || [];
             },
             enabled: !!myUserId && !!userIdProp,
         });

@@ -5,7 +5,6 @@ const BASE_URL_POSTS = `/posts`;
 const http = new Http().instance;
 const postsAPI = {
   posts: async (id: number) => {
-    console.log("token", await getToken());
     try {
       const response = await http.get(`${BASE_URL_POSTS}/public/${id}`);
       return response.data;

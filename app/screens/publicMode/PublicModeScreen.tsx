@@ -8,6 +8,7 @@ import {
   Animated,
   FlatList,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import TabBar from "@/components/public/TabBar/TabBar";
@@ -38,7 +39,7 @@ const PublicModeScreen = () => {
   const styles = getStyles(isDarkMode);
   const myUserId = useMyUserId() ?? 0;
   const { userInfo, isUserLoading } = useUserInfo(myUserId);
-  const { posts, isPostsLoading } = usePosts(myUserId);
+  const { posts, isPostsLoading, refetch, isFetching } = usePosts(myUserId);
   const { setPosts, postsStore } = usePostStore();
   const [isCreatingPost, setIsCreatingPost] = useState(false);
 
@@ -50,7 +51,7 @@ const PublicModeScreen = () => {
     ) {
       setPosts(posts);
     }
-  }, [posts, postsStore]);
+  }, [posts]);
 
   useEffect(() => {
     const listener = tabBarTranslateY.addListener((value) => {
@@ -135,6 +136,13 @@ const PublicModeScreen = () => {
         <PublicOrPrivate />
       </Animated.View>
 
+      {/* Spinner bên dưới toggle */}
+      {isFetching && (
+        <View style={styles.spinnerContainer}>
+          <ActivityIndicator size="small" color="#999" />
+        </View>
+      )}
+
       {/* FlatList */}
       <FlatList
         contentContainerStyle={{ paddingTop: height * 0.09 }}
@@ -157,6 +165,8 @@ const PublicModeScreen = () => {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        refreshing={isFetching}
+        onRefresh={refetch}
       />
 
       <Animated.View
@@ -212,6 +222,14 @@ const getStyles = (isDarkMode: boolean) =>
       right: 0,
       overflow: "hidden",
       paddingBottom: 5,
+    },
+    spinnerContainer: {
+      position: "absolute",
+      top: height * 0.08, // căn ngay dưới toggle
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 5,
     },
   });
 

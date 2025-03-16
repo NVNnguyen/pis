@@ -363,6 +363,7 @@ const getStyles = (isDarkMode: boolean, parentCommentId: number) =>
       paddingHorizontal: width * 0.02,
       borderTopWidth: 1,
       borderTopColor: isDarkMode ? "#333" : "#ddd",
+      marginBottom: height * 0.02,
     },
     leftInput: {
       flexDirection: "row",

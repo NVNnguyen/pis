@@ -60,7 +60,8 @@ export const useSendMessage = () => {
     },
     onSuccess: (_data, variables) => {
       // Cập nhật danh sách tin nhắn
-      queryClient.refetchQueries({
+    
+      queryClient.invalidateQueries({
         queryKey: ["message", variables?.senderId, variables?.userId],
       });
       queryClient.invalidateQueries({ queryKey: ["conversation", variables?.senderId] }); 

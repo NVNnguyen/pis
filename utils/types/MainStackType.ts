@@ -2,7 +2,7 @@ export type MainStackType = {
     Login: undefined;
     Register: undefined;
     ForgotPassword: undefined;
-    PrivateMode: undefined;
+    PrivateMode: { userId: number; myUserId: number } | undefined;
     PublicMode: undefined;
     Search: undefined;
     Profile: { userId: number, isFollow: boolean }; // Profile có id

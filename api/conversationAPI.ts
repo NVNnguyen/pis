@@ -33,7 +33,7 @@ const conversationAPI = {
       const response = await http.get(
         `${BASE_URL_CONVERSATIONS}/messages/${ownerId}/${otherId}`
       );
-      return response?.data;
+      return response?.data || [];
     } catch (error) {
       console.error("Error fetching messages:", error);
       throw error;

@@ -14,6 +14,7 @@ const useCommentLevel2 = (userId: number, commentId: number) => {
             userId,
             commentId
           );
+          console.log("response: ", response?.data?.elementCommentLevel2);
           return response?.data?.elementCommentLevel2;
         },
         enabled: !!userId && !!commentId

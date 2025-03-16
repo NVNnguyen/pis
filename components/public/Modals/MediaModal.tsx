@@ -45,7 +45,7 @@ const MediaModal = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const flatListRef = React.useRef<FlatList>(null);
-
+  console.log("mediaItems", mediaItems);
   useEffect(() => {
     if (visible && flatListRef.current && initialIndex > 0) {
       // Scroll to initial index when modal opens
@@ -65,16 +65,16 @@ const MediaModal = ({
 
   const renderPhotoItem = ({ item, index }: { item: any; index: number }) => (
     <View style={styles.mediaItemContainer}>
-      {isImageLoading && <ActivityIndicator />}
-      {!isImageLoading && (
-        <Image
-          source={{ uri: item.images?.[0]?.url }}
-          style={styles.fullImage}
-          onLoadStart={() => setIsImageLoading(true)}
-          onLoadEnd={() => setIsImageLoading(false)}
-          resizeMode="contain"
-        />
-      )}
+      {/* {isImageLoading && <ActivityIndicator />}
+      {!isImageLoading && ( */}
+      <Image
+        source={{ uri: item?.images?.[0]?.url }}
+        style={styles.fullImage}
+        onLoadStart={() => setIsImageLoading(true)}
+        onLoadEnd={() => setIsImageLoading(false)}
+        resizeMode="cover"
+      />
+      {/* )} */}
       {item.caption && (
         <View style={styles.captionContainer}>
           <Text style={styles.captionText}>{item.caption}</Text>
@@ -217,7 +217,6 @@ const getStyles = (isDarkMode: boolean, width: number, height: number) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     header: {
       flexDirection: "row",
@@ -241,15 +240,16 @@ const getStyles = (isDarkMode: boolean, width: number, height: number) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
     mediaItemContainer: {
-      width,
-      height: height * 0.8,
+      width: width,
+      height: height * 0.9,
       justifyContent: "center",
       alignItems: "center",
     },
     fullImage: {
-      width: width * 0.9,
-      height: height * 0.9,
-      borderRadius: 20,
+      width: width * 0.99,
+      height: height * 0.55,
+      borderRadius: 30,
+      marginBottom: height * 0.2,
     },
     voiceContainer: {
       width: width * 0.9,
@@ -267,6 +267,8 @@ const getStyles = (isDarkMode: boolean, width: number, height: number) =>
       backgroundColor: isDarkMode ? "#333" : "#eee",
       borderRadius: 10,
       width: width * 0.9,
+      position: "absolute",
+      bottom: height * 0.2,
     },
     captionText: {
       fontSize: textFontSize,

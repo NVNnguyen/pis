@@ -158,7 +158,7 @@ const getStyles = (isDarkMode: boolean) =>
     },
     commentInputContainer: {
       position: "absolute",
-      bottom: 0,
+      bottom: height * 0,
       width: "100%",
       backgroundColor: isDarkMode
         ? darkTheme.background

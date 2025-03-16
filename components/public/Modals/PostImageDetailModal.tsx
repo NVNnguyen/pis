@@ -2,6 +2,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { buttonFontsize } from "@/styles/stylePrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
+import React from "react";
 import {
   Dimensions,
   Modal,
@@ -31,7 +32,6 @@ const PostImageDetailModal = ({
   const { isDarkMode } = useTheme();
   const closeIconColor = isDarkMode ? darkTheme.text : lightTheme.text;
   const loaderColor = isDarkMode ? darkTheme.text : lightTheme.text;
-
   const renderLoader = () => (
     <View style={styles.loaderContainer}>
       <ActivityIndicator size="large" color={loaderColor} />

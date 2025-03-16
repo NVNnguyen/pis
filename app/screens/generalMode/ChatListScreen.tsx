@@ -15,11 +15,8 @@ const ChatListScreen = () => {
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation();
   const myUserId = Number(useMyUserId());
-  console.log(myUserId);
   const { conversation, isConversationLoading, conversationError } =
     useConversation(myUserId);
-
-  console.log("conversation: ", conversation);
 
   return (
     <View style={styles.container}>

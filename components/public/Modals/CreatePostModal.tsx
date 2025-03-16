@@ -157,7 +157,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
       {
         userId: myUserId,
         type: recordUri ? "Voice" : "Image",
-        content: content,
+        content: content || "",
         mode: "Public",
         files: files.length > 0 ? files : undefined,
       },
@@ -205,6 +205,24 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
     }
   };
 
+  const handleOpenMode = (mode: string) => {
+    if (mode === "photo") {
+      setCapturedImages(null);
+      setIsOpenVoiceModal(false);
+      setRecordUri(null);
+      openImagePicker();
+    }
+    if (mode === "camera") {
+      setIsOpenVoiceModal(false);
+      setRecordUri(null);
+      setIsVisibleCameraModal(true);
+    }
+    if (mode === "record") {
+      setCapturedImages(null);
+      removeAllImages();
+      setIsOpenVoiceModal(true);
+    }
+  };
   return (
     <Modal animationType="slide" transparent visible={openModel.visible}>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -224,9 +242,22 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
               </TouchableOpacity>
               <Text style={styles.headerTitle}>New Post</Text>
               <TouchableOpacity
-                style={[styles.postButton, !content && styles.disabledPost]}
-                disabled={!content}
-                onPress={() => handleCreatePost()}
+                style={[
+                  styles.postButton,
+
+                  !images?.length &&
+                    !capturedImages?.length &&
+                    !recordUri &&
+                    !content &&
+                    styles.disabledPost,
+                ]}
+                onPress={handleCreatePost}
+                disabled={
+                  !content &&
+                  !images?.length &&
+                  !capturedImages?.length &&
+                  !recordUri
+                }
               >
                 <Text style={styles.postText}>Post</Text>
               </TouchableOpacity>
@@ -291,35 +322,30 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
             {recordUri && <AudioPlayer audioUri={recordUri} />}
 
             <View style={styles.actionRow}>
-              {!recordUri && (
-                <>
-                  <TouchableOpacity
-                    onPress={() => setIsVisibleCameraModal(true)}
-                  >
-                    <SimpleLineIcons
-                      name="camera"
-                      size={buttonFontsize}
-                      color="#9E9E9E"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={openImagePicker}>
-                    <Ionicons
-                      name="images-outline"
-                      size={buttonFontsize}
-                      color="#9E9E9E"
-                    />
-                  </TouchableOpacity>
-                </>
-              )}
-              {images.length === 0 && capturedImages === null && (
-                <TouchableOpacity onPress={() => setIsOpenVoiceModal(true)}>
-                  <MaterialIcons
-                    name="keyboard-voice"
+              <>
+                <TouchableOpacity onPress={() => handleOpenMode("camera")}>
+                  <SimpleLineIcons
+                    name="camera"
                     size={buttonFontsize}
                     color="#9E9E9E"
                   />
                 </TouchableOpacity>
-              )}
+                <TouchableOpacity onPress={() => handleOpenMode("photo")}>
+                  <Ionicons
+                    name="images-outline"
+                    size={buttonFontsize}
+                    color="#9E9E9E"
+                  />
+                </TouchableOpacity>
+              </>
+
+              <TouchableOpacity onPress={() => handleOpenMode("record")}>
+                <MaterialIcons
+                  name="keyboard-voice"
+                  size={buttonFontsize}
+                  color="#9E9E9E"
+                />
+              </TouchableOpacity>
             </View>
           </View>
           {/* Add a loading overlay when posting */}

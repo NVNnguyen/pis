@@ -59,7 +59,7 @@ const LoginScreen = () => {
       return;
     }
     if (email && password) {
-      login.login({ email, password });
+      login.login({ email: trimmedEmail, password: password });
     }
   };
 

@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import {
   AntDesign,
@@ -34,22 +35,23 @@ import useImagePickerChooseOne from "@/hooks/useImagePickerChooseOne";
 import { useSendMessage } from "@/hooks/useSendMessage";
 import { SendMessageType } from "@/utils/types/SendMessageType";
 import AudioPreview from "../AudioPreview";
+import { useRoute } from "@react-navigation/native";
+import { useHandleSendMessage } from "@/hooks/useHandleSendMessage";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width, height } = Dimensions.get("window");
 
-interface ChatInputProp {
-  conversationId: number;
-  userId: number;
-}
-
-const ChatInput = ({ conversationId, userId }: ChatInputProp) => {
+const ChatInput = () => {
   const [message, setMessage] = useState<string>("");
   const [isVisibleVoice, setIsVisibleVoice] = useState<boolean>(false);
   const [isVisibleCamera, setIsVisibleCamera] = useState<boolean>(false);
   const [voiceUri, setVoiceUri] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
-
+  const [isLoadingSendMessage, setIsLoadingSendMessage] =
+    useState<boolean>(false);
+  const route = useRoute();
+  const { userId: partnerUserId } = route.params as { userId: number };
   const myUserId = useMyUserId() ?? 0;
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
@@ -68,44 +70,58 @@ const ChatInput = ({ conversationId, userId }: ChatInputProp) => {
     }
   }, [image]);
 
-  const sendMessageMutation = useSendMessage();
+  const queryClient = useQueryClient();
 
   const clearMediaPreview = () => {
     setVoiceUri(null);
     setImageUri(null);
     setPhoto(null);
   };
-
-  const handleSendMessage = () => {
-    if (sendMessageMutation.isPending || myUserId === null) return;
-
-    let detectedType: "Voice" | "Image" | "Text" = "Text";
-    let filePayload: { uri: string } | null = null;
-
-    if (voiceUri) {
-      detectedType = "Voice";
-      filePayload = { uri: voiceUri };
-    } else if (imageUri) {
-      detectedType = "Image";
-      filePayload = { uri: imageUri };
-    }
-    if (!message.trim() && !filePayload) return;
-
-    const payload: SendMessageType = {
-      conversationId: conversationId,
-      senderId: myUserId,
-      content: message || "",
-      file: filePayload || "",
-      type: detectedType,
-      userId: userId,
-    };
-
-    sendMessageMutation.mutate(payload, {
-      onSuccess: () => {
-        setMessage("");
-        clearMediaPreview();
-      },
+  const { handleSendMessage } = useHandleSendMessage();
+  const onSendMessage = async () => {
+    const result = await handleSendMessage({
+      myUserId,
+      partnerUserId,
+      voiceUri: voiceUri || "",
+      imageUri: imageUri || "",
+      message,
     });
+    console.log("result", result);
+    if (result?.isPending) {
+      setIsLoadingSendMessage(true);
+      setMessage("");
+    }
+    if (result?.isSuccess) {
+      setMessage("");
+      clearMediaPreview();
+      setIsLoadingSendMessage(false);
+      queryClient.invalidateQueries({
+        queryKey: ["conversation", myUserId, partnerUserId],
+      });
+    }
+    if (result?.isError) {
+      console.log("result", result);
+    }
+  };
+  const onSendThumbsUp = async () => {
+    const result = await handleSendMessage({
+      myUserId,
+      partnerUserId,
+      voiceUri: voiceUri || "",
+      imageUri: imageUri || "",
+      message: "thumbs-up",
+    });
+    console.log("result", result);
+    if (result?.isSuccess) {
+      setMessage("");
+      clearMediaPreview();
+      queryClient.invalidateQueries({
+        queryKey: ["conversation", myUserId, partnerUserId],
+      });
+    }
+    if (result?.isError) {
+      console.log("result", result);
+    }
   };
 
   const isPreviewVisible = voiceUri || imageUri;
@@ -199,24 +215,37 @@ const ChatInput = ({ conversationId, userId }: ChatInputProp) => {
               />
             </View>
 
-            <TouchableOpacity
-              style={styles.likeButton}
-              onPress={handleSendMessage}
-            >
-              {message.trim().length > 0 || isPreviewVisible ? (
-                <Ionicons
-                  name="send"
-                  size={buttonFontsize}
-                  color={primaryColor}
-                />
-              ) : (
-                <FontAwesome
-                  name="thumbs-up"
-                  size={buttonFontsize}
-                  color={primaryColor}
-                />
-              )}
-            </TouchableOpacity>
+            {message.trim().length > 0 || isPreviewVisible ? (
+              <TouchableOpacity
+                style={styles.likeButton}
+                onPress={() => onSendMessage()}
+              >
+                {isLoadingSendMessage ? (
+                  <ActivityIndicator size="small" color={primaryColor} />
+                ) : (
+                  <Ionicons
+                    name="send"
+                    size={buttonFontsize}
+                    color={primaryColor}
+                  />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.likeButton}
+                onPress={() => onSendThumbsUp()}
+              >
+                {isLoadingSendMessage ? (
+                  <ActivityIndicator size="small" color={primaryColor} />
+                ) : (
+                  <FontAwesome
+                    name="thumbs-up"
+                    size={buttonFontsize}
+                    color={primaryColor}
+                  />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>

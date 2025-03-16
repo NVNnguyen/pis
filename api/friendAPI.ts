@@ -11,6 +11,7 @@ const friendAPI = {
       userId, 
       friendId ,
       });
+     
       return response?.data;
     } catch (error) {
       console.error("Error profile api for :", error);
@@ -46,7 +47,7 @@ const friendAPI = {
         try {
           const response = await http.post(`${BASE_URL_FRIEND}/friendRequest`, {
             "userId": userId, 
-            "friendId": friendId ,
+            "friendId":friendId  ,
           });
           return response?.data;
         } catch (error) {

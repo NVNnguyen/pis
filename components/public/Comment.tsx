@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -37,11 +36,13 @@ import useCommentLevel2 from "@/hooks/useCommentLevel2";
 import { useMyUserId } from "@/hooks/useMyUserId";
 
 const { width, height } = Dimensions.get("window");
+
 interface RepliesProp {
   item: any;
   repliesComment: (username: string, ref: React.RefObject<TextInput>) => void;
   commentInputRef: React.RefObject<TextInput>;
 }
+
 interface CommentProp {
   item: any;
   onCommentPress: (
@@ -51,6 +52,7 @@ interface CommentProp {
   ) => void;
   commentInputRef: React.RefObject<TextInput>;
 }
+
 const Comment: React.FC<CommentProp> = ({
   item,
   onCommentPress,
@@ -67,15 +69,25 @@ const Comment: React.FC<CommentProp> = ({
     myUserId,
     item?.id
   );
-  console.log("comment level 2: ", commentsLevel2);
-  const seeEnum = commentsLevel2?.length > 5 ? 5 : commentsLevel2?.length;
-  const [seeMore, setSeeMore] = useState<number>(seeEnum);
+
+  // Khởi tạo seeMore: hiển thị 5 phần tử đầu tiên nếu length >= 5, ngược lại hiển thị tất cả
+
+  const [seeMore, setSeeMore] = useState<number>(0);
+
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
     myUserId,
     item?.id,
     item?.like,
     item?.likes
   );
+
+  // Cập nhật seeMore khi commentsLevel2 thay đổi
+  useEffect(() => {
+    const newSeeMore =
+      commentsLevel2?.length >= 5 ? 5 : commentsLevel2?.length || 0;
+    setSeeMore(newSeeMore);
+  }, [commentsLevel2]);
+
   const ReplyItem = React.memo(
     ({ item, repliesComment, commentInputRef }: RepliesProp) => (
       <Replies
@@ -86,17 +98,28 @@ const Comment: React.FC<CommentProp> = ({
     )
   );
 
-  const words = item?.content.split(" ");
+  const words = item?.content?.split(" ");
   const highLighUsername = words[0];
   const currentContent = words.slice(1).join(" ");
   const [imageLoading, setImageLoading] = useState<boolean>(true);
+
   const handleReplyPress = (
     username: string,
     ref: React.RefObject<TextInput>
   ) => {
-    // Gọi lại onCommentPress để focus input hoặc thực hiện hành động gì đó
     onCommentPress(item?.id, commentInputRef, username);
   };
+
+  const handleViewReplies = () => {
+    setIsOpenReplies(true); // Mở replies
+    setSeeMore((prev) => Math.min(prev + 5, commentsLevel2.length)); // Tăng 5 phần tử
+  };
+
+  const handleSeeLess = () => {
+    setSeeMore(0); // Thu lại toàn bộ
+    setIsOpenReplies(false); // Đóng replies
+  };
+
   return (
     <View style={styles.postContainer}>
       {/* Header */}
@@ -195,7 +218,6 @@ const Comment: React.FC<CommentProp> = ({
               isLiked ? "red" : isDarkMode ? darkTheme.text : lightTheme.text
             }
           />
-          {}
           <Text style={styles.iconText}>{formatNumber(numberLike)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -216,22 +238,26 @@ const Comment: React.FC<CommentProp> = ({
           <Text style={styles.iconText}>{formatNumber(item?.comments)}</Text>
         </TouchableOpacity>
       </View>
+
       {/* Modal hiển thị ảnh toàn màn hình */}
-      <PostImageDetailModal // Thay đổi thành PostImageDetailModal
+      <PostImageDetailModal
         images={[{ url: item?.url, id: 0 }]}
         currentIndex={0}
         isModalVisible={isVisiblePostImageDetail}
         onClose={() => setIsVisiblePostImageDetail(false)}
       />
-      {commentsLevel2?.length > 0 && !isOpenReplies && (
-        <TouchableOpacity onPress={() => setIsOpenReplies(true)}>
+
+      {/* Nút "View replies" ban đầu */}
+      {commentsLevel2?.length > 5 && !isOpenReplies && (
+        <TouchableOpacity onPress={handleViewReplies}>
           <Text style={styles.txtViewReply}>
-            View {commentsLevel2?.length} Replies...
+            View {commentsLevel2?.length} replies ...
           </Text>
           {isLoading && <ActivityIndicator />}
         </TouchableOpacity>
       )}
 
+      {/* Danh sách replies */}
       {isOpenReplies && commentsLevel2?.length > 0 && (
         <View style={styles.repliesContainer}>
           <KeyboardAvoidingView
@@ -255,20 +281,27 @@ const Comment: React.FC<CommentProp> = ({
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}
               horizontal={false}
-              initialNumToRender={10} // Giới hạn số lượng phần tử render ban đầu
-              maxToRenderPerBatch={10} // Giới hạn số lượng phần tử render mỗi lần
-              windowSize={5} // Điều chỉnh kích thước cửa sổ render
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
             />
           </KeyboardAvoidingView>
-          {commentsLevel2?.length > seeMore && (
-            <Button title="see more" onPress={() => setSeeMore(seeMore + 5)} />
-          )}
-          {commentsLevel2?.length < seeMore && (
+
+          {/* Nút "View replies" khi còn phần tử để hiển thị */}
+          {commentsLevel2?.length - seeMore > 0 && (
             <Button
-              title="see less"
-              onPress={() => {
-                setSeeMore(5);
-              }}
+              title={`View ${commentsLevel2.length - seeMore} replies...`}
+              onPress={handleViewReplies}
+              color={"grey"}
+            />
+          )}
+
+          {/* Nút "See less" khi có phần tử đang hiển thị */}
+          {seeMore > 0 && (
+            <Button
+              title="Hide replies"
+              onPress={handleSeeLess}
+              color={"grey"}
             />
           )}
         </View>
@@ -283,7 +316,6 @@ const getStyles = (isDarkMode: boolean) =>
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
-      // marginBottom: height * 0.01,
       paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
     },
@@ -309,7 +341,7 @@ const getStyles = (isDarkMode: boolean) =>
       padding: width * 0.002,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: (height * 0.02) / 2, // Sửa thành giá trị số
+      borderRadius: (height * 0.02) / 2,
     },
     icon: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -396,15 +428,15 @@ const getStyles = (isDarkMode: boolean) =>
     },
     closeIcon: {
       position: "absolute",
-      top: height * 0.07, // Đặt icon cách đỉnh màn hình
-      left: width * 0.07, // Đặt icon cách cạnh trái
-      zIndex: 10, // Hiển thị icon phía trên các thành phần khác
-      backgroundColor: "grey", // Nền xám
-      borderRadius: width * 0.05, // Đặt borderRadius bằng nửa chiều rộng/chiều cao để tạo hình tròn
-      width: width * 0.07, // Đường kính hình tròn
-      height: width * 0.07, // Đường kính hình tròn (bằng với chiều rộng để đảm bảo hình tròn)
-      justifyContent: "center", // Căn giữa nội dung theo chiều dọc
-      alignItems: "center", // Căn giữa nội dung theo chiều ngang
+      top: height * 0.07,
+      left: width * 0.07,
+      zIndex: 10,
+      backgroundColor: "grey",
+      borderRadius: width * 0.05,
+      width: width * 0.07,
+      height: width * 0.07,
+      justifyContent: "center",
+      alignItems: "center",
     },
     cmtContainer: {
       marginLeft: width * 0.14,

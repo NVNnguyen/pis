@@ -33,9 +33,8 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
 
   const flatListRef = useRef<FlatList<any>>(null);
   const [messageList, setMessageList] = useState<any[]>([]);
-
+  console.log("myUserid, userInfo?.id: ", myUserid, userInfo?.id);
   const { message } = useMessage(myUserid, userInfo?.id);
-  const { newMessage } = useNewestMessage(myUserid, userInfo?.id);
   useEffect(() => {
     if (message && message.length > 0) {
       setMessageList(message);
@@ -57,7 +56,7 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
         <FlatList
           ref={flatListRef}
           showsVerticalScrollIndicator={false}
-          data={messageList || newMessage}
+          data={messageList}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View

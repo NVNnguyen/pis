@@ -1,6 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMyUserId } from "@/hooks/useMyUserId";
-import { textPostFontSize } from "@/styles/stylePrimary";
+import { buttonFontsize, textPostFontSize } from "@/styles/stylePrimary";
 import { grey, primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import {
@@ -10,10 +10,14 @@ import {
   Text,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
 import AudioMessage from "../AudioMessage";
 import { useState } from "react";
+import React from "react";
+import { FontAwesome } from "@expo/vector-icons";
+import PostImageDetailModal from "@/components/public/Modals/PostImageDetailModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,7 +28,8 @@ const Message = (item: any) => {
   const styles = getStyles(isDarkMode);
   const [isLoadingUrl, setIsLoadingUrl] = useState<boolean>(false);
   const hasMedia = item?.type === "Image" || item?.type === "Voice";
-
+  const [isVisiblePostImageDetail, setIsVisiblePostImageDetail] =
+    useState<boolean>(false);
   return (
     <View style={styles.container}>
       <View
@@ -62,51 +67,76 @@ const Message = (item: any) => {
                 <>
                   {isLoadingUrl && (
                     <ActivityIndicator
+                      style={styles.imageContent}
                       color={isDarkMode ? darkTheme.text : lightTheme.text}
                     />
                   )}
-                  <Image
-                    source={{ uri: item?.url }}
-                    style={styles.imageContent}
-                    resizeMode="cover"
-                    onLoadStart={() => setIsLoadingUrl(true)}
-                    onLoadEnd={() => setIsLoadingUrl(false)}
-                  />
+                  <TouchableOpacity
+                    onPress={() => setIsVisiblePostImageDetail(true)}
+                  >
+                    <Image
+                      source={{ uri: item?.url }}
+                      style={styles.imageContent}
+                      resizeMode="cover"
+                      onLoadStart={() => setIsLoadingUrl(true)}
+                      onLoadEnd={() => setIsLoadingUrl(false)}
+                    />
+                  </TouchableOpacity>
                 </>
               )}
 
-              {item?.type === "Voice" && (
-                <AudioMessage voiceUri={item?.url} onRemove={() => {}} />
-              )}
+              {item?.type === "Voice" && <AudioMessage voiceUri={item?.url} />}
             </View>
           )}
 
           {/* Text content - only render if there's content */}
           {item?.content && (
-            <View
-              style={[
-                styles.textContainer,
-                isOwnMessage
-                  ? styles.ownTextContainer
-                  : styles.theirTextContainer,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  isOwnMessage
-                    ? styles.ownMessageText
-                    : styles.theirMessageText,
-                ]}
-              >
-                {item?.content}
-              </Text>
-              <Text style={styles.messageTime}>{item?.createTime}</Text>
-            </View>
+            <>
+              {item?.content === "thumbs-up" ? (
+                <FontAwesome
+                  name="thumbs-up"
+                  size={buttonFontsize}
+                  color={primaryColor}
+                  style={isOwnMessage ? { transform: [{ scaleX: -1 }] } : {}}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.textContainer,
+                    isOwnMessage
+                      ? styles.ownTextContainer
+                      : styles.theirTextContainer,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.messageText,
+                      isOwnMessage
+                        ? styles.ownMessageText
+                        : styles.theirMessageText,
+                    ]}
+                  >
+                    {item?.content}
+                  </Text>
+
+                  <Text style={styles.messageTime}>{item?.createTime}</Text>
+                </View>
+              )}
+            </>
           )}
         </View>
       </View>
-
+      <PostImageDetailModal
+        images={[
+          {
+            url: item?.url,
+            id: 1,
+          },
+        ]}
+        currentIndex={0}
+        isModalVisible={isVisiblePostImageDetail}
+        onClose={() => setIsVisiblePostImageDetail(false)}
+      />
       {/* Delivery status indicators - only for own messages */}
       {isOwnMessage && (
         <View style={styles.statusContainer}>

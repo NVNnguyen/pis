@@ -66,7 +66,7 @@ const LoadingScreen = () => {
           },
         ]}
       >
-        Pis...
+        Pis from v-team
       </Animated.Text>
     </View>
   );
@@ -80,6 +80,7 @@ const getStyles = (isDarkMode: any) =>
         : lightTheme.background,
       justifyContent: "center",
       alignItems: "center",
+      paddingBottom: height * 0.2,
     },
     logo: {
       width: "100%", // Chiều rộng logo (50% chiều rộng màn hình)

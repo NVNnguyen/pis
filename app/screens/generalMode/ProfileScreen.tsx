@@ -50,6 +50,7 @@ const ProfileScreen = () => {
     queryKey: ["postsProfile", userIdProp, "public"],
     queryFn: () => postsAPI.postsPublic(userIdProp),
     enabled: !!userIdProp,
+    staleTime: 1000 * 60 * 5,
   });
 
   const {
@@ -60,6 +61,7 @@ const ProfileScreen = () => {
     queryKey: ["postsProfile", userIdProp, "private"],
     queryFn: () => postsAPI.postsPrivate(userIdProp),
     enabled: !!userIdProp,
+    staleTime: 1000 * 60 * 5,
   });
 
   // Memoize dữ liệu dựa trên selectedTab
@@ -81,7 +83,7 @@ const ProfileScreen = () => {
     ({ item }: any) => (
       <MemoizedPosts
         userPostResponse={{
-          userId: item?.userId,
+          userId: item?.userPostResponse?.userId,
           username: item?.userPostResponse?.username,
           avatar: item?.userPostResponse?.avatar,
           followers: item?.userPostResponse?.followers,

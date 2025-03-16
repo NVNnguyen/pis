@@ -39,7 +39,7 @@ const Photo = ({
     <View style={styles.itemWrapper}>
       {type === "Image" && (
         <>
-          {isImageLoading && images && (
+          {isImageLoading && !images && (
             <ActivityIndicator
               style={styles.imgLoader}
               color={isDarkMode ? lightTheme.text : darkTheme.text}
@@ -79,7 +79,6 @@ const getStyles = (isDarkMode: boolean) =>
       height: "100%",
       resizeMode: "cover",
     },
-
   });
 
 export default Photo;

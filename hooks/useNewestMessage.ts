@@ -11,7 +11,7 @@ const useNewestMessage= (myUserId: number, userIdProp: number) => {
             queryKey: ["message", myUserId, userIdProp],
             queryFn: async () => {
                 const response = await conversationAPI.newMessage(myUserId, userIdProp);
-                console.log("Message in useMessage: ", response?.data)
+                console.log("Message in useMessage newest: ", response?.data)
             return response?.data;
             },
             enabled: !!myUserId && !!userIdProp,

@@ -14,6 +14,7 @@ const useCommentLevel1= (userId: number, postId: number) => {
                 userId,
                 postId
             );
+            console.log("response: ", response?.data);
             return response?.data;
             },
             enabled: !!userId && !!postId,

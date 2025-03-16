@@ -16,6 +16,11 @@ import {
   textPostFontSize,
 } from "@/styles/stylePrimary";
 import { MainStackType } from "@/utils/types/MainStackType";
+import conversationAPI from "@/api/conversationAPI";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import { userInfo } from "@/utils/mockAPI";
+import { useQueryClient } from "@tanstack/react-query";
+import { primaryColor } from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window");
 interface Chat {
@@ -35,6 +40,29 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ chat }) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const myUserId = Number(useMyUserId());
+  const queryClient = useQueryClient();
+  const handleSeenMessage = async () => {
+    const responseConversation = await conversationAPI.checkConversations(
+      myUserId,
+      chat?.id
+    );
+    if (responseConversation.code === 2000) {
+      const responseMessage = await conversationAPI.messageSeen(
+        responseConversation?.data?.conversationId,
+        chat?.id
+      );
+      if (responseMessage.code === 2000) {
+        queryClient.invalidateQueries({ queryKey: ["conversation"], myUserId });
+        navigation.navigate("Messages", { userId: chat?.id });
+      } else {
+        console.log(responseMessage.message);
+      }
+    } else {
+      console.log(responseConversation.message);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity>
@@ -49,10 +77,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ chat }) => {
         )}
       </TouchableOpacity>
       {/* Chat Info */}
-      <TouchableOpacity
-        style={styles.messageCtn}
-        onPress={() => navigation.navigate("Messages", { userId: chat?.id })}
-      >
+      <TouchableOpacity style={styles.messageCtn} onPress={handleSeenMessage}>
         <View style={styles.chatInfo}>
           <Text style={styles.username}>{chat?.username}</Text>
           {!chat?.read && (
@@ -93,7 +118,7 @@ const getStyles = (isDarkMode: any) =>
       height: height * 0.08,
       borderRadius: height * 0.04,
       borderWidth: 2,
-      borderColor: "#A0A0A0",
+      borderColor: primaryColor,
     },
     chatInfo: {
       flex: 1,

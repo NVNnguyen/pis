@@ -1,11 +1,11 @@
 import infoAPI from "@/api/infoAPI";
 import { useTheme } from "@/contexts/ThemeContext";
-import useUserInfo from "@/hooks/useUserInfo";
 import { buttonFontsize, Color, fontWeight } from "@/styles/stylePrimary";
 import { grey, primaryColor } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { MainStackType } from "@/utils/types/MainStackType";
+import { Ionicons } from "@expo/vector-icons";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -25,7 +25,7 @@ const { width, height } = Dimensions.get("window");
 const ChatHeader = (userInfo: ChatHeaderProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<MainStackType>>();
 
   return (
     <View style={styles.header}>

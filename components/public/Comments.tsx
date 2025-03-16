@@ -38,7 +38,6 @@ const Comments = ({
   const styles = getStyles(isDarkMode);
   const { commentsLevel1, isCommentLevel1Loading, commentLevel1Error } =
     useCommentLevel1(userId, postId);
-  console.log("comment level 1: ", commentsLevel1);
   const handleCommentPress = (
     commentId: number,
     ref: React.RefObject<TextInput>,

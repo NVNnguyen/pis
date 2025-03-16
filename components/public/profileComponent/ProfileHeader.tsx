@@ -28,7 +28,7 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { buttonFontsize } from "@/styles/stylePrimary";
+import { buttonFontsize, textPostFontSize } from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import useImagePickerSelectionOne from "@/hooks/useImagePickerSelectionOne";
 import useUserInfo from "@/hooks/useUserInfo";
@@ -46,9 +46,9 @@ import {
 import useHandleFollow from "@/hooks/useHandleFollow";
 import type { MainStackType } from "@/utils/types/MainStackType";
 import { useMyUserId } from "@/hooks/useMyUserId";
-import friendAPI from "@/api/friendAPI";
-import BlockUserModal from "../Modals/BlockUserModal";
 import useUploadAvatar from "@/hooks/useUploadAvatar";
+import { primaryColor } from "@/utils/colorPrimary";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
@@ -72,7 +72,7 @@ const ProfileHeader = React.memo(
   }) => {
     const { isDarkMode } = useTheme();
     const styles = useMemo(() => getStyles(isDarkMode), [isDarkMode]);
-    const myUserId = useMyUserId() ?? 0;
+    const myUserId = Number(useMyUserId());
     const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp);
     const { followInfo, isFollowLoading, isFollowError } =
       useUserFollowInfo(userIdProp);
@@ -80,7 +80,6 @@ const ProfileHeader = React.memo(
     const initialIsFollow = route?.params?.isFollow || false;
     const [isFollowingState, setIsFollowingState] =
       useState<boolean>(initialIsFollow);
-    const [isOpenBlockModal, setIsOpenBlockModal] = useState<boolean>(false);
     const { followStore, setFollow } = useFollowStore();
 
     useEffect(() => {
@@ -117,6 +116,15 @@ const ProfileHeader = React.memo(
     const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
       useUploadAvatar(formData, userIdProp);
 
+    const handleLinkPrivate = async () => {
+      await AsyncStorage.setItem("toggleOption", JSON.stringify(false));
+      if (myUserId && userInfo?.id) {
+        navigation.navigate("PrivateMode", {
+          userId: userInfo?.id,
+          myUserId: myUserId,
+        });
+      }
+    };
     const { isFollowing, responseMessage, performFollowAction, isLoading } =
       useHandleFollow({
         userName: userInfo?.username || "",
@@ -174,9 +182,18 @@ const ProfileHeader = React.memo(
             {userInfo?.firstName} {userInfo?.lastName}
           </Text>
           <Text style={styles.idName}>{userInfo?.username}</Text>
+
+          {myUserId !== userIdProp && (
+            <TouchableOpacity onPress={() => handleLinkPrivate()}>
+              <Text style={styles.linkPrivateTxt}>Link private: </Text>
+              <Text
+                style={styles.addFriendTxt}
+              >{`${userInfo?.username}/private/requestAddFriend`}</Text>
+            </TouchableOpacity>
+          )}
         </>
       );
-    }, [isUserLoading, userInfo, styles]);
+    }, [isUserLoading, userInfo, styles, myUserId, userIdProp, navigation]);
 
     const renderAvatar = useMemo(() => {
       return renderLoadingOrContent(
@@ -190,7 +207,7 @@ const ProfileHeader = React.memo(
                   style={styles.avatarImg}
                 />
               </View>
-              {followInfo?.followers > 100000 && (
+              {followInfo?.followers >= 10000 && (
                 <View style={styles.verifiedBadge}>
                   <MaterialIcons name="verified" style={styles.verifiedText} />
                 </View>
@@ -467,6 +484,8 @@ const getStyles = (isDarkMode: boolean) =>
       height: width * 0.2,
       borderRadius: width * 0.1,
       overflow: "hidden",
+      borderWidth: 3,
+      borderColor: primaryColor,
     },
     avatarImg: {
       width: "100%",
@@ -501,7 +520,7 @@ const getStyles = (isDarkMode: boolean) =>
     verifiedBadge: {
       position: "absolute",
       bottom: 0,
-      right: 0,
+      left: 0,
       backgroundColor: isDarkMode
         ? darkTheme.background
         : lightTheme.background,
@@ -607,6 +626,14 @@ const getStyles = (isDarkMode: boolean) =>
       width: "100%",
       alignItems: "center",
       justifyContent: "center",
+    },
+    addFriendTxt: {
+      fontSize: textPostFontSize,
+      color: primaryColor,
+    },
+    linkPrivateTxt: {
+      fontSize: textPostFontSize,
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
   });
 

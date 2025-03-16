@@ -9,12 +9,14 @@ import {
   Animated,
   Easing,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { Audio } from "expo-av";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { PostItemType } from "@/utils/types/PostItemType";
 import { Ionicons } from "@expo/vector-icons";
+import MediaModal from "./Modals/MediaModal";
 
 const { width } = Dimensions.get("window");
 const ITEM_MARGIN = 4;
@@ -67,6 +69,7 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
       handlePlayPause();
     }
     lastTap.current = now;
+    setShowDetail(true);
   };
 
   const handlePlayPause = async () => {
@@ -177,6 +180,13 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
           </View>
         </TouchableWithoutFeedback>
       )}
+      <MediaModal
+        visible={showDetail}
+        onClose={() => setShowDetail(false)}
+        mediaType={type === "Image" ? "photo" : "voice"}
+        mediaItems={images}
+        initialIndex={0}
+      />
     </View>
   );
 };

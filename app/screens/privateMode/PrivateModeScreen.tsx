@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -13,13 +13,13 @@ import {
   Alert,
 } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-
 import { backgroundColor, buttonFontsize } from "@/styles/stylePrimary";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import {
   type NavigationProp,
-  useFocusEffect,
+  RouteProp,
   useNavigation,
+  useRoute,
 } from "@react-navigation/native";
 import type { MainStackType } from "@/utils/types/MainStackType";
 import CapTure from "@/components/private/Capture";
@@ -29,27 +29,46 @@ import usePrivatePosts from "@/hooks/usePrivatePosts";
 import PostPrivate from "@/components/private/PostPrivate";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import PostPrivateSkeleton from "@/Loading/PostPrivateSkeleton";
+import AddFriendModal from "@/components/public/Modals/AddFriendModal";
 
 const { width, height } = Dimensions.get("window");
 
 const PrivateModeScreen = () => {
+  const { isDarkMode } = useTheme();
+  const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
   const navigation = useNavigation<NavigationProp<MainStackType>>();
+  const route = useRoute<RouteProp<MainStackType, "PrivateMode">>();
+  const [userId, setUserId] = useState<number>(route.params?.userId ?? 0); // Khởi tạo userId từ route.params
+  const [myUserIdProp, setMyUserIdProp] = useState<number>(
+    route.params?.myUserId ?? 0
+  ); // Khởi tạo myUserIdProp
   const myUserId = useMyUserId() ?? 0;
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showAlternate, setShowAlternate] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const [onTopCheck, setOnTopCheck] = useState<boolean>(false);
+  const [isVisibleAddModal, setIsVisibleAddModal] = useState<boolean>(false);
   const { postsPrivate, isPostsPrivateLoading, postsPrivateError, refetch } =
     usePrivatePosts(myUserId);
-  useFocusEffect(
-    useCallback(() => {
-      refetch(); // 🔄 Tự động cập nhật khi quay lại màn hình
-    }, [])
-  );
-  const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
+
+  // Log và set userId/myUserIdProp chỉ một lần khi component mount
+  useEffect(() => {
+    const initialUserId = route.params?.userId ?? 0;
+    const initialMyUserId = route.params?.myUserId ?? 0;
+    setUserId(initialUserId);
+    setMyUserIdProp(initialMyUserId);
+    console.log("userId", initialUserId); // Log chỉ chạy một lần khi mount
+  }, []); // Dependency rỗng để chỉ chạy khi mount
+
+  // Logic mở modal khi route.params.userId thay đổi
+  useEffect(() => {
+    const paramUserId = route.params?.userId ?? 0;
+    if (paramUserId !== 0) {
+      setIsVisibleAddModal(true);
+    }
+  }, [route]); // Chỉ phụ thuộc vào route
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -76,49 +95,52 @@ const PrivateModeScreen = () => {
     }
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
-    if (Math.abs(index - currentPage) > 1) {
-      return <View style={{ height }} />;
-    }
+  const renderItem = useCallback(
+    ({ item, index }: { item: any; index: number }) => {
+      if (Math.abs(index - currentPage) > 1) {
+        return <View style={{ height }} />;
+      }
 
-    if (index === 0) {
-      return (
-        <View style={{ height }}>
-          <CapTure />
-        </View>
-      );
-    } else {
-      return (
-        <View style={styles.memoriesContainer}>
-          {isPostsPrivateLoading ? (
-            <PostPrivateSkeleton />
-          ) : (
-            <PostPrivate
-              userPostResponse={{
-                userId: item?.userPostResponse?.userId,
-                username: item?.userPostResponse?.username,
-                avatar: item?.userPostResponse?.avatar,
-                followers: item?.userPostResponse?.followers,
-                isFollow: item?.userPostResponse?.isFollow,
-                likes: item?.userPostResponse?.likes,
-                comments: item?.userPostResponse?.comments,
-                like: item?.userPostResponse?.like,
-              }}
-              id={item?.id || ""}
-              caption={item?.caption || ""}
-              images={item?.images || []}
-              likes={item?.likes || 0}
-              comments={item?.comments || 0}
-              type={item?.type || ""}
-              like={item?.like || false}
-              createTime={item?.createTime}
-              onTop={handleOnTop}
-            />
-          )}
-        </View>
-      );
-    }
-  };
+      if (index === 0) {
+        return (
+          <View style={{ height }}>
+            <CapTure />
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.memoriesContainer}>
+            {isPostsPrivateLoading ? (
+              <PostPrivateSkeleton />
+            ) : (
+              <PostPrivate
+                userPostResponse={{
+                  userId: item?.userPostResponse?.userId,
+                  username: item?.userPostResponse?.username,
+                  avatar: item?.userPostResponse?.avatar,
+                  followers: item?.userPostResponse?.followers,
+                  isFollow: item?.userPostResponse?.isFollow,
+                  likes: item?.userPostResponse?.likes,
+                  comments: item?.userPostResponse?.comments,
+                  like: item?.userPostResponse?.like,
+                }}
+                id={item?.id || ""}
+                caption={item?.caption || ""}
+                images={item?.images || []}
+                likes={item?.likes || 0}
+                comments={item?.comments || 0}
+                type={item?.type || ""}
+                like={item?.like || false}
+                createTime={item?.createTime}
+                onTop={handleOnTop}
+              />
+            )}
+          </View>
+        );
+      }
+    },
+    [currentPage, isPostsPrivateLoading, handleOnTop] // Dependency tối ưu cho useCallback
+  );
 
   const goToMemories = () => {
     if (flatListRef.current && postsPrivate && postsPrivate.length > 0) {
@@ -146,9 +168,7 @@ const PrivateModeScreen = () => {
         <PublicOrPrivate />
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate("HistoryPost", {
-              userId: myUserId,
-            })
+            navigation.navigate("HistoryPost", { userId: myUserId })
           }
         >
           <FontAwesome
@@ -173,7 +193,7 @@ const PrivateModeScreen = () => {
         pagingEnabled
       />
 
-      {/* Scroll indicator only shown on the first page */}
+      {/* Scroll indicator chỉ hiển thị ở trang đầu tiên */}
       {currentPage === 0 && (
         <View style={styles.scrollIndicator}>
           <TouchableOpacity
@@ -189,6 +209,16 @@ const PrivateModeScreen = () => {
             />
           </TouchableOpacity>
         </View>
+      )}
+
+      {/* AddFriendModal */}
+      {isVisibleAddModal && (
+        <AddFriendModal
+          visible={isVisibleAddModal}
+          onDismiss={() => setIsVisibleAddModal(false)}
+          myUserId={myUserIdProp}
+          userId={userId}
+        />
       )}
     </SafeAreaView>
   );
@@ -234,26 +264,6 @@ const getStyles = (isDarkMode: any) => {
       flex: 1,
       height: height,
       backgroundColor: backgroundColor,
-    },
-    memoriesTitle: {
-      fontSize: width * 0.07,
-      fontWeight: "bold",
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      marginBottom: height * 0.03,
-      textAlign: "center",
-    },
-    memoryList: {
-      flex: 1,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
     },
   });
 };

@@ -53,7 +53,7 @@ const Posts = ({
   const [numberLine, setNumberLine] = useState<number>(INITIAL_LINES);
   const [isExpandable, setIsExpandable] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const myUserId = useMyUserId() ?? 0;
+  const myUserId = Number(useMyUserId());
 
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
   const [areImagesLoading, setAreImagesLoading] = useState(true);
@@ -119,7 +119,7 @@ const Posts = ({
               />
             )}
           </TouchableOpacity>
-          {userPostResponse?.userId !== undefined && !isFollowing && (
+          {userPostResponse?.userId !== myUserId && !isFollowing && (
             <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
               <MaterialIcons
                 name="add"

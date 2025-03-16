@@ -261,7 +261,7 @@ const PostPrivate = ({
             <MaterialCommunityIcons
               name="chat"
               size={height * 0.03}
-              color={iconColorMode}
+              color={primaryColor}
             />
           </TouchableOpacity>
         )}
@@ -270,7 +270,7 @@ const PostPrivate = ({
             <MaterialCommunityIcons
               name="chat"
               size={height * 0.03}
-              color={iconColorMode}
+              color={primaryColor}
             />
           </TouchableOpacity>
         )}
