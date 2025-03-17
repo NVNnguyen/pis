@@ -12,16 +12,16 @@ import {
   FlatList,
   Alert,
 } from "react-native";
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { backgroundColor, buttonFontsize } from "@/styles/stylePrimary";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import {
-  type NavigationProp,
+  NavigationProp,
   RouteProp,
   useNavigation,
   useRoute,
 } from "@react-navigation/native";
-import type { MainStackType } from "@/utils/types/MainStackType";
+import { MainStackType } from "@/utils/types/MainStackType";
 import CapTure from "@/components/private/Capture";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
@@ -30,6 +30,7 @@ import PostPrivate from "@/components/private/PostPrivate";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import PostPrivateSkeleton from "@/Loading/PostPrivateSkeleton";
 import AddFriendModal from "@/components/public/Modals/AddFriendModal";
+import * as Linking from "expo-linking";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,11 +39,8 @@ const PrivateModeScreen = () => {
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const route = useRoute<RouteProp<MainStackType, "PrivateMode">>();
-  const [userId, setUserId] = useState<number>(route.params?.userId ?? 0); // Khởi tạo userId từ route.params
-  const [myUserIdProp, setMyUserIdProp] = useState<number>(
-    route.params?.myUserId ?? 0
-  ); // Khởi tạo myUserIdProp
-  const myUserId = useMyUserId() ?? 0;
+  const [userId, setUserId] = useState<number>(0); // Khởi tạo
+  const myUserId = Number(useMyUserId()) ?? 0;
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showAlternate, setShowAlternate] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -53,22 +51,56 @@ const PrivateModeScreen = () => {
   const { postsPrivate, isPostsPrivateLoading, postsPrivateError, refetch } =
     usePrivatePosts(myUserId);
 
-  // Log và set userId/myUserIdProp chỉ một lần khi component mount
-  useEffect(() => {
-    const initialUserId = route.params?.userId ?? 0;
-    const initialMyUserId = route.params?.myUserId ?? 0;
-    setUserId(initialUserId);
-    setMyUserIdProp(initialMyUserId);
-    console.log("userId", initialUserId); // Log chỉ chạy một lần khi mount
-  }, []); // Dependency rỗng để chỉ chạy khi mount
+  const extractUserId = (url: string) => {
+    try {
+      if (!url) return null;
 
-  // Logic mở modal khi route.params.userId thay đổi
-  useEffect(() => {
-    const paramUserId = route.params?.userId ?? 0;
-    if (paramUserId !== 0) {
-      setIsVisibleAddModal(true);
+      const urlObject = new URL(url);
+      const userId = urlObject.searchParams.get("userId");
+      console.log("Extracted userId:", userId);
+      return userId ? parseInt(userId, 10) : null; // Đảm bảo userId là số nguyên
+    } catch (error) {
+      console.error("Error parsing URL:", error);
+      return null;
     }
-  }, [route]); // Chỉ phụ thuộc vào route
+  };
+  useEffect(() => {
+    const handleDeepLink = async () => {
+      // Lấy deeplink khi app khởi động
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl) {
+        const deepLinkUserId = extractUserId(initialUrl);
+
+        if (deepLinkUserId !== myUserId) {
+          setIsVisibleAddModal(false);
+        } else {
+          setUserId(deepLinkUserId);
+          setIsVisibleAddModal(true);
+        }
+      }
+
+      // Lắng nghe deeplink khi app đang chạy
+      const subscription = Linking.addEventListener("url", ({ url }) => {
+        console.log("Received Deeplink URL:", url);
+        const deepLinkUserId = extractUserId(url);
+        console.log("Received DeepLink UserId:", deepLinkUserId);
+
+        if (deepLinkUserId !== myUserId) {
+          setIsVisibleAddModal(false);
+        } else {
+          setUserId(deepLinkUserId);
+          setIsVisibleAddModal(true);
+        }
+      });
+
+      return () => {
+        console.log("Cleaning up deeplink listener...");
+        subscription.remove();
+      };
+    };
+
+    handleDeepLink();
+  }, [route.params, myUserId]); // Lắng nghe sự thay đổi của myUserId
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -139,7 +171,7 @@ const PrivateModeScreen = () => {
         );
       }
     },
-    [currentPage, isPostsPrivateLoading, handleOnTop] // Dependency tối ưu cho useCallback
+    [currentPage, isPostsPrivateLoading, handleOnTop]
   );
 
   const goToMemories = () => {
@@ -193,7 +225,6 @@ const PrivateModeScreen = () => {
         pagingEnabled
       />
 
-      {/* Scroll indicator chỉ hiển thị ở trang đầu tiên */}
       {currentPage === 0 && (
         <View style={styles.scrollIndicator}>
           <TouchableOpacity
@@ -216,7 +247,7 @@ const PrivateModeScreen = () => {
         <AddFriendModal
           visible={isVisibleAddModal}
           onDismiss={() => setIsVisibleAddModal(false)}
-          myUserId={myUserIdProp}
+          myUserId={myUserId}
           userId={userId}
         />
       )}

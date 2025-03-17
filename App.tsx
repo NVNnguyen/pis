@@ -16,12 +16,19 @@ const queryClient = new QueryClient();
 
 // ✅ Cấu hình Deep Linking
 const linking = {
-  prefixes: ["https://myapp.com", "myapp://"],
+  prefixes: ["https://myapp.com", "vpis://"], // Chỉ khai báo scheme cơ bản
   config: {
-    screens: {},
+    screens: {
+      HistoryPost: {
+        path: "PrivateMode", // Đường dẫn cụ thể
+        parse: {
+          userId: (userId: string) => Number(userId), // Parse userId từ query parameter
+        },
+      },
+      // Thêm các màn hình khác nếu cần
+    },
   },
 };
-
 const App: React.FC = () => {
   const [fontsLoaded] = useFonts({
     "SpaceMono-Regular": require("./assets/fonts/SpaceMono-Regular.ttf"),

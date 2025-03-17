@@ -7,16 +7,19 @@ const useNewestMessage= (myUserId: number, userIdProp: number) => {
             data: newMessage,
             isLoading: isNewMessageLoading,
             error: newMessageError,
+            refetch: refetchNewMessage,
         } = useQuery({
-            queryKey: ["message", myUserId, userIdProp],
+            queryKey: ["newMessage", myUserId, userIdProp],
             queryFn: async () => {
                 const response = await conversationAPI.newMessage(myUserId, userIdProp);
-                console.log("Message in useMessage newest: ", response?.data)
-            return response?.data;
+                console.log("Message in useMessage newest: ", response?.data ?? [])
+               
+            return response?.data ?? [];
             },
             enabled: !!myUserId && !!userIdProp,
+            refetchInterval: 1000,
         });
-        return { newMessage, isNewMessageLoading, newMessageError };
+        return { newMessage, isNewMessageLoading, newMessageError, refetchNewMessage };
 };
 export default useNewestMessage;
 

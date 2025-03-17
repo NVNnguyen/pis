@@ -59,7 +59,6 @@ const authApi = {
   resetPassword: async (email: string, otp: number) => {
     try {
       const response = await http.post(
-        // Đúng endpoint `/forgot-password`
         `${BASE_URL_AUTH}/reset-password`,
         { "email": email,
           "otp": otp

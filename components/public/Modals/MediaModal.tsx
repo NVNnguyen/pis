@@ -44,6 +44,7 @@ const MediaModal = ({
   const styles = getStyles(isDarkMode, width, height);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isImageLoading, setIsImageLoading] = useState(false);
+
   const flatListRef = React.useRef<FlatList>(null);
   console.log("mediaItems", mediaItems);
   useEffect(() => {
@@ -67,13 +68,21 @@ const MediaModal = ({
     <View style={styles.mediaItemContainer}>
       {/* {isImageLoading && <ActivityIndicator />}
       {!isImageLoading && ( */}
-      <Image
-        source={{ uri: item?.images?.[0]?.url }}
-        style={styles.fullImage}
-        onLoadStart={() => setIsImageLoading(true)}
-        onLoadEnd={() => setIsImageLoading(false)}
-        resizeMode="cover"
-      />
+      {!isImageLoading && (
+        <Image
+          source={{ uri: item?.images?.[0]?.url }}
+          style={styles.fullImage}
+          onLoadStart={() => setIsImageLoading(true)}
+          onLoadEnd={() => setIsImageLoading(false)}
+          resizeMode="cover"
+        />
+      )}
+
+      {isImageLoading && (
+        <ActivityIndicator
+          color={isDarkMode ? darkTheme.text : lightTheme.text}
+        />
+      )}
       {/* )} */}
       {item.caption && (
         <View style={styles.captionContainer}>

@@ -250,20 +250,8 @@ const PostPrivate = ({
           <View style={styles.captureInner}></View>
         </TouchableOpacity>
 
-        {myUserId !== userPostResponse?.userId && (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("Messages", {
-                userId: userPostResponse?.userId,
-              })
-            }
-          >
-            <MaterialCommunityIcons
-              name="chat"
-              size={height * 0.03}
-              color={primaryColor}
-            />
-          </TouchableOpacity>
+        {userPostResponse?.userId !== myUserId && (
+          <TouchableOpacity></TouchableOpacity>
         )}
         {myUserId === userPostResponse?.userId && (
           <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>

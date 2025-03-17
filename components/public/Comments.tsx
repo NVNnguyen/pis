@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Dimensions,
   type TextInput,
@@ -13,11 +12,10 @@ import useCommentLevel1 from "@/hooks/useCommentLevel1";
 import { textFontSize } from "@/styles/stylePrimary";
 import Comment from "./Comment";
 import CommentSkeleton from "@/Loading/CommentSkeleton";
-import Replies from "./Replies";
 
 const { width, height } = Dimensions.get("window");
 
-interface commentProps {
+interface CommentProps {
   userId: number;
   postId: number;
   onCommentPress: (
@@ -33,19 +31,25 @@ const Comments = ({
   postId,
   onCommentPress,
   commentInputRef,
-}: commentProps) => {
+}: CommentProps) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const { commentsLevel1, isCommentLevel1Loading, commentLevel1Error } =
     useCommentLevel1(userId, postId);
-  const handleCommentPress = (
-    commentId: number,
-    ref: React.RefObject<TextInput>,
-    userName: string
-  ) => {
-    ref.current?.focus(); // Focus vào ô nhập comment
-    onCommentPress(commentId, ref, userName); // Truyền commentId và ref lên PostDetailScreen
-  };
+
+  // Memoize callback để tránh re-render
+  const handleCommentPress = useMemo(
+    () =>
+      (
+        commentId: number,
+        ref: React.RefObject<TextInput>,
+        userName: string
+      ) => {
+        ref.current?.focus();
+        onCommentPress(commentId, ref, userName);
+      },
+    [onCommentPress]
+  );
 
   // Render loading skeletons
   if (isCommentLevel1Loading) {
@@ -74,27 +78,14 @@ const Comments = ({
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={commentsLevel1}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <Comment
-            item={item}
-            onCommentPress={handleCommentPress}
-            commentInputRef={commentInputRef}
-          />
-        )}
-        nestedScrollEnabled={true}
-        contentContainerStyle={styles.flatListContent}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        horizontal={false}
-        initialNumToRender={10} // Giới hạn số lượng phần tử render ban đầu
-        maxToRenderPerBatch={10} // Giới hạn số lượng phần tử render mỗi lần
-        windowSize={5} // Điều chỉnh kích thước cửa sổ render
-      />
+      {commentsLevel1.map((item: any) => (
+        <Comment
+          key={item.id.toString()}
+          item={item}
+          onCommentPress={handleCommentPress}
+          commentInputRef={commentInputRef}
+        />
+      ))}
     </View>
   );
 };
@@ -129,4 +120,4 @@ const getStyles = (isDarkMode: any) =>
     },
   });
 
-export default Comments;
+export default React.memo(Comments);

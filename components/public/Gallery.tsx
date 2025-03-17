@@ -1,3 +1,4 @@
+// Trong file Gallery.tsx
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -16,19 +17,24 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { PostItemType } from "@/utils/types/PostItemType";
 import { Ionicons } from "@expo/vector-icons";
-import MediaModal from "./Modals/MediaModal";
+import MediaModal from "./Modals/MediaModal"; // Đảm bảo import đúng
 
 const { width } = Dimensions.get("window");
 const ITEM_MARGIN = 4;
 const ITEM_SIZE = (width - ITEM_MARGIN * 4) / 3;
 
-const Gallery = ({ id, caption, images, type }: PostItemType) => {
+const Gallery = ({
+  id,
+  caption,
+  images,
+  type,
+  onPress, // Thêm prop onPress
+}: PostItemType & { onPress?: () => void }) => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
 
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const lastTap = useRef<number | null>(null);
@@ -59,17 +65,6 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
 
   const stopWaveAnimation = () => {
     waveAnimations.forEach((anim) => anim.stopAnimation());
-  };
-
-  const handlePress = async () => {
-    const now = Date.now();
-    if (lastTap.current && now - lastTap.current < 300) {
-      setShowDetail((prev) => !prev);
-    } else {
-      handlePlayPause();
-    }
-    lastTap.current = now;
-    setShowDetail(true);
   };
 
   const handlePlayPause = async () => {
@@ -103,6 +98,7 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
               setIsPlaying(false);
               stopWaveAnimation();
               setSound(null);
+              console.error("Error playing audio:", status.error);
             }
           });
         } else {
@@ -112,21 +108,41 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
         }
       } catch (err) {
         setIsLoading(false);
+        console.error("Error loading audio:", err);
       }
     }
   };
 
+  const handlePress = async () => {
+    const now = Date.now();
+    const isDoubleTap = lastTap.current && now - lastTap.current < 300;
+
+    if (type === "Image" || type === "Voice") {
+      if (onPress) {
+        onPress(); // Gọi callback từ ProfileScreen
+      } else if (type === "Voice" && !isDoubleTap) {
+        await handlePlayPause();
+      }
+    }
+
+    lastTap.current = now;
+  };
+
   useEffect(() => {
     return () => {
-      sound?.unloadAsync();
+      if (sound) {
+        sound.unloadAsync();
+      }
       stopWaveAnimation();
     };
-  }, []);
+  }, [sound]);
 
   return (
     <View style={styles.itemWrapper}>
       {type === "Image" && (
-        <Image source={{ uri: images?.[0]?.url }} style={styles.image} />
+        <TouchableWithoutFeedback onPress={handlePress}>
+          <Image source={{ uri: images?.[0]?.url }} style={styles.image} />
+        </TouchableWithoutFeedback>
       )}
 
       {type === "Voice" && (
@@ -145,7 +161,6 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
                   color={isDarkMode ? lightTheme.text : darkTheme.text}
                   style={{ marginBottom: 4 }}
                 />
-                {/* Sóng âm động */}
                 <View style={styles.waveContainer}>
                   {waveAnimations.map((anim, index) => (
                     <Animated.View
@@ -166,27 +181,11 @@ const Gallery = ({ id, caption, images, type }: PostItemType) => {
                     />
                   ))}
                 </View>
-
-                {/* Hiển thị thông tin nếu double tap */}
-                {showDetail && (
-                  <View style={styles.audioDetail}>
-                    <Text style={styles.audioText}>
-                      🎵 {caption || "Audio Detail"}
-                    </Text>
-                  </View>
-                )}
               </>
             )}
           </View>
         </TouchableWithoutFeedback>
       )}
-      <MediaModal
-        visible={showDetail}
-        onClose={() => setShowDetail(false)}
-        mediaType={type === "Image" ? "photo" : "voice"}
-        mediaItems={images}
-        initialIndex={0}
-      />
     </View>
   );
 };
@@ -229,17 +228,6 @@ const getStyles = (isDarkMode: boolean) =>
       height: 12,
       borderRadius: 2,
       backgroundColor: "#00bfff",
-    },
-    audioDetail: {
-      marginTop: 8,
-      paddingHorizontal: 6,
-      backgroundColor: isDarkMode ? "#333" : "#eee",
-      borderRadius: 6,
-    },
-    audioText: {
-      fontSize: 12,
-      color: isDarkMode ? "#fff" : "#000",
-      textAlign: "center",
     },
   });
 

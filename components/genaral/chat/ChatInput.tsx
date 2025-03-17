@@ -47,7 +47,6 @@ const ChatInput = () => {
   const [isVisibleCamera, setIsVisibleCamera] = useState<boolean>(false);
   const [voiceUri, setVoiceUri] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [photo, setPhoto] = useState<string | null>(null);
   const [isLoadingSendMessage, setIsLoadingSendMessage] =
     useState<boolean>(false);
   const route = useRoute();
@@ -65,7 +64,6 @@ const ChatInput = () => {
 
   useEffect(() => {
     if (image) {
-      setPhoto(image);
       setImageUri(image);
     }
   }, [image]);
@@ -75,7 +73,6 @@ const ChatInput = () => {
   const clearMediaPreview = () => {
     setVoiceUri(null);
     setImageUri(null);
-    setPhoto(null);
   };
   const { handleSendMessage } = useHandleSendMessage();
   const onSendMessage = async () => {
@@ -96,7 +93,14 @@ const ChatInput = () => {
       clearMediaPreview();
       setIsLoadingSendMessage(false);
       queryClient.invalidateQueries({
+        queryKey: ["message", myUserId, partnerUserId],
+      });
+
+      queryClient.invalidateQueries({
         queryKey: ["conversation", myUserId, partnerUserId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["newMessage", myUserId, partnerUserId],
       });
     }
     if (result?.isError) {
@@ -116,11 +120,30 @@ const ChatInput = () => {
       setMessage("");
       clearMediaPreview();
       queryClient.invalidateQueries({
+        queryKey: ["message", myUserId, partnerUserId],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["conversation", myUserId, partnerUserId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["newMessage", myUserId, partnerUserId],
       });
     }
     if (result?.isError) {
       console.log("result", result);
+    }
+  };
+
+  const handleOpenModal = (mode: string) => {
+    if (mode === "camera") {
+      setIsVisibleCamera(true);
+      setVoiceUri(null);
+    } else if (mode === "voice") {
+      setIsVisibleVoice(true);
+      setImageUri(null);
+    } else if (mode === "image") {
+      openImagePicker();
+      setVoiceUri(null);
     }
   };
 
@@ -172,7 +195,7 @@ const ChatInput = () => {
               <View style={styles.iconsContainer}>
                 <TouchableOpacity
                   style={styles.iconButton}
-                  onPress={() => setIsVisibleCamera(true)}
+                  onPress={() => handleOpenModal("camera")}
                 >
                   <Entypo
                     name="camera"
@@ -182,7 +205,7 @@ const ChatInput = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.iconButton}
-                  onPress={openImagePicker}
+                  onPress={() => handleOpenModal("image")}
                 >
                   <FontAwesome6
                     name="image"
@@ -192,7 +215,7 @@ const ChatInput = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.iconButton}
-                  onPress={() => setIsVisibleVoice(true)}
+                  onPress={() => handleOpenModal("voice")}
                 >
                   <FontAwesome
                     name="microphone"

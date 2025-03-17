@@ -27,10 +27,12 @@ const useRegisterAccount = (navigation: NavigationProp<MainStackType>) => {
         lastName ); 
     },
     onSuccess: async (response) => {
+      console.log("response", response);
       navigation.navigate("Login")
       return;
     },
     onError: (error) => {
+      console.log("error", error);
       Alert.alert('Register failed!', 'Please try it again!', [
         {
           text: 'Cancel',

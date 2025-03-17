@@ -83,6 +83,7 @@ const MainStack: React.FC = () => {
         },
         headerTintColor: isDarkMode ? darkTheme.text : lightTheme.text,
         headerTitleStyle: { fontWeight: fontWeight, fontSize: 20 },
+        
       }}
     >
       <Stack.Screen name="Loading" component={LoadingScreen} />

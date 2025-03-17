@@ -65,6 +65,18 @@ const infoAPI = {
         throw error;
       }
     },
+    createQRCode: async (userId: number, formData: FormData) => {
+      try {
+        const response = await http.post(`${BASE_URL_USERS}/qr/${userId}`,  formData, {
+          headers: { "Content-Type": "multipart/form-data" }});
+        console.log("response createQRCode", response);
+        return response?.data;
+      } catch (error) {
+        const err = error as any;
+        console.error("Error generate QR code :", err.response?.data || err.message);
+        throw error;
+    }
+    }
 };
 
 export default infoAPI;

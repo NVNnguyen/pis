@@ -1,45 +1,59 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, FlatList } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useRoute, type RouteProp } from "@react-navigation/native";
+import {
+  useRoute,
+  useFocusEffect,
+  useNavigation,
+  RouteProp,
+} from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import ProfileHeader from "@/components/public/profileComponent/ProfileHeader";
 import TabBar from "@/components/public/TabBar/TabBar";
 import postsAPI from "@/api/postsAPI";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import Gallery from "@/components/public/Gallery";
-import Posts from "@/components/public/Posts";
 import { fontWeight } from "@/styles/stylePrimary";
 import PostItemSkeleton from "@/Loading/PostItemSkeleton";
 import GallerySkeleton from "@/Loading/GallerySkeleton";
+import Posts from "@/components/public/Posts";
+import Gallery from "@/components/public/Gallery";
+import MediaModal from "@/components/public/Modals/MediaModal";
+import { useMyUserId } from "@/hooks/useMyUserId"; // Hook để lấy userId của người dùng hiện tại
 import React from "react";
 
 const { width, height } = Dimensions.get("window");
 
 type ProfileRouteParams = {
   Profile: {
-    userId: string;
-    isFollow: boolean;
+    userId?: string; // userId có thể không có khi vào profile cá nhân
+    isFollow?: boolean;
   };
 };
 
-// Memoized Posts component
+// Memoized components
 const MemoizedPosts = React.memo(Posts);
-
-// Memoized Gallery component
 const MemoizedGallery = React.memo(Gallery);
 
 const ProfileScreen = () => {
+  const route = useRoute<RouteProp<ProfileRouteParams, "Profile">>();
+  const navigation = useNavigation();
+  const { isDarkMode } = useTheme();
+  const styles = useMemo(() => getStyles(isDarkMode), [isDarkMode]);
+  const myUserId = useMyUserId(); // Lấy userId của người dùng hiện tại
   const [selectedTab, setSelectedTab] = useState<"public" | "private">(
     "public"
   );
-  const { isDarkMode } = useTheme();
-  const styles = useMemo(() => getStyles(isDarkMode), [isDarkMode]);
-  const route = useRoute<RouteProp<ProfileRouteParams, "Profile">>();
-  const userIdProp = Number(route?.params?.userId);
-  const isFollow = route?.params?.isFollow;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [mediaData, setMediaData] = useState<{
+    mediaType: "photo" | "voice";
+    mediaItems: any[];
+    initialIndex?: number;
+  } | null>(null);
+
+  // Xác định userId dựa trên route.params hoặc fallback về myUserId
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // Fetch dữ liệu cho cả hai tab trước
   const {
@@ -47,9 +61,9 @@ const ProfileScreen = () => {
     isLoading: isLoadingPublic,
     error: errorPublic,
   } = useQuery({
-    queryKey: ["postsProfile", userIdProp, "public"],
-    queryFn: () => postsAPI.postsPublic(userIdProp),
-    enabled: !!userIdProp,
+    queryKey: ["postsProfile", currentUserId, "public"],
+    queryFn: () => postsAPI.postsPublic(currentUserId!),
+    enabled: !!currentUserId,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -58,15 +72,16 @@ const ProfileScreen = () => {
     isLoading: isLoadingPrivate,
     error: errorPrivate,
   } = useQuery({
-    queryKey: ["postsProfile", userIdProp, "private"],
-    queryFn: () => postsAPI.postsPrivate(userIdProp),
-    enabled: !!userIdProp,
+    queryKey: ["postsProfile", currentUserId, "private"],
+    queryFn: () => postsAPI.postsPrivate(currentUserId!),
+    enabled: !!currentUserId,
     staleTime: 1000 * 60 * 5,
   });
 
   // Memoize dữ liệu dựa trên selectedTab
   const posts = useMemo(
-    () => (selectedTab === "public" ? publicPosts?.data : privatePosts?.data),
+    () =>
+      (selectedTab === "public" ? publicPosts?.data : privatePosts?.data) || [],
     [selectedTab, publicPosts, privatePosts]
   );
   const isLoading = useMemo(
@@ -80,14 +95,14 @@ const ProfileScreen = () => {
 
   // Hàm render item cho Post
   const renderPostItem = useCallback(
-    ({ item }: any) => (
+    ({ item }: { item: any }) => (
       <MemoizedPosts
         userPostResponse={{
           userId: item?.userPostResponse?.userId,
           username: item?.userPostResponse?.username,
           avatar: item?.userPostResponse?.avatar,
           followers: item?.userPostResponse?.followers,
-          isFollow: isFollow,
+          isFollow: item?.userPostResponse?.isFollow,
           likes: item?.likes,
           comments: item?.comments,
           like: item?.like,
@@ -102,12 +117,12 @@ const ProfileScreen = () => {
         createTime={item?.createTime}
       />
     ),
-    [isFollow]
+    []
   );
 
-  // Hàm render item cho Gallery
+  // Hàm render item cho Gallery với callback để mở modal
   const renderGalleryItem = useCallback(
-    ({ item }: any) => (
+    ({ item, index }: { item: any; index: number }) => (
       <View style={styles.galleryItem}>
         <MemoizedGallery
           userPostResponse={{
@@ -115,7 +130,7 @@ const ProfileScreen = () => {
             username: item?.userPostResponse?.username,
             avatar: item?.userPostResponse?.avatar,
             followers: item?.userPostResponse?.followers,
-            isFollow: isFollow,
+            isFollow: item?.userPostResponse?.isFollow,
             likes: item?.likes,
             comments: item?.comments,
             like: item?.like,
@@ -128,60 +143,69 @@ const ProfileScreen = () => {
           type={item?.type}
           like={item?.like}
           createTime={item?.createTime}
+          onPress={() => {
+            setModalVisible(true);
+            setMediaData({
+              mediaType: item.type === "Image" ? "photo" : "voice",
+              mediaItems: [item],
+              initialIndex: 0,
+            });
+          }}
         />
       </View>
     ),
-    [isFollow, styles.galleryItem]
+    [styles.galleryItem]
+  );
+
+  // Reset userId khi màn hình được focus lại
+  useFocusEffect(
+    useCallback(() => {
+      const routeUserId = route?.params?.userId
+        ? Number(route?.params?.userId)
+        : null;
+      if (routeUserId) {
+        setCurrentUserId(routeUserId); // Sử dụng userId từ route nếu có
+      } else {
+        setCurrentUserId(myUserId); // Fallback về userId của chính mình
+      }
+    }, [route?.params?.userId, myUserId])
   );
 
   // Memoize toàn bộ nội dung render
   const renderContent = useMemo(() => {
-    // Trường hợp đang loading
-    if (isLoading) {
-      return (
-        <FlatList
-          key={`loading-${selectedTab}`} // Key thay đổi dựa trên selectedTab
-          data={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
-          renderItem={() =>
-            selectedTab === "public" ? (
-              <PostItemSkeleton />
-            ) : (
-              <GallerySkeleton />
-            )
-          }
-          keyExtractor={(item) => `skeleton-${item}`}
-          numColumns={selectedTab === "private" ? 3 : 1} // Số cột thay đổi
-          ListHeaderComponent={
-            <ProfileHeader
-              userIdProp={userIdProp}
-              selectedTab={selectedTab}
-              setSelectedTab={setSelectedTab}
-            />
-          }
-        />
-      );
-    }
+    const skeletonData = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    // Trường hợp có lỗi
     if (error) {
       return <Text style={styles.errorText}>Error loading posts</Text>;
     }
 
     return (
       <FlatList
-        key={`posts-${selectedTab}`} // Key thay đổi dựa trên selectedTab
-        data={posts || []}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={
-          selectedTab === "public" ? renderPostItem : renderGalleryItem
+        key={`flatlist-${selectedTab}`}
+        data={isLoading ? skeletonData : posts}
+        keyExtractor={(item) =>
+          isLoading ? `skeleton-${item}` : item.id.toString()
         }
-        numColumns={selectedTab === "private" ? 3 : 1} // Số cột thay đổi
+        renderItem={({ item, index }) =>
+          isLoading ? (
+            selectedTab === "public" ? (
+              <PostItemSkeleton />
+            ) : (
+              <GallerySkeleton />
+            )
+          ) : selectedTab === "public" ? (
+            renderPostItem({ item })
+          ) : (
+            renderGalleryItem({ item, index })
+          )
+        }
+        numColumns={selectedTab === "private" ? 3 : 1}
         columnWrapperStyle={
           selectedTab === "private" ? styles.columnWrapper : undefined
         }
         ListHeaderComponent={
           <ProfileHeader
-            userIdProp={userIdProp}
+            userIdProp={currentUserId || 0}
             selectedTab={selectedTab}
             setSelectedTab={setSelectedTab}
           />
@@ -189,8 +213,11 @@ const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={20}
         ListEmptyComponent={
-          <Text style={styles.txtNoPosts}>No posts yet!</Text>
+          !isLoading && !posts?.length ? (
+            <Text style={styles.txtNoPosts}>No posts yet!</Text>
+          ) : null
         }
+        contentContainerStyle={styles.contentContainer}
       />
     );
   }, [
@@ -201,7 +228,7 @@ const ProfileScreen = () => {
     renderPostItem,
     renderGalleryItem,
     styles,
-    userIdProp,
+    currentUserId,
     setSelectedTab,
   ]);
 
@@ -209,6 +236,13 @@ const ProfileScreen = () => {
     <View style={styles.container}>
       {renderContent}
       <TabBar />
+      <MediaModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        mediaType={mediaData?.mediaType || "photo"}
+        mediaItems={mediaData?.mediaItems || []}
+        initialIndex={mediaData?.initialIndex || 0}
+      />
     </View>
   );
 };
@@ -250,5 +284,8 @@ const getStyles = (isDarkMode: boolean) =>
     },
     columnWrapper: {
       justifyContent: "space-between",
+    },
+    contentContainer: {
+      flexGrow: 1,
     },
   });

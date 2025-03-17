@@ -10,6 +10,7 @@ import {
   useNavigation,
   NavigationProp,
   useRoute,
+  RouteProp,
 } from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
@@ -30,9 +31,12 @@ const TabBar = () => {
     visible: false,
     key: null, // Lưu key tùy chọn
   });
+  const routeProfile = useRoute<RouteProp<MainStackType, "Profile">>();
   const route = useRoute();
   const screenName = route.name;
-  const myUserId = useMyUserId() ?? 0;
+  const userId = routeProfile.params?.userId;
+  const myUserId = Number(useMyUserId()) ?? 0;
+  console.log("userId and  my userId", userId, myUserId);
   return (
     <View style={styles.container}>
       <View style={styles.bottomNav}>
@@ -147,12 +151,13 @@ const TabBar = () => {
             styles.navItem,
             {
               borderTopColor:
-                screenName === "Profile"
+                screenName === "Profile" && userId === myUserId
                   ? isDarkMode
                     ? lightTheme.background
                     : darkTheme.background
                   : "grey",
-              borderTopWidth: screenName === "Profile" ? 1 : 0,
+              borderTopWidth:
+                screenName === "Profile" && userId === myUserId ? 1 : 0,
             },
           ]}
         >
@@ -160,7 +165,7 @@ const TabBar = () => {
             name="user"
             size={height * 0.03}
             color={
-              screenName === "Profile"
+              screenName === "Profile" && userId === myUserId
                 ? isDarkMode
                   ? lightTheme.background
                   : darkTheme.background

@@ -35,11 +35,18 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
   const [messageList, setMessageList] = useState<any[]>([]);
   console.log("myUserid, userInfo?.id: ", myUserid, userInfo?.id);
   const { message } = useMessage(myUserid, userInfo?.id);
+  const { newMessage } = useNewestMessage(myUserid, userInfo?.id);
   useEffect(() => {
     if (message && message.length > 0) {
       setMessageList(message);
     }
   }, [message]);
+
+  useEffect(() => {
+    if (newMessage && newMessage.length > 0) {
+      setMessageList([...message, newMessage]);
+    }
+  }, [newMessage]);
 
   // 👉 Scroll xuống cuối khi messageList thay đổi
   useEffect(() => {

@@ -5,19 +5,18 @@ import {
   useRoute,
   useFocusEffect,
 } from "@react-navigation/native";
-import type React from "react";
-import { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   KeyboardAvoidingView,
-  Platform,
-  FlatList,
+  Platform, // Sử dụng FlashList thay vì FlatList
   TouchableWithoutFeedback,
   Keyboard,
   type TextInput,
+  FlatList,
 } from "react-native";
 import Comments from "@/components/public/Comments";
 import type { MainStackType } from "@/utils/types/MainStackType";
@@ -54,21 +53,21 @@ const PostDetailScreen = () => {
 
   const commentInputRef = useRef<TextInput>(null);
   const [parentCommentId, setParentCommentId] = useState<number | null>(null);
-  const handleCommentPress = (
-    commentId: number,
-    ref: React.RefObject<TextInput>,
-    userName: string
-  ) => {
-    setParentCommentId(commentId);
-    ref.current?.focus();
-    setUserName(userName);
-  };
 
-  const handleChatBubblePress = () => {
+  const handleCommentPress = useCallback(
+    (commentId: number, ref: React.RefObject<TextInput>, userName: string) => {
+      setParentCommentId(commentId);
+      ref.current?.focus();
+      setUserName(userName);
+    },
+    []
+  );
+
+  const handleChatBubblePress = useCallback(() => {
     commentInputRef.current?.focus();
     setParentCommentId(null);
     setUserName(currentPost?.userPostResponse?.username ?? "");
-  };
+  }, [currentPost]);
 
   return (
     <KeyboardAvoidingView
@@ -81,8 +80,8 @@ const PostDetailScreen = () => {
           <FlatList
             style={styles.container}
             data={currentPost ? [currentPost] : []}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
+            keyExtractor={(item: PostItemType) => item.id.toString()}
+            renderItem={({ item }: { item: PostItemType }) => (
               <View style={styles.contentContainer}>
                 <PostDetails {...item} isOpenComment={handleChatBubblePress} />
                 <View style={styles.repliesContainer}>
@@ -107,7 +106,6 @@ const PostDetailScreen = () => {
             keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
-            horizontal={false}
           />
 
           <View style={styles.commentInputContainer}>
@@ -143,7 +141,7 @@ const getStyles = (isDarkMode: boolean) =>
         : lightTheme.background,
     },
     contentContainer: {
-      width: width, // Ensure full width
+      width: width,
       flexDirection: "column",
     },
     flatListContent: {
@@ -189,18 +187,6 @@ const getStyles = (isDarkMode: boolean) =>
     rightReplies: {
       flexDirection: "row",
       alignItems: "center",
-    },
-    chatBubbleContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: height * 0.01,
-      paddingHorizontal: width * 0.02,
-      width: "100%",
-    },
-    commentCount: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textPostFontSize,
-      marginLeft: width * 0.01,
     },
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,9 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  FlatList,
   Button,
   type TextInput,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -70,8 +67,6 @@ const Comment: React.FC<CommentProp> = ({
     item?.id
   );
 
-  // Khởi tạo seeMore: hiển thị 5 phần tử đầu tiên nếu length >= 5, ngược lại hiển thị tất cả
-
   const [seeMore, setSeeMore] = useState<number>(0);
 
   const { numberLike, isLiked, handleLike } = useHandleLikeComment(
@@ -81,7 +76,6 @@ const Comment: React.FC<CommentProp> = ({
     item?.likes
   );
 
-  // Cập nhật seeMore khi commentsLevel2 thay đổi
   useEffect(() => {
     const newSeeMore =
       commentsLevel2?.length >= 5 ? 5 : commentsLevel2?.length || 0;
@@ -95,34 +89,35 @@ const Comment: React.FC<CommentProp> = ({
         repliesComment={repliesComment}
         commentInputRef={commentInputRef}
       />
-    )
+    ),
+    (prevProps, nextProps) =>
+      prevProps.item.id === nextProps.item.id &&
+      prevProps.repliesComment === nextProps.repliesComment
   );
 
   const words = item?.content?.split(" ");
-  const highLighUsername = words[0];
   const currentContent = words.slice(1).join(" ");
   const [imageLoading, setImageLoading] = useState<boolean>(true);
 
-  const handleReplyPress = (
-    username: string,
-    ref: React.RefObject<TextInput>
-  ) => {
-    onCommentPress(item?.id, commentInputRef, username);
-  };
+  const handleReplyPress = useCallback(
+    (username: string, ref: React.RefObject<TextInput>) => {
+      onCommentPress(item?.id, ref, username);
+    },
+    [item?.id, onCommentPress]
+  );
 
-  const handleViewReplies = () => {
-    setIsOpenReplies(true); // Mở replies
-    setSeeMore((prev) => Math.min(prev + 5, commentsLevel2.length)); // Tăng 5 phần tử
-  };
+  const handleViewReplies = useCallback(() => {
+    setIsOpenReplies(true);
+    setSeeMore((prev) => Math.min(prev + 5, commentsLevel2.length));
+  }, [commentsLevel2]);
 
-  const handleSeeLess = () => {
-    setSeeMore(0); // Thu lại toàn bộ
-    setIsOpenReplies(false); // Đóng replies
-  };
+  const handleSeeLess = useCallback(() => {
+    setSeeMore(0);
+    setIsOpenReplies(false);
+  }, []);
 
   return (
     <View style={styles.postContainer}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <TouchableOpacity
@@ -133,13 +128,12 @@ const Comment: React.FC<CommentProp> = ({
               })
             }
           >
-            {item?.userPostResponse.avatar != null && (
+            {item?.userPostResponse.avatar ? (
               <Image
                 source={{ uri: item?.userPostResponse.avatar }}
                 style={styles.avatar}
               />
-            )}
-            {item?.userPostResponse.avatar == null && (
+            ) : (
               <Image
                 source={require("@/assets/images/userAvatar.png")}
                 style={styles.avatar}
@@ -167,28 +161,16 @@ const Comment: React.FC<CommentProp> = ({
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
           <View style={{ flexDirection: "row" }}>
-            {highLighUsername === item?.userPostResponse.username ? (
-              <Text style={{ color: "#1da1f2" }}>{highLighUsername}</Text>
-            ) : (
-              <Text style={styles.caption}> {highLighUsername}</Text>
-            )}
             <Text style={styles.caption}> {currentContent}</Text>
           </View>
         </View>
-        <TouchableOpacity>
-          {/* <MaterialIcons
-            name="more-horiz"
-            size={buttonFontsize}
-            color={isDarkMode ? darkTheme.text : lightTheme.text}
-          /> */}
-        </TouchableOpacity>
       </View>
       <View style={styles.cmtContainer}>
-        {item?.type === "Voice" && item?.url !== null && (
+        {item?.type === "Voice" && item?.url && (
           <AudioPlayer audioUri={item?.url} />
         )}
         <TouchableOpacity onPress={() => setIsVisiblePostImageDetail(true)}>
-          {item?.type === "Image" && item?.url !== null && (
+          {item?.type === "Image" && item?.url && (
             <View style={styles.imageWrapper}>
               {imageLoading && (
                 <ActivityIndicator
@@ -208,7 +190,6 @@ const Comment: React.FC<CommentProp> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.iconContainer} onPress={handleLike}>
           <Ionicons
@@ -222,13 +203,13 @@ const Comment: React.FC<CommentProp> = ({
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconContainer}
-          onPress={() => {
+          onPress={() =>
             onCommentPress(
               item?.id,
               commentInputRef,
               item?.userPostResponse.username
-            );
-          }}
+            )
+          }
         >
           <Ionicons
             name="chatbubble-outline"
@@ -239,7 +220,6 @@ const Comment: React.FC<CommentProp> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Modal hiển thị ảnh toàn màn hình */}
       <PostImageDetailModal
         images={[{ url: item?.url, id: 0 }]}
         currentIndex={0}
@@ -247,7 +227,6 @@ const Comment: React.FC<CommentProp> = ({
         onClose={() => setIsVisiblePostImageDetail(false)}
       />
 
-      {/* Nút "View replies" ban đầu */}
       {commentsLevel2?.length > 5 && !isOpenReplies && (
         <TouchableOpacity onPress={handleViewReplies}>
           <Text style={styles.txtViewReply}>
@@ -257,37 +236,17 @@ const Comment: React.FC<CommentProp> = ({
         </TouchableOpacity>
       )}
 
-      {/* Danh sách replies */}
       {isOpenReplies && commentsLevel2?.length > 0 && (
         <View style={styles.repliesContainer}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
-          >
-            <FlatList
-              data={commentsLevel2.slice(0, seeMore)}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <ReplyItem
-                  item={item}
-                  repliesComment={handleReplyPress}
-                  commentInputRef={commentInputRef}
-                />
-              )}
-              nestedScrollEnabled={true}
-              contentContainerStyle={styles.flatListContent}
-              keyboardShouldPersistTaps="always"
-              keyboardDismissMode="on-drag"
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-              horizontal={false}
-              initialNumToRender={10}
-              maxToRenderPerBatch={10}
-              windowSize={5}
+          {commentsLevel2.slice(0, seeMore).map((reply: any) => (
+            <ReplyItem
+              key={reply.id.toString()}
+              item={reply}
+              repliesComment={handleReplyPress}
+              commentInputRef={commentInputRef}
             />
-          </KeyboardAvoidingView>
+          ))}
 
-          {/* Nút "View replies" khi còn phần tử để hiển thị */}
           {commentsLevel2?.length - seeMore > 0 && (
             <Button
               title={`View ${commentsLevel2.length - seeMore} replies...`}
@@ -296,7 +255,6 @@ const Comment: React.FC<CommentProp> = ({
             />
           )}
 
-          {/* Nút "See less" khi có phần tử đang hiển thị */}
           {seeMore > 0 && (
             <Button
               title="Hide replies"
@@ -333,16 +291,6 @@ const getStyles = (isDarkMode: boolean) =>
       height: width * 0.1,
       borderRadius: (width * 0.1) / 2,
     },
-    addIcon: {
-      position: "absolute",
-      bottom: 0,
-      right: 0,
-      backgroundColor: isDarkMode ? darkTheme.text : lightTheme.text,
-      padding: width * 0.002,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: (height * 0.02) / 2,
-    },
     icon: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
     },
@@ -373,34 +321,6 @@ const getStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
     },
-    imageContainer: {
-      paddingLeft: height * 0.06,
-      flexDirection: "row",
-      marginTop: height * 0.01,
-    },
-    fullImageContainer: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "black",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 10,
-    },
-    fullImageScrollView: {
-      flex: 1,
-    },
-    fullImage: {
-      width: "100%",
-      height: "100%",
-    },
-    closeButton: {
-      position: "absolute",
-      top: height * 0.04,
-      right: width * 0.02,
-    },
     image: {
       width: width * 0.6,
       height: height * 0.35,
@@ -422,22 +342,6 @@ const getStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
     },
-    modalContainer: {
-      flex: 1,
-      backgroundColor: "black",
-    },
-    closeIcon: {
-      position: "absolute",
-      top: height * 0.07,
-      left: width * 0.07,
-      zIndex: 10,
-      backgroundColor: "grey",
-      borderRadius: width * 0.05,
-      width: width * 0.07,
-      height: width * 0.07,
-      justifyContent: "center",
-      alignItems: "center",
-    },
     cmtContainer: {
       marginLeft: width * 0.14,
     },
@@ -446,8 +350,6 @@ const getStyles = (isDarkMode: boolean) =>
       borderLeftWidth: 1,
       borderLeftColor: "grey",
       borderBottomLeftRadius: 100,
-      zIndex: 1000,
-      flex: 2,
     },
     txtViewReply: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
@@ -463,11 +365,6 @@ const getStyles = (isDarkMode: boolean) =>
       position: "absolute",
       zIndex: 1,
     },
-    flatListContent: {
-      flexGrow: 1,
-      paddingBottom: 60,
-      width: "100%",
-    },
   });
 
-export default Comment;
+export default React.memo(Comment);

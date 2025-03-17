@@ -24,11 +24,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import { useMutation } from "@tanstack/react-query";
 import { FontAwesome } from "@expo/vector-icons";
 import { darkThemeInput, grey, lightThemeInput } from "@/utils/colorPrimary";
-import authAPI from "@/api/authAPI";
-import { getDecodedToken } from "@/utils/decodeToken";
 import useLogin from "@/hooks/useLogin";
 
 const { width, height } = Dimensions.get("window");

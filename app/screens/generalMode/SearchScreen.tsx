@@ -19,6 +19,7 @@ import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { useQueryClient } from "@tanstack/react-query";
+import React from "react";
 import { useState } from "react";
 import {
   FlatList,
@@ -87,6 +88,12 @@ const SearchScreen = () => {
           )}
         />
       )}
+      {search?.length === 0 ||
+        (!search && (
+          <Text style={styles.searchTxt}>
+            {`No results for "${searchText}"`}{" "}
+          </Text>
+        ))}
       <TabBar />
     </View>
   );

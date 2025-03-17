@@ -31,6 +31,7 @@ import authAPI from "@/api/authAPI";
 import { RFValue } from "react-native-responsive-fontsize";
 import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 import useRegisterAccount from "@/hooks/useRegisterAccount";
+import useGenerateAndUploadQR from "@/hooks/useGenerateAndUploadQR";
 
 const { width, height } = Dimensions.get("window");
 
@@ -73,14 +74,12 @@ const RegisterScreen = () => {
       setAlertVisible(true);
       return;
     }
-    console.log(
-      "email, password, firstName, lastName",
-      email,
+    await register.register({
+      email: email.trim().toLowerCase(),
       password,
       firstName,
-      lastName
-    );
-    await register.register({ email, password, firstName, lastName });
+      lastName,
+    });
 
     if (register.isSuccess) {
       navigation.navigate("Login");

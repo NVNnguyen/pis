@@ -1,5 +1,6 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { buttonFontsize } from "@/styles/stylePrimary";
+import { grey } from "@/utils/colorPrimary";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import { AntDesign } from "@expo/vector-icons";
 import React from "react";
@@ -30,7 +31,7 @@ const PostImageDetailModal = ({
   onClose,
 }: PostImageDetailModalProps) => {
   const { isDarkMode } = useTheme();
-  const closeIconColor = isDarkMode ? darkTheme.text : lightTheme.text;
+
   const loaderColor = isDarkMode ? darkTheme.text : lightTheme.text;
   const renderLoader = () => (
     <View style={styles.loaderContainer}>
@@ -57,11 +58,7 @@ const PostImageDetailModal = ({
           ]}
           onPress={onClose}
         >
-          <AntDesign
-            name="close"
-            size={buttonFontsize}
-            color={closeIconColor}
-          />
+          <AntDesign name="close" size={buttonFontsize} color={grey} />
         </TouchableOpacity>
         {images.length > 0 && (
           <ImageViewer

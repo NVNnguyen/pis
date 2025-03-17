@@ -38,32 +38,34 @@ const AddFriendModal = ({
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const { profileInformation, isProfileDetailLoading, postProfileError } =
     useProfileInformation(myUserId, userId);
+  const addFriend = useAddFriend();
 
-  // Log profileInformation chỉ một lần khi dữ liệu sẵn sàng
+  // Đóng modal khi add friend thành công
+  useEffect(() => {
+    if (addFriend.isSuccess) {
+      onDismiss();
+    }
+  }, [addFriend.isSuccess, onDismiss]);
+
   useEffect(() => {
     if (profileInformation) {
       console.log("profileInformation", profileInformation);
     }
   }, [profileInformation]);
-  console.log("userId myUserId", userId, myUserId);
-  const addFriend = useAddFriend();
+
   const handleAddFriend = () => {
     if (userId !== 0 && myUserId !== 0) {
       addFriend.addFriend({ myUserId, userId });
     }
   };
+
   if (isProfileDetailLoading) {
     return (
       <Modal
         visible={visible}
         transparent
         animationType="fade"
-        onRequestClose={() => {
-          onDismiss();
-          if (addFriend.isSuccess) {
-            onDismiss();
-          }
-        }}
+        onRequestClose={onDismiss}
       >
         <View style={styles.modalContainer}>
           <AddFriendModalSkeleton />
@@ -72,7 +74,6 @@ const AddFriendModal = ({
     );
   }
 
-  // Trường hợp có lỗi khi fetch dữ liệu
   if (postProfileError) {
     return (
       <Modal
@@ -113,7 +114,6 @@ const AddFriendModal = ({
     );
   }
 
-  // Giao diện khi dữ liệu sẵn sàng
   return (
     <Modal
       visible={visible}
@@ -137,36 +137,50 @@ const AddFriendModal = ({
             {profileInformation.firstName} {profileInformation.lastName}
           </Text>
           <Text style={styles.username}>{profileInformation.username}</Text>
-          {profileInformation?.isFriend && (
-            <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => {
-                navigation.navigate("HistoryPost", { userId: userId });
-                onDismiss();
-              }}
-            >
-              <Text style={styles.profileButtonText}>Go to Profile</Text>
-            </TouchableOpacity>
-          )}
-          {profileInformation.isSendRequest && (
-            <TouchableOpacity style={styles.requestedButton}>
-              <Text style={styles.requestedText}>Requested</Text>
-            </TouchableOpacity>
-          )}
-          {!profileInformation.isSendRequest &&
-            !profileInformation?.isFriend && (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAddFriend}
-              >
-                {addFriend.isLoading ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Text style={styles.addButtonText}>+ Add Friend</Text>
-                )}
-              </TouchableOpacity>
-            )}
 
+          {profileInformation?.isBlocked && (
+            <Text>You have been blocked by {profileInformation.username}</Text>
+          )}
+          {profileInformation?.isBlock && (
+            <Text>You have blocked {profileInformation.username}</Text>
+          )}
+          {!profileInformation?.isBlocked && !profileInformation?.isBlock && (
+            <>
+              {profileInformation?.isFriend && (
+                <TouchableOpacity
+                  style={styles.profileButton}
+                  onPress={() => {
+                    navigation.navigate("HistoryPost", { userId: userId });
+                    onDismiss();
+                  }}
+                >
+                  <Text style={styles.profileButtonText}>Go to Profile</Text>
+                </TouchableOpacity>
+              )}
+              {profileInformation.isSendRequest && (
+                <TouchableOpacity style={styles.requestedButton}>
+                  <Text style={styles.requestedText}>Requested</Text>
+                </TouchableOpacity>
+              )}
+              {!profileInformation.isSendRequest &&
+                !profileInformation?.isFriend && (
+                  <>
+                    {addFriend.isLoading ? (
+                      <ActivityIndicator
+                        style={{ marginBottom: height * 0.02 }}
+                      />
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={handleAddFriend}
+                      >
+                        <Text style={styles.addButtonText}>+ Add Friend</Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
+            </>
+          )}
           <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
             <Text style={styles.dismissButtonText}>Dismiss</Text>
           </TouchableOpacity>
@@ -175,7 +189,6 @@ const AddFriendModal = ({
     </Modal>
   );
 };
-
 const getStyles = (
   isDarkMode: boolean,
   screenWidth: number,
@@ -263,7 +276,7 @@ const getStyles = (
       fontWeight: "600",
     },
     addButton: {
-      backgroundColor: "#ffba00",
+      backgroundColor: primaryColor,
       paddingHorizontal: buttonPadding,
       paddingVertical: screenHeight * 0.01,
       borderRadius: 20,
