@@ -36,7 +36,6 @@ import useUserFollowInfo from "@/hooks/useUserFollowInfo";
 import EditProfileModal from "../Modals/EditProfileModal";
 import SettingModal from "../Modals/SettingModal";
 import AvatarDetailModal from "../Modals/AvatarDetailModal";
-import useFollowStore from "@/stores/useFollowStore";
 import {
   type NavigationProp,
   type RouteProp,
@@ -48,7 +47,7 @@ import type { MainStackType } from "@/utils/types/MainStackType";
 import { useMyUserId } from "@/hooks/useMyUserId";
 import useUploadAvatar from "@/hooks/useUploadAvatar";
 import { primaryColor } from "@/utils/colorPrimary";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQueryClient } from "@tanstack/react-query"; // Thêm import này
 
 const { width, height } = Dimensions.get("window");
 
@@ -59,7 +58,6 @@ type ProfileRouteParams = {
   };
 };
 
-// Memoized ProfileHeader
 const ProfileHeader = React.memo(
   ({
     userIdProp,
@@ -74,17 +72,13 @@ const ProfileHeader = React.memo(
     const styles = useMemo(() => getStyles(isDarkMode), [isDarkMode]);
     const myUserId = Number(useMyUserId());
     const { userInfo, isUserLoading, userError } = useUserInfo(userIdProp);
+    console.log("myUserId in profile header", userIdProp);
     const { followInfo, isFollowLoading, isFollowError } =
       useUserFollowInfo(userIdProp);
     const route = useRoute<RouteProp<ProfileRouteParams, "Profile">>();
     const initialIsFollow = route?.params?.isFollow || false;
     const [isFollowingState, setIsFollowingState] =
       useState<boolean>(initialIsFollow);
-    const { followStore, setFollow } = useFollowStore();
-
-    useEffect(() => {
-      if (followInfo) setFollow(followInfo);
-    }, [followInfo]);
 
     const [isVisibleEditModel, setIsVisibleEditModel] =
       useState<boolean>(false);
@@ -94,6 +88,7 @@ const ProfileHeader = React.memo(
       useState<boolean>(false);
 
     const navigation = useNavigation<NavigationProp<MainStackType>>();
+    const queryClient = useQueryClient(); // Thêm queryClient
 
     useEffect(() => {}, [selectedTab, isVisibleSettingModel]);
 
@@ -112,19 +107,11 @@ const ProfileHeader = React.memo(
         });
       }
     }, [myUserId, userIdProp, isDarkMode, navigation]);
+
     const { image, formData, openPickImage } = useImagePickerSelectionOne();
     const { upLoadAvatar, isUpLoadAvatarLoading, isUpLoadAvatarError } =
       useUploadAvatar(formData, userIdProp);
 
-    const handleLinkPrivate = async () => {
-      await AsyncStorage.setItem("toggleOption", JSON.stringify(false));
-      if (myUserId && userInfo?.id) {
-        navigation.navigate("PrivateMode", {
-          userId: userInfo?.id,
-          myUserId: myUserId,
-        });
-      }
-    };
     const { isFollowing, responseMessage, performFollowAction, isLoading } =
       useHandleFollow({
         userName: userInfo?.username || "",
@@ -135,28 +122,19 @@ const ProfileHeader = React.memo(
 
     const handleFollowOptimistic = useCallback(() => {
       setIsFollowingState((prev) => !prev);
-      const newFollowers = isFollowingState
-        ? (followStore?.followers || 0) - 1
-        : (followStore?.followers || 0) + 1;
-      setFollow({ ...followStore, followers: newFollowers });
-      performFollowAction();
-    }, [isFollowingState, followStore, setFollow, performFollowAction]);
+      performFollowAction().then(() => {
+        // Invalidate query để làm mới dữ liệu followInfo
+        queryClient.invalidateQueries({
+          queryKey: ["userFollowInfo", userIdProp],
+        });
+      });
+    }, [performFollowAction, queryClient, userIdProp]);
 
     useEffect(() => {
       if (isFollowing !== isFollowingState && responseMessage) {
         setIsFollowingState(isFollowing);
-        const correctFollowers = isFollowing
-          ? followStore?.followers || 0
-          : (followStore?.followers || 0) - 1;
-        setFollow({ ...followStore, followers: correctFollowers });
       }
-    }, [
-      isFollowing,
-      responseMessage,
-      isFollowingState,
-      followStore,
-      setFollow,
-    ]);
+    }, [isFollowing, responseMessage, isFollowingState]);
 
     const renderLoadingOrContent = useCallback(
       (isLoading: boolean, content: React.ReactNode) => {
@@ -173,7 +151,6 @@ const ProfileHeader = React.memo(
       [isDarkMode]
     );
 
-    // Memoized render sections
     const renderProfileInfo = useMemo(() => {
       return renderLoadingOrContent(
         isUserLoading,
@@ -182,18 +159,9 @@ const ProfileHeader = React.memo(
             {userInfo?.firstName} {userInfo?.lastName}
           </Text>
           <Text style={styles.idName}>{userInfo?.username}</Text>
-
-          {myUserId !== userIdProp && (
-            <TouchableOpacity onPress={() => handleLinkPrivate()}>
-              <Text style={styles.linkPrivateTxt}>Link private: </Text>
-              <Text
-                style={styles.addFriendTxt}
-              >{`${userInfo?.username}/private/requestAddFriend`}</Text>
-            </TouchableOpacity>
-          )}
         </>
       );
-    }, [isUserLoading, userInfo, styles, myUserId, userIdProp, navigation]);
+    }, [isUserLoading, userInfo, styles]);
 
     const renderAvatar = useMemo(() => {
       return renderLoadingOrContent(
@@ -269,7 +237,7 @@ const ProfileHeader = React.memo(
             }
           >
             <Text style={styles.followers}>
-              {formatNumber(followStore?.followers ?? 0)} followers
+              {formatNumber(followInfo?.followers ?? 0)} followers
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -281,12 +249,12 @@ const ProfileHeader = React.memo(
             }
           >
             <Text style={styles.followers}>
-              {formatNumber(followStore?.followingNumbers ?? 0)} following
+              {formatNumber(followInfo?.followingNumbers ?? 0)} following
             </Text>
           </TouchableOpacity>
         </>
       );
-    }, [isFollowLoading, followStore, navigation, userIdProp, styles]);
+    }, [isFollowLoading, followInfo, navigation, userIdProp, styles]);
 
     const renderActionButtons = useMemo(() => {
       if (myUserId === userIdProp) {
@@ -298,9 +266,6 @@ const ProfileHeader = React.memo(
             >
               <Text style={styles.editProfileButtonText}>Edit profile</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.shareProfileButton}>
-              <Text style={styles.shareProfileButtonText}>Share profile</Text>
-            </TouchableOpacity> */}
           </View>
         );
       }
@@ -397,22 +362,13 @@ const ProfileHeader = React.memo(
 
     return (
       <View style={styles.container}>
-        {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.profileInfo}>{renderProfileInfo}</View>
           {renderAvatar}
         </View>
-
-        {/* Followers and Link */}
         <View style={styles.followersSection}>{renderFollowersSection}</View>
-
-        {/* Action Buttons */}
         {renderActionButtons}
-
-        {/* Tab Selection */}
         {renderTabSelection}
-
-        {/* Modals */}
         <SettingModal
           visible={isVisibleSettingModel}
           onClose={() => setIsVisibleSettingModel(false)}
@@ -437,7 +393,6 @@ const ProfileHeader = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Chỉ re-render nếu userIdProp hoặc selectedTab thay đổi
     return (
       prevProps.userIdProp === nextProps.userIdProp &&
       prevProps.selectedTab === nextProps.selectedTab
@@ -559,15 +514,6 @@ const getStyles = (isDarkMode: boolean) =>
     editProfileButtonText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: width * 0.035,
-    },
-    shareProfileButton: {
-      flex: 1,
-      height: height * 0.05,
-      borderRadius: width * 0.02,
-      borderWidth: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      borderColor: isDarkMode ? darkTheme.text : lightTheme.text,
     },
     otherProfile: {
       flex: 1,

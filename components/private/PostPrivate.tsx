@@ -221,7 +221,11 @@ const PostPrivate = ({
               handleSendMessage();
             }}
           >
-            <AntDesign name="arrowright" size={width * 0.05} color={"black"} />
+            <AntDesign
+              name="arrowright"
+              size={width * 0.05}
+              color={isDarkMode ? darkTheme.text : lightTheme.text}
+            />
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -250,10 +254,10 @@ const PostPrivate = ({
           <View style={styles.captureInner}></View>
         </TouchableOpacity>
 
-        {userPostResponse?.userId !== myUserId && (
+        {userPostResponse?.userId === myUserId && (
           <TouchableOpacity></TouchableOpacity>
         )}
-        {myUserId === userPostResponse?.userId && (
+        {myUserId !== userPostResponse?.userId && (
           <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>
             <MaterialCommunityIcons
               name="chat"
@@ -378,7 +382,7 @@ const getStyles = (isDarkMode: any) => {
         ? "rgba(255,255,255,0.1)"
         : "rgba(0,0,0,0.05)",
       paddingHorizontal: width * 0.03,
-      marginBottom: height * 0.35,
+      marginBottom: height * 0.4,
       width: "90%",
     },
     commentInput: {

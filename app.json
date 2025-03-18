@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "scheme": "vpis",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/logo.png",
     "ios": {
       "bundleIdentifier": "com.pis",
       "supportsTablet": true,
@@ -22,6 +23,10 @@
     },
     "android": {
       "package": "com.pis.pis",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
       "intentFilters": [
         {
           "action": "VIEW",

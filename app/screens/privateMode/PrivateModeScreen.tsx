@@ -12,7 +12,7 @@ import {
   FlatList,
   Alert,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { backgroundColor, buttonFontsize } from "@/styles/stylePrimary";
 import PublicOrPrivate from "@/components/genaral/PublicOrPrivate";
 import {
@@ -31,6 +31,7 @@ import { useMyUserId } from "@/hooks/useMyUserId";
 import PostPrivateSkeleton from "@/Loading/PostPrivateSkeleton";
 import AddFriendModal from "@/components/public/Modals/AddFriendModal";
 import * as Linking from "expo-linking";
+import { primaryColor } from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window");
 
@@ -197,7 +198,22 @@ const PrivateModeScreen = () => {
             color={iconColorMode}
           />
         </TouchableOpacity>
+        <TouchableOpacity>
+          {" "}
+          <MaterialCommunityIcons
+            name="chat"
+            size={height * 0.03}
+            color={isDarkMode ? darkTheme.background : lightTheme.background}
+          />
+        </TouchableOpacity>
         <PublicOrPrivate />
+        <TouchableOpacity onPress={() => navigation.navigate("ChatList")}>
+          <MaterialCommunityIcons
+            name="chat"
+            size={height * 0.03}
+            color={iconColorMode}
+          />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("HistoryPost", { userId: myUserId })

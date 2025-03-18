@@ -1,41 +1,73 @@
-import FollowProfile from "@/components/public/FollowProfile";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useMyUserId } from "@/hooks/useMyUserId";
-import useFollowStore from "@/stores/useFollowStore";
-import {
-  fontWeight,
-  text12FontSize,
-  textPostFontSize,
-} from "@/styles/stylePrimary";
-import { darkThemeInput, grey, lightThemeInput } from "@/utils/colorPrimary";
-import { darkTheme, lightTheme } from "@/utils/themes";
-import { AntDesign } from "@expo/vector-icons";
-import { RouteProp, useRoute } from "@react-navigation/native";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+"use client";
+
+import React from "react";
+import { useState, useCallback } from "react";
 import {
   FlatList,
   View,
   Text,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
   Dimensions,
 } from "react-native";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useMyUserId } from "@/hooks/useMyUserId";
+import useUserFollowInfo from "@/hooks/useUserFollowInfo";
+import FollowProfile from "@/components/public/FollowProfile";
+import {
+  fontWeight,
+  text12FontSize,
+  textPostFontSize,
+} from "@/styles/stylePrimary";
+import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
+import { darkTheme, lightTheme } from "@/utils/themes";
+import { RouteProp, useRoute, useFocusEffect } from "@react-navigation/native";
+import { formatNumber } from "@/utils/formatNumber";
+
 const { width, height } = Dimensions.get("window");
+
+type FollowListRouteParams = {
+  params: {
+    tab: string;
+    userId: number;
+  };
+};
+
 const FollowListScreen = () => {
-  const route =
-    useRoute<
-      RouteProp<{ params: { tab: string; userId: number } }, "params">
-    >();
+  const route = useRoute<RouteProp<FollowListRouteParams, "params">>();
   const params = route.params;
   const tabName = params?.tab;
   const userId = params?.userId;
   const myUserId = useMyUserId();
   const [isTab, setIsTab] = useState<string>(String(tabName));
-  const { followStore } = useFollowStore();
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode, isTab);
+
+  const { followInfo, isFollowLoading, isFollowError } =
+    useUserFollowInfo(userId);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Không cần làm gì thêm nếu useUserFollowInfo đã được cấu hình refetch
+    }, [userId])
+  );
+
+  if (isFollowLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (isFollowError) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error loading follow data</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBarContainer}>
@@ -50,7 +82,7 @@ const FollowListScreen = () => {
           ]}
         >
           <Text style={styles.tabBarTxt}>
-            {followStore.followers} Followers
+            {formatNumber(followInfo?.followers ?? 0)} Followers
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -64,30 +96,31 @@ const FollowListScreen = () => {
           ]}
         >
           <Text style={styles.tabBarTxt}>
-            {followStore.followingNumbers} Following
+            {formatNumber(followInfo?.followingNumbers ?? 0)} Following
           </Text>
         </TouchableOpacity>
       </View>
 
-      {followStore.followers > 0 && (
+      {followInfo?.followers > 0 && (
         <FlatList
           data={
             isTab === "follower"
-              ? followStore?.userFollowers
-              : followStore?.userFollowing
+              ? followInfo?.userFollowers
+              : followInfo?.userFollowing
           }
           keyExtractor={(item) => item?.userId.toString()}
           renderItem={({ item }) => (
-            <>
-              {console.log("item", item)}
-              <FollowProfile {...item} isFollow={item?.isFollow} />
-            </>
+            <FollowProfile {...item} isFollow={item?.isFollow} />
           )}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No {isTab} yet!</Text>
+          }
         />
       )}
     </View>
   );
 };
+
 const getStyles = (isDarkMode: any, isTab: string) => {
   return StyleSheet.create({
     container: {
@@ -109,24 +142,25 @@ const getStyles = (isDarkMode: any, isTab: string) => {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
     },
-    searchContainer: {
-      flexDirection: "row",
-      backgroundColor: isDarkMode ? darkThemeInput : lightThemeInput,
-      width: "100%",
-      height: height * 0.04,
-      borderRadius: 10,
-      alignItems: "center",
-      marginVertical: height * 0.02,
-    },
-    searchIcon: {
-      marginLeft: width * 0.02,
-    },
-    searchInput: {
-      fontSize: text12FontSize,
-      marginLeft: width * 0.03,
+    loadingText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
-      flex: 1,
+      fontSize: textPostFontSize,
+      textAlign: "center",
+      marginTop: height * 0.2,
+    },
+    errorText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+      textAlign: "center",
+      marginTop: height * 0.2,
+    },
+    emptyText: {
+      color: isDarkMode ? darkTheme.text : lightTheme.text,
+      fontSize: textPostFontSize,
+      textAlign: "center",
+      marginTop: height * 0.2,
     },
   });
 };
+
 export default FollowListScreen;
