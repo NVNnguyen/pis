@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Audio } from "expo-av";
 import {
   buttonFontsize,
@@ -24,15 +24,26 @@ interface VoiceModalProp {
   visible: boolean;
   onClose: () => void;
   onDone: (uri: string | null) => void;
+  onReset?: () => void; // Thêm prop để reset từ bên ngoài
 }
+
 const { width, height } = Dimensions.get("window");
 
-const VoiceModal = ({ visible, onDone, onClose }: VoiceModalProp) => {
+const VoiceModal = ({ visible, onDone, onClose, onReset }: VoiceModalProp) => {
   const [recording, setRecording] = useState<Recording>();
   const [permissionResponse, requestPermission] = Audio.usePermissions();
-  const [recordUri, setRecordUri] = useState<string | null>();
+  const [recordUri, setRecordUri] = useState<string | null>(null);
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
+
+  // Reset recordUri khi modal đóng hoặc được yêu cầu từ bên ngoài
+  useEffect(() => {
+    if (!visible) {
+      setRecordUri(null);
+      setRecording(undefined);
+      if (onReset) onReset(); // Gọi onReset để đồng bộ với ChatInput
+    }
+  }, [visible, onReset]);
 
   async function startRecording() {
     try {
@@ -65,7 +76,6 @@ const VoiceModal = ({ visible, onDone, onClose }: VoiceModalProp) => {
     <Modal animationType="slide" transparent={false} visible={visible}>
       <View style={styles.viewContainer}>
         {/* Header */}
-
         <View style={styles.header}>
           {recordUri && (
             <TouchableOpacity onPress={() => setRecordUri(null)}>
@@ -125,7 +135,7 @@ const getStyles = (isDarkMode: boolean) => {
     viewContainer: {
       flex: 1,
       flexDirection: "column",
-      justifyContent: "space-between", // Chia đều 3 phần
+      justifyContent: "space-between",
       alignItems: "center",
       backgroundColor: isDarkMode
         ? darkTheme.background

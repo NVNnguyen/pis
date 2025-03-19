@@ -95,8 +95,6 @@ const Comment: React.FC<CommentProp> = ({
       prevProps.repliesComment === nextProps.repliesComment
   );
 
-  const words = item?.content?.split(" ");
-  const currentContent = words.slice(1).join(" ");
   const [imageLoading, setImageLoading] = useState<boolean>(true);
 
   const handleReplyPress = useCallback(
@@ -161,7 +159,7 @@ const Comment: React.FC<CommentProp> = ({
             <Text style={styles.time}>{item?.createTime}</Text>
           </View>
           <View style={{ flexDirection: "row" }}>
-            <Text style={styles.caption}> {currentContent}</Text>
+            <Text style={styles.caption}> {item?.content}</Text>
           </View>
         </View>
       </View>
@@ -227,7 +225,7 @@ const Comment: React.FC<CommentProp> = ({
         onClose={() => setIsVisiblePostImageDetail(false)}
       />
 
-      {commentsLevel2?.length > 5 && !isOpenReplies && (
+      {commentsLevel2?.length > 0 && !isOpenReplies && (
         <TouchableOpacity onPress={handleViewReplies}>
           <Text style={styles.txtViewReply}>
             View {commentsLevel2?.length} replies ...

@@ -21,7 +21,7 @@ import {
 } from "@/styles/stylePrimary";
 import { formatNumber } from "@/utils/formatNumber";
 import AudioPlayer from "./AudioPlayer";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NavigationProp } from "@react-navigation/native";
 import PostImageDetailModal from "./Modals/PostImageDetailModal";
 import { MainStackType } from "@/utils/types/MainStackType";
@@ -54,7 +54,7 @@ const Posts = ({
   const [isExpandable, setIsExpandable] = useState<boolean>(false);
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const myUserId = Number(useMyUserId());
-
+  const route = useRoute();
   const [isAvatarLoading, setIsAvatarLoading] = useState(true);
   const [areImagesLoading, setAreImagesLoading] = useState(true);
 
@@ -119,15 +119,20 @@ const Posts = ({
               />
             )}
           </TouchableOpacity>
-          {userPostResponse?.userId !== myUserId && !isFollowing && (
-            <TouchableOpacity onPress={handleFollowing} style={styles.addIcon}>
-              <MaterialIcons
-                name="add"
-                size={height * 0.012}
-                color={isDarkMode ? lightTheme.text : darkTheme.text}
-              />
-            </TouchableOpacity>
-          )}
+          {userPostResponse?.userId !== myUserId &&
+            !isFollowing &&
+            route?.name !== "Profile" && (
+              <TouchableOpacity
+                onPress={handleFollowing}
+                style={styles.addIcon}
+              >
+                <MaterialIcons
+                  name="add"
+                  size={height * 0.012}
+                  color={isDarkMode ? lightTheme.text : darkTheme.text}
+                />
+              </TouchableOpacity>
+            )}
         </View>
         <View style={styles.userInfo}>
           <View style={styles.userRow}>
@@ -289,8 +294,6 @@ const getStyles = (isDarkMode: boolean) =>
         : lightTheme.background,
       paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
-      borderBottomWidth: 1,
-      borderBottomColor: "grey",
     },
     header: {
       flexDirection: "row",

@@ -35,7 +35,7 @@ export const useHandleSendMessage = () => {
       filePayload = { uri: imageUri };
     }
 
-    if (!message.trim() && !filePayload) return;
+    if (!message.trim() && !voiceUri && !imageUri) return;
 
     const payload: SendMessageType = {
       conversationId,

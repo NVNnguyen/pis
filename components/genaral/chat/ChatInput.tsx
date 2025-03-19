@@ -32,8 +32,6 @@ import { useMyUserId } from "@/hooks/useMyUserId";
 import CameraModal from "@/components/public/Modals/CameraModal";
 import VoiceModal from "@/components/public/Modals/VoiceModal";
 import useImagePickerChooseOne from "@/hooks/useImagePickerChooseOne";
-import { useSendMessage } from "@/hooks/useSendMessage";
-import { SendMessageType } from "@/utils/types/SendMessageType";
 import AudioPreview from "../AudioPreview";
 import { useRoute } from "@react-navigation/native";
 import { useHandleSendMessage } from "@/hooks/useHandleSendMessage";
@@ -74,8 +72,14 @@ const ChatInput = () => {
     setVoiceUri(null);
     setImageUri(null);
   };
+
   const { handleSendMessage } = useHandleSendMessage();
   const onSendMessage = async () => {
+    // Đặt message về "" ngay khi bắt đầu gửi tin nhắn
+    if (message.trim().length > 0) {
+      setMessage(""); // Reset message ngay lập tức khi gửi
+    }
+
     const result = await handleSendMessage({
       myUserId,
       partnerUserId,
@@ -84,18 +88,20 @@ const ChatInput = () => {
       message,
     });
     console.log("result", result);
+
     if (result?.isPending) {
       setIsLoadingSendMessage(true);
-      setMessage("");
     }
     if (result?.isSuccess) {
-      setMessage("");
-      clearMediaPreview();
       setIsLoadingSendMessage(false);
+      clearMediaPreview();
+      setIsVisibleVoice(false); // Đóng modal voice
+      setVoiceUri(null); // Reset voiceUri
+      setIsVisibleCamera(false);
+      setImageUri(null);
       queryClient.invalidateQueries({
         queryKey: ["message", myUserId, partnerUserId],
       });
-
       queryClient.invalidateQueries({
         queryKey: ["conversation", myUserId, partnerUserId],
       });
@@ -107,6 +113,7 @@ const ChatInput = () => {
       console.log("result", result);
     }
   };
+
   const onSendThumbsUp = async () => {
     const result = await handleSendMessage({
       myUserId,
@@ -287,6 +294,7 @@ const ChatInput = () => {
           setIsVisibleVoice(false);
         }}
         onClose={() => setIsVisibleVoice(false)}
+        onReset={() => setVoiceUri(null)}
       />
     </KeyboardAvoidingView>
   );

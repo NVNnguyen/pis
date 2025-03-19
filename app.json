@@ -25,7 +25,7 @@
       "package": "com.pis.pis",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#000000"
       },
       "intentFilters": [
         {

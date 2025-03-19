@@ -29,7 +29,7 @@ export const useCreatePost = () => {
           } as any);
         });
       }else{
-        const emptyBlob = new Blob([], { type: 'application/octet-stream' });
+        const emptyBlob = new Blob([" "], { type: 'application/octet-stream' });
         // Tạo một file từ Blob rỗng
         const emptyFile = new File([emptyBlob], 'empty.txt', { type: 'application/octet-stream' });
         formData.append("files", emptyFile as any);

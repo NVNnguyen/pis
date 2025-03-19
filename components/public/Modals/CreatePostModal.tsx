@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Modal,
   View,
@@ -60,6 +60,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
     avatar: string;
     username: string;
   }>(["userInfo", myUserId]);
+
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
   const handleImageCaptured = (imageUri: string) => {
@@ -284,6 +285,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                   multiline
                   value={content}
                   onChangeText={setContent}
+                  autoFocus={true}
                 />
               </View>
             </View>

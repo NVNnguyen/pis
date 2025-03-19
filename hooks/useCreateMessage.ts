@@ -31,7 +31,7 @@ export const useCreateMessage = () => {
       } else {
         // API bắt buộc phải có trường file, tạo một file rỗng
         // Tạo một Blob rỗng để gửi như một file
-        const emptyBlob = new Blob([], { type: 'application/octet-stream' });
+        const emptyBlob = new Blob(["  "], { type: 'application/octet-stream' });
         // Tạo một file từ Blob rỗng
         const emptyFile = new File([emptyBlob], 'empty.txt', { type: 'application/octet-stream' });
         formData.append("file", emptyFile as any);

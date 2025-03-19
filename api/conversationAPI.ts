@@ -10,7 +10,7 @@ const conversationAPI = {
   conversations: async (id: number) => {
     try {
       const response = await http.get(`${BASE_URL_CONVERSATIONS}/${id}`);
-      return response?.data;
+      return response?.data || [];
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
