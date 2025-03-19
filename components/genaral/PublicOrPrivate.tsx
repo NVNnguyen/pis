@@ -108,13 +108,13 @@ const getStyles = (isDarkMode: boolean) =>
         ? lightTheme.background
         : darkTheme.background,
       borderRadius: 16,
-      paddingHorizontal: width * 0.02,
+      paddingHorizontal: width * 0.01,
       paddingVertical: height * 0.005,
       alignItems: "center",
     },
     toggleButton: {
-      paddingHorizontal: width * 0.03,
-      paddingVertical: height * 0.01,
+      paddingHorizontal: width * 0.02,
+      paddingVertical: height * 0.005,
       borderRadius: 12,
     },
     toggleText: {

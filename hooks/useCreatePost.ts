@@ -1,6 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import postsAPI from "@/api/postsAPI";
+import * as FileSystem from "expo-file-system";
 
+const createEmptyFile = async () => {
+  const fileUri = `${FileSystem.cacheDirectory}empty.txt`;
+  await FileSystem.writeAsStringAsync(fileUri, "", { encoding: FileSystem.EncodingType.UTF8 });
+  return fileUri;
+};
 // Định nghĩa kiểu dữ liệu cho bài post
 interface UseCreatePostProps {
   files?: { uri: string }[];
@@ -29,10 +35,12 @@ export const useCreatePost = () => {
           } as any);
         });
       }else{
-        const emptyBlob = new Blob([" "], { type: 'application/octet-stream' });
-        // Tạo một file từ Blob rỗng
-        const emptyFile = new File([emptyBlob], 'empty.txt', { type: 'application/octet-stream' });
-        formData.append("files", emptyFile as any);
+        const emptyFileUri = await createEmptyFile();
+        formData.append("files", {
+          uri: emptyFileUri,
+          type: "text/plain",
+          name: "empty.txt",
+        } as any);
       }
 
       // Thêm các dữ liệu khác vào formData

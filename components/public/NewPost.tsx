@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
@@ -71,7 +69,7 @@ const NewPost = ({ userInfo }: newPostProps) => {
             <ActivityIndicator
               style={styles.avatarLoader}
               size="small"
-              color={isDarkMode ? "#ffffff" : "#000000"}
+              color={isDarkMode ? darkTheme.text : lightTheme.text}
             />
           )}
           {userInfo?.avatar?.length === 0 || userInfo?.avatar === null ? (

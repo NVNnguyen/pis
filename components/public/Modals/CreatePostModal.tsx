@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Ionicons, MaterialIcons, SimpleLineIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -37,14 +38,14 @@ interface CreatePostModelProps {
     key: string | null;
   };
   onClose: () => { visible: boolean; key: string | null };
-  isLoading: (isLoading: boolean) => void; // ✅ Cập nhật kiểu trả về
+  isLoading: (isLoading: boolean) => void;
 }
 
 const { width, height } = Dimensions.get("window");
 const CreatePostModel: React.FC<CreatePostModelProps> = ({
   openModel,
   onClose,
-  isLoading, // ✅ Nhận hàm cập nhật loading từ ngoài
+  isLoading,
 }) => {
   const [content, setContent] = useState<string>("");
   const [isVisibleCameraModal, setIsVisibleCameraModal] =
@@ -54,6 +55,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
   const [recordUri, setRecordUri] = useState<string | null>(null);
   const [isLoadingCreatePost, setIsLoadingCreatePost] =
     useState<boolean>(false);
+  const [avatarLoading, setAvatarLoading] = useState<boolean>(false);
   const myUserId = useMyUserId() ?? 0;
   const queryClient = useQueryClient();
   const userInfo = queryClient.getQueryData<{
@@ -124,7 +126,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
     if (isLoadingCreatePost) return;
 
     setIsLoadingCreatePost(true);
-    isLoading(true); // ✅ Cập nhật loading ở ngoài
+    isLoading(true);
 
     const files = [];
 
@@ -169,12 +171,12 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
             "Can't create post. Please try again!"
           );
           setIsLoadingCreatePost(false);
-          isLoading(false); // ✅ Dừng trạng thái loading bên ngoài khi có lỗi
+          isLoading(false);
         },
       }
     );
     setIsLoadingCreatePost(false);
-    isLoading(false); // ✅ Dừng trạng thái loading bên ngoài
+    isLoading(false);
     onClose();
     setRecordUri(null);
     setContent("");
@@ -197,7 +199,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
             text: "Discard",
             onPress: () => {
               setRecordUri(null);
-              onClose(); // Gọi hàm đúng cách
+              onClose();
             },
             style: "destructive",
           },
@@ -233,9 +235,9 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
               <TouchableOpacity
                 onPress={() => {
                   if (recordUri) {
-                    handleCloseModal(); // Gọi hàm đúng cách
+                    handleCloseModal();
                   } else {
-                    onClose(); // Gọi hàm đúng cách
+                    onClose();
                   }
                 }}
               >
@@ -245,7 +247,6 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
               <TouchableOpacity
                 style={[
                   styles.postButton,
-
                   !images?.length &&
                     !capturedImages?.length &&
                     !recordUri &&
@@ -269,6 +270,8 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                 <Image
                   source={{ uri: userInfo.avatar }}
                   style={styles.avatar}
+                  onLoadStart={() => setAvatarLoading(true)}
+                  onLoadEnd={() => setAvatarLoading(false)}
                 />
               ) : (
                 <Image
@@ -276,12 +279,19 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                   style={styles.avatar}
                 />
               )}
-              <View>
+              {avatarLoading && !userInfo?.avatar && (
+                <ActivityIndicator
+                  size="small"
+                  color="#9E9E9E"
+                  style={styles.avatar}
+                />
+              )}
+              <View style={styles.inputContainer}>
                 <Text style={styles.usernameTxt}>{userInfo?.username}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="What's new?"
-                  placeholderTextColor="##9E9E9E"
+                  placeholderTextColor="#9E9E9E"
                   multiline
                   value={content}
                   onChangeText={setContent}
@@ -294,7 +304,7 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                 data={
                   capturedImages ? [capturedImages, ...images] : [...images]
                 }
-                keyExtractor={(item, index) => `${item}-${index}`} // Tránh trùng key
+                keyExtractor={(item, index) => `${item}-${index}`}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 renderItem={({ item }) => (
@@ -304,9 +314,9 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                       style={styles.clearImage}
                       onPress={() => {
                         if (item === capturedImages) {
-                          setCapturedImages(null); // Xóa ảnh từ camera
+                          setCapturedImages(null);
                         } else {
-                          removeImage(item); // Xóa ảnh từ thư viện
+                          removeImage(item);
                         }
                       }}
                     >
@@ -325,14 +335,20 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
 
             <View style={styles.actionRow}>
               <>
-                <TouchableOpacity onPress={() => handleOpenMode("camera")}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleOpenMode("camera")}
+                >
                   <SimpleLineIcons
                     name="camera"
                     size={buttonFontsize}
                     color="#9E9E9E"
                   />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleOpenMode("photo")}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleOpenMode("photo")}
+                >
                   <Ionicons
                     name="images-outline"
                     size={buttonFontsize}
@@ -341,7 +357,10 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
                 </TouchableOpacity>
               </>
 
-              <TouchableOpacity onPress={() => handleOpenMode("record")}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleOpenMode("record")}
+              >
                 <MaterialIcons
                   name="keyboard-voice"
                   size={buttonFontsize}
@@ -350,13 +369,6 @@ const CreatePostModel: React.FC<CreatePostModelProps> = ({
               </TouchableOpacity>
             </View>
           </View>
-          {/* Add a loading overlay when posting */}
-          {/* {isLoadingCreatePost && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#1E90FF" />
-              <Text style={styles.loadingText}>Posting...</Text>
-            </View>
-          )} */}
           <CameraModal
             visible={isVisibleCameraModal}
             onClose={() => setIsVisibleCameraModal(false)}
@@ -391,67 +403,118 @@ const getStyles = (isDarkMode: boolean) =>
         : lightTheme.background,
       borderRadius: 15,
       padding: width * 0.03,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+        },
+        android: {
+          elevation: 4,
+        },
+      }),
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      borderBottomWidth: 1,
-      borderBottomColor: "#999",
-      paddingBottom: height * 0.01,
+      borderBottomWidth: StyleSheet.hairlineWidth, // Use hairlineWidth for consistent border across platforms
+      borderBottomColor: isDarkMode ? "#444" : "#ddd",
+      paddingBottom: 10,
+      paddingHorizontal: 5,
+      height: 50, // Fixed height for consistency
     },
     cancelText: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textFontSize,
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
+      padding: 5, // Add padding for better touch target
     },
     headerTitle: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textFontSize,
       fontWeight: "bold",
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
     },
     postButton: {
       backgroundColor: "#1E90FF",
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 15,
+      minWidth: 60, // Ensure consistent width
+      alignItems: "center", // Center text
     },
     disabledPost: {
       backgroundColor: isDarkMode
-        ? lightTheme.background
-        : darkTheme.background,
+        ? "rgba(255, 255, 255, 0.2)"
+        : "rgba(0, 0, 0, 0.2)",
+      // Use opacity instead of different colors for consistency
     },
     postText: {
-      color: isDarkMode ? lightTheme.text : darkTheme.text,
+      color: "#FFFFFF", // Use white for both platforms
       fontWeight: fontWeight,
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
     },
     userInfo: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-start", // Align to top for consistency
       marginVertical: 15,
+      width: "100%",
+      paddingHorizontal: 5,
     },
     avatar: {
       width: width * 0.1,
       height: width * 0.1,
       borderRadius: (width * 0.1) / 2,
       marginRight: width * 0.02,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 1,
+        },
+        android: {
+          elevation: 1,
+        },
+      }),
+    },
+    inputContainer: {
+      flex: 1,
+      alignItems: "flex-start",
     },
     usernameTxt: {
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textPostFontSize,
       fontWeight: fontWeight,
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
+      marginBottom: 5,
     },
     input: {
-      flex: 1,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       fontSize: textFontSize,
+      width: "100%",
+      paddingVertical: 0, // Remove padding to match across platforms
+      paddingHorizontal: 0,
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
+      textAlignVertical: "top", // Consistent text alignment
     },
     actionRow: {
       flexDirection: "row",
       justifyContent: "space-around",
-      marginTop: height * 0.015,
+      marginTop: 15,
+      paddingVertical: 10,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: isDarkMode ? "#444" : "#ddd",
+    },
+    actionButton: {
+      padding: 10, // Add padding for better touch target
+      alignItems: "center",
+      justifyContent: "center",
     },
     image: {
-      width: width * 0.5, // Mặc định
+      width: width * 0.5,
       height: width * 0.5,
       margin: 5,
       borderRadius: 10,
@@ -459,10 +522,25 @@ const getStyles = (isDarkMode: boolean) =>
     },
     clearImage: {
       position: "absolute",
-      backgroundColor: isDarkMode ? darkTheme.text : lightTheme.text,
-      borderRadius: "50%",
-      right: 0,
-      margin: 10,
+      backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background for both platforms
+      borderRadius: 15,
+      right: 5,
+      top: 5,
+      width: 24,
+      height: 24,
+      alignItems: "center",
+      justifyContent: "center",
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.2,
+          shadowRadius: 1,
+        },
+        android: {
+          elevation: 2,
+        },
+      }),
     },
     captureImageContainer: {
       position: "relative",
@@ -471,19 +549,17 @@ const getStyles = (isDarkMode: boolean) =>
       alignItems: "center",
       justifyContent: "center",
     },
-
     imageCapture: {
       width: "100%",
       height: "100%",
       borderRadius: 10,
       resizeMode: "cover",
     },
-
     clearImageCapture: {
       position: "absolute",
       top: 5,
       right: 5,
-      backgroundColor: "rgba(0,0,0,0.5)", // ✅ Làm mờ nền để dễ thấy
+      backgroundColor: "rgba(0,0,0,0.5)",
       borderRadius: 15,
       width: 30,
       height: 30,
@@ -503,9 +579,10 @@ const getStyles = (isDarkMode: boolean) =>
       zIndex: 100,
     },
     loadingText: {
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      marginTop: height * 0.01,
+      color: "#FFFFFF", // White text for both platforms
+      marginTop: 10,
       fontSize: textFontSize,
+      fontFamily: Platform.OS === "ios" ? "System" : "normal",
     },
   });
 

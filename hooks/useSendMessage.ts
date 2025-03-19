@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import conversationAPI from "@/api/conversationAPI";
 import { SendMessageType } from "@/utils/types/SendMessageType";
-
+import * as FileSystem from "expo-file-system";
+const createEmptyFile = async () => {
+  const fileUri = `${FileSystem.cacheDirectory}empty.txt`;
+  await FileSystem.writeAsStringAsync(fileUri, "", { encoding: FileSystem.EncodingType.UTF8 });
+  return fileUri;
+};
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
 
@@ -39,12 +44,12 @@ export const useSendMessage = () => {
           name: fileName,
         } as any);
       } else {
-        // API bắt buộc phải có trường file, tạo một file rỗng
-        // Tạo một Blob rỗng để gửi như một file
-        const emptyBlob = new Blob([" "], { type: 'application/octet-stream' });
-        // Tạo một file từ Blob rỗng
-        const emptyFile = new File([emptyBlob], 'empty.txt', { type: 'application/octet-stream' });
-        formData.append("file", emptyFile as any);
+        const emptyFileUri = await createEmptyFile();
+        formData.append("file", {
+          uri: emptyFileUri,
+          type: "text/plain",
+          name: "empty.txt",
+        } as any);
       }
 
 

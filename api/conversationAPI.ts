@@ -1,4 +1,3 @@
-import { posts } from './../utils/mockAPI';
 import axios from "axios";
 import { getToken } from "@/utils/storage";
 import Http from "@/utils/Http";
@@ -107,7 +106,7 @@ const conversationAPI = {
           console.error(`Error Code: ${code}, Message: ${message}`);
           return { code, message }; // Trả về lỗi để xử lý phía trên
         } else if (error.request) {
-          console.error("No response received:", error.request);
+          console.error("No response received send message:", error.request);
           throw new Error("No response from server");
         } else {
           console.error("Request Error:", error.message);

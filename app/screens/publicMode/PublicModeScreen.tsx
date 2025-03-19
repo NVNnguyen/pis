@@ -31,7 +31,7 @@ const { width, height } = Dimensions.get("window");
 const PublicModeScreen = () => {
   const tabBarTranslateY = useRef(new Animated.Value(0)).current;
   const publicTogglePaddingTop = useRef(
-    new Animated.Value(height * 0.1)
+    new Animated.Value(height * 0.05)
   ).current;
   const currentTranslateY = useRef(0);
   const lastScrollY = useRef(0);
@@ -113,15 +113,17 @@ const PublicModeScreen = () => {
   };
 
   const ListHeaderComponent = () => (
-    <NewPost
-      userInfo={{
-        avatar: userInfo?.avatar,
-        lastName: userInfo?.lastName,
-        firstName: userInfo?.firstName,
-        userId: userInfo?.id,
-        username: userInfo?.username,
-      }}
-    />
+    <View style={styles.newPostContainer}>
+      <NewPost
+        userInfo={{
+          avatar: userInfo?.avatar,
+          lastName: userInfo?.lastName,
+          firstName: userInfo?.firstName,
+          userId: userInfo?.id,
+          username: userInfo?.username,
+        }}
+      />
+    </View>
   );
 
   return (
@@ -203,7 +205,7 @@ const getStyles = (isDarkMode: boolean) =>
     },
     fixedToggleContainer: {
       position: "absolute",
-      top: 5,
+      top: 0,
       left: 0,
       right: 0,
       zIndex: 10,
@@ -231,6 +233,7 @@ const getStyles = (isDarkMode: boolean) =>
       alignItems: "center",
       zIndex: 5,
     },
+    newPostContainer: {},
   });
 
 export default PublicModeScreen;

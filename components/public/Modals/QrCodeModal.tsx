@@ -135,11 +135,7 @@ const QrCodeModal: React.FC<QRCodeModalProps> = ({
 
           {/* QR Code với Avatar ở giữa */}
           <View style={styles.qrContainer}>
-            <QRCode
-              value={qrValue} // Giá trị QR code (URL hoặc dữ liệu)
-              size={height * 0.25} // Kích thước QR code
-              getRef={(ref) => (qrRef.current = ref)} // Lấy ref để xử lý
-            />
+            <Image source={{ uri: qrValue }} style={styles.qrImage} />
             <Image
               source={{ uri: avatar }}
               style={styles.smallImage}
@@ -245,6 +241,10 @@ const getStyles = (isDarkMode: boolean) =>
       fontSize: width * 0.04,
       color: isDarkMode ? darkTheme.text : lightTheme.text,
       marginLeft: width * 0.02,
+    },
+    qrImage: {
+      width: height * 0.25,
+      height: height * 0.25,
     },
   });
 

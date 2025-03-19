@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -16,6 +14,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
 import type { PostItemType } from "@/utils/types/PostItemType";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 
 const { width } = Dimensions.get("window");
 const ITEM_MARGIN = 4;

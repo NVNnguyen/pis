@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   useEffect,
@@ -86,7 +84,7 @@ const ProfileHeader = React.memo(
       useState<boolean>(false);
     const [isVisibleAvatarDetail, setIsVisibleAvatarDetail] =
       useState<boolean>(false);
-
+    const [isAvatarLoading, setIsAvatarLoading] = useState<boolean>(false);
     const navigation = useNavigation<NavigationProp<MainStackType>>();
     const queryClient = useQueryClient(); // Thêm queryClient
 
@@ -173,8 +171,16 @@ const ProfileHeader = React.memo(
                 <Image
                   source={{ uri: userInfo?.avatar }}
                   style={styles.avatarImg}
+                  onLoadStart={() => setIsAvatarLoading(true)}
+                  onLoadEnd={() => setIsAvatarLoading(false)}
                 />
               </View>
+              {isAvatarLoading && !userInfo?.avatar && (
+                <ActivityIndicator
+                  size="small"
+                  color={isDarkMode ? darkTheme.text : lightTheme.text}
+                />
+              )}
               {followInfo?.followers >= 10000 && (
                 <View style={styles.verifiedBadge}>
                   <MaterialIcons name="verified" style={styles.verifiedText} />

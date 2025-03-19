@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, FlatList } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
