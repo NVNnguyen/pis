@@ -7,7 +7,6 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { View, StyleSheet } from "react-native";
-import * as Linking from "expo-linking";
 
 // ✅ Giữ splash screen khi app khởi động
 SplashScreen.preventAutoHideAsync();
@@ -16,7 +15,7 @@ const queryClient = new QueryClient();
 
 // ✅ Cấu hình Deep Linking
 const linking = {
-  prefixes: ["https://myapp.com", "vpis://"], // Chỉ khai báo scheme cơ bản
+  prefixes: ["https://pis-app.shop", "pis-app://"], // Chỉ khai báo scheme cơ bản
   config: {
     screens: {
       HistoryPost: {

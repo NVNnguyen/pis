@@ -49,8 +49,6 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import useUserInfo from "@/hooks/useUserInfo";
-import useGenerateAndUploadQR from "@/hooks/useGenerateAndUploadQR";
 const { width, height } = Dimensions.get("window");
 const HistoryPostScreen = () => {
   const [activeTab, setActiveTab] = useState<"photo" | "voice">("photo");

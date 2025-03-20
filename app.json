@@ -7,15 +7,16 @@
       "ios",
       "android"
     ],
+    "sdkVersion": "52.0.0",
     "newArchEnabled": true,
-    "scheme": "vpis",
+    "scheme": "pis-app",
     "userInterfaceStyle": "automatic",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/logoApp.png",
     "ios": {
       "bundleIdentifier": "com.pis",
       "supportsTablet": true,
       "associatedDomains": [
-        "applinks:vpis.me"
+        "applinks:pis-app.shop"
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -24,7 +25,7 @@
     "android": {
       "package": "com.pis.pis",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/logoApp.png",
         "backgroundColor": "#000000"
       },
       "intentFilters": [
@@ -33,10 +34,10 @@
           "data": [
             {
               "scheme": "https",
-              "host": "vpis.me"
+              "host": "pis-app.shop"
             },
             {
-              "scheme": "vpis"
+              "scheme": "pis-app"
             }
           ],
           "category": [
@@ -51,22 +52,22 @@
         "projectId": "94603315-a1bb-48d8-b850-3a2ebbfa2506"
       }
     },
-    "owner": "vietnguyen.world"
-  },
-  "web": {
-    "bundler": "metro",
-    "output": "static",
-    "favicon": ""
-  },
-  "plugins": [
-    [
-      "expo-camera",
-      {
-        "cameraPermission": "Allow this app to access your camera"
-      }
-    ]
-  ],
-  "experiments": {
-    "typedRoutes": true
+    "owner": "vietnguyen.world",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": ""
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow this app to access your camera"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

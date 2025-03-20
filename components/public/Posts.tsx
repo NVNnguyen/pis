@@ -294,6 +294,8 @@ const getStyles = (isDarkMode: boolean) =>
         : lightTheme.background,
       paddingVertical: height * 0.02,
       paddingHorizontal: width * 0.04,
+      borderBottomWidth: 0.5,
+      borderBottomColor: grey,
     },
     header: {
       flexDirection: "row",

@@ -16,7 +16,6 @@ import {
   textFontSize,
   textPostFontSize,
 } from "@/styles/stylePrimary";
-import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import useLogout from "@/hooks/useLogout";
 import { FontAwesome, FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
@@ -24,6 +23,7 @@ import { MainStackType } from "@/utils/types/MainStackType";
 import useGenerateAndUploadQR from "@/hooks/useGenerateAndUploadQR";
 import useUserInfo from "@/hooks/useUserInfo";
 import QrCodeModal from "./QrCodeModal";
+import QRCode from "react-native-qrcode-svg";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,70 +40,62 @@ const SettingModalPrivate = ({
 }: SettingModalPrivateProps) => {
   const { isDarkMode } = useTheme();
   const navigation = useNavigation<NavigationProp<MainStackType>>();
-  const [qrCode, setQrCode] = useState<string>("");
   const [qrCodeModalVisible, setQrCodeModalVisible] = useState<boolean>(false);
   const styles = getStyle(isDarkMode);
   const { logout, isLoading } = useLogout();
-
   const {
     qrValue,
-    generateQRForUser,
+    setQrValue,
     isLoading: qrLoading,
-    error: qrError,
+    error,
     uploadedUrl,
-    HiddenQRCode,
-  } = useGenerateAndUploadQR({}, userId);
+    generateQRForUser,
+    qrRef,
+  } = useGenerateAndUploadQR(userId);
+  const { userInfo, isUserLoading } = useUserInfo(userId);
 
-  const { userInfo, isUserLoading, userError } = useUserInfo(userId);
-
+  // Sau khi capture và upload lên server, uploadedUrl sẽ được set
+  // và khi uploadedUrl thay đổi, useEffect này sẽ mở modal hiển thị QR Code.
   useEffect(() => {
     if (uploadedUrl) {
-      setQrCode(uploadedUrl);
       setQrCodeModalVisible(true);
     }
   }, [uploadedUrl]);
 
   const handleLogout = () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", onPress: () => logout() },
-      ],
-      { cancelable: true }
-    );
+    Alert.alert("Confirm Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Logout", onPress: () => logout() },
+    ]);
   };
 
   const handleShareQRCode = async () => {
-    console.log("userInfo", userInfo);
-    if (!userInfo || userInfo.qrCode === null) {
+    // Nếu userInfo.qrCode === null, tức chưa có QR code trên server thì tạo mới.
+    if (userInfo?.qrCode === null) {
       try {
-        const qrUrl = await generateQRForUser();
-        console.log("QR Code URL generated:", qrUrl);
+        await generateQRForUser();
       } catch (err) {
-        console.error("Error generating QR:", err);
         Alert.alert("Error", "Failed to generate QR Code");
       }
     } else {
-      setQrCode(userInfo.qrCode);
+      // Nếu đã có QR code từ server thì chỉ cần hiển thị modal.
       setQrCodeModalVisible(true);
     }
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent
-      visible={visible}
-      style={{ zIndex: 1000 }}
-    >
+    <Modal animationType="slide" transparent visible={visible}>
       <View style={styles.overlay}>
-        {/* Đảm bảo HiddenQRCode được render ngay từ đầu */}
-        <HiddenQRCode />
+        {/* View ẩn dùng để render QRCode và hỗ trợ capture qua captureRef */}
+        <View style={{ position: "absolute", left: -1000, top: -1000 }}>
+          <QRCode
+            value={qrValue || " "}
+            size={200}
+            getRef={(ref) => (qrRef.current = ref)}
+          />
+        </View>
 
         <View style={styles.container}>
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.cancelText}>Cancel</Text>
@@ -114,7 +106,6 @@ const SettingModalPrivate = ({
             </TouchableOpacity>
           </View>
 
-          {/* Profile Section */}
           <View style={styles.profileSection}>
             <TouchableOpacity
               style={styles.inputContainer}
@@ -128,6 +119,7 @@ const SettingModalPrivate = ({
               />
               <Text style={styles.label}>Share QR code</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.inputContainer}
               onPress={() => {
@@ -151,7 +143,7 @@ const SettingModalPrivate = ({
               <FontAwesome
                 name="sign-out"
                 size={buttonFontsize}
-                color={"rgb(253, 0, 0)"}
+                color="rgb(253, 0, 0)"
               />
               <Text style={styles.txtLogout}>
                 {isLoading ? "Logging out..." : "Logout"}
@@ -164,11 +156,11 @@ const SettingModalPrivate = ({
           <QrCodeModal
             visible={qrCodeModalVisible}
             onClose={() => setQrCodeModalVisible(false)}
-            qrValue={qrCode || qrValue}
-            firstName={userInfo?.firstName}
-            lastName={userInfo?.lastName}
-            username={userInfo?.username}
-            avatar={userInfo?.avatar}
+            qrValue={userInfo.qrCode || uploadedUrl}
+            firstName={userInfo.firstName}
+            lastName={userInfo.lastName}
+            username={userInfo.username}
+            avatar={userInfo.avatar}
           />
         )}
       </View>
@@ -176,7 +168,7 @@ const SettingModalPrivate = ({
   );
 };
 
-const getStyle = (isDarkMode: any) =>
+const getStyle = (isDarkMode: boolean) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -227,13 +219,6 @@ const getStyle = (isDarkMode: any) =>
       marginLeft: width * 0.08,
       fontWeight: fontWeight,
       textDecorationLine: "underline",
-    },
-    input: {
-      backgroundColor: isDarkMode ? "#2C2C2E" : "#E0E0E0",
-      padding: height * 0.012,
-      borderRadius: 8,
-      color: isDarkMode ? darkTheme.text : lightTheme.text,
-      fontSize: textFontSize,
     },
     btnLogout: {
       alignContent: "center",

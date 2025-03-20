@@ -15,23 +15,18 @@ import {
   ActivityIndicator,
 } from "react-native";
 import {
-  backgroundColor,
   buttonFontsize,
-  Color,
   fontWeight,
   textFontSize,
-  titleFontsize,
 } from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
 import { emailRegex } from "@/utils/regex";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
-import authAPI from "@/api/authAPI";
 import { RFValue } from "react-native-responsive-fontsize";
 import { darkThemeInput, lightThemeInput } from "@/utils/colorPrimary";
 import useRegisterAccount from "@/hooks/useRegisterAccount";
-import useGenerateAndUploadQR from "@/hooks/useGenerateAndUploadQR";
 
 const { width, height } = Dimensions.get("window");
 

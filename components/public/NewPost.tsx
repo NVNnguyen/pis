@@ -181,7 +181,7 @@ const getStyles = (isDarkMode: boolean) =>
     container: {
       flexDirection: "row",
       padding: width * 0.01,
-      borderBottomWidth: 1,
+      borderBottomWidth: 0.5,
       borderBottomColor: "#9E9E9E",
       paddingBottom: height * 0.02,
       marginLeft: width * 0.02,

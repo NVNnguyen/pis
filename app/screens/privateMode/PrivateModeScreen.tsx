@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
   StyleSheet,
@@ -31,7 +29,6 @@ import { useMyUserId } from "@/hooks/useMyUserId";
 import PostPrivateSkeleton from "@/Loading/PostPrivateSkeleton";
 import AddFriendModal from "@/components/public/Modals/AddFriendModal";
 import * as Linking from "expo-linking";
-import { primaryColor } from "@/utils/colorPrimary";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,7 +37,7 @@ const PrivateModeScreen = () => {
   const iconColorMode = isDarkMode ? darkTheme.text : lightTheme.text;
   const navigation = useNavigation<NavigationProp<MainStackType>>();
   const route = useRoute<RouteProp<MainStackType, "PrivateMode">>();
-  const [userId, setUserId] = useState<number>(0); // Khởi tạo
+  const [userId, setUserId] = useState<number>(0);
   const myUserId = Number(useMyUserId()) ?? 0;
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showAlternate, setShowAlternate] = useState(false);
@@ -49,59 +46,69 @@ const PrivateModeScreen = () => {
   const styles = getStyles(isDarkMode);
   const [onTopCheck, setOnTopCheck] = useState<boolean>(false);
   const [isVisibleAddModal, setIsVisibleAddModal] = useState<boolean>(false);
+  const [hasHandledDeepLink, setHasHandledDeepLink] = useState<boolean>(false); // Giữ nguyên biến
+
   const { postsPrivate, isPostsPrivateLoading, postsPrivateError, refetch } =
     usePrivatePosts(myUserId);
 
   const extractUserId = (url: string) => {
     try {
       if (!url) return null;
-
       const urlObject = new URL(url);
       const userId = urlObject.searchParams.get("userId");
       console.log("Extracted userId:", userId);
-      return userId ? parseInt(userId, 10) : null; // Đảm bảo userId là số nguyên
+      return userId ? parseInt(userId, 10) : null;
     } catch (error) {
       console.error("Error parsing URL:", error);
       return null;
     }
   };
-  useEffect(() => {
-    const handleDeepLink = async () => {
-      // Lấy deeplink khi app khởi động
-      const initialUrl = await Linking.getInitialURL();
-      if (initialUrl) {
-        const deepLinkUserId = extractUserId(initialUrl);
 
-        if (deepLinkUserId !== myUserId) {
-          setIsVisibleAddModal(false);
-        } else {
-          setUserId(deepLinkUserId);
-          setIsVisibleAddModal(true);
-        }
+  useEffect(() => {
+    let isInitialMount = true; // Biến để kiểm tra mount lần đầu
+
+    const handleDeepLink = async () => {
+      if (hasHandledDeepLink) return;
+
+      // Chỉ xử lý initialUrl khi mount lần đầu từ deeplink
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl && isInitialMount) {
+        const deepLinkUserId = extractUserId(initialUrl);
+        handleDeepLinkLogic(deepLinkUserId);
       }
 
       // Lắng nghe deeplink khi app đang chạy
       const subscription = Linking.addEventListener("url", ({ url }) => {
         console.log("Received Deeplink URL:", url);
         const deepLinkUserId = extractUserId(url);
-        console.log("Received DeepLink UserId:", deepLinkUserId);
-
-        if (deepLinkUserId !== myUserId) {
-          setIsVisibleAddModal(false);
-        } else {
-          setUserId(deepLinkUserId);
-          setIsVisibleAddModal(true);
-        }
+        handleDeepLinkLogic(deepLinkUserId);
       });
 
       return () => {
         console.log("Cleaning up deeplink listener...");
         subscription.remove();
+        isInitialMount = false; // Đánh dấu không còn là mount lần đầu
       };
     };
 
     handleDeepLink();
-  }, [route.params, myUserId]); // Lắng nghe sự thay đổi của myUserId
+
+    return () => {
+      setIsVisibleAddModal(false); // Đóng modal khi unmount
+    };
+  }, [myUserId, hasHandledDeepLink]); // Giữ nguyên dependencies
+
+  const handleDeepLinkLogic = (deepLinkUserId: number | null) => {
+    if (deepLinkUserId === null || hasHandledDeepLink) return;
+
+    if (deepLinkUserId === myUserId) {
+      setIsVisibleAddModal(false);
+    } else {
+      setUserId(deepLinkUserId);
+      setIsVisibleAddModal(true);
+    }
+    setHasHandledDeepLink(true); // Đánh dấu đã xử lý deeplink
+  };
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -199,7 +206,6 @@ const PrivateModeScreen = () => {
           />
         </TouchableOpacity>
         <TouchableOpacity>
-          {" "}
           <MaterialCommunityIcons
             name="chat"
             size={height * 0.03}

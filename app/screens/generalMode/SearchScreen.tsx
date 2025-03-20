@@ -88,12 +88,7 @@ const SearchScreen = () => {
           )}
         />
       )}
-      {search?.length === 0 ||
-        (!search && (
-          <Text style={styles.searchTxt}>
-            {`No results for "${searchText}"`}{" "}
-          </Text>
-        ))}
+
       <TabBar />
     </View>
   );

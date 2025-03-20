@@ -125,13 +125,20 @@ const AddFriendModal = ({
         <View style={styles.modalContent}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: profileInformation.avatar }}
+              source={{ uri: profileInformation?.avatar }}
               style={styles.profileImage}
               resizeMode="cover"
               onError={(e) =>
                 console.log("Image load error:", e.nativeEvent.error)
               }
             />
+            {!profileInformation?.avatar && (
+              <Image
+                source={require("../../../assets/images/userAvatar.png")}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            )}
           </View>
           <Text style={styles.name}>
             {profileInformation.firstName} {profileInformation.lastName}
