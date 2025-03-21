@@ -31,9 +31,9 @@ const Stack = createNativeStackNavigator<MainStackType>();
 const MainStack: React.FC = () => {
   const { isDarkMode } = useTheme();
   const styles = getStyles(isDarkMode);
-  const [initialRoute, setInitialRoute] = useState<
-    keyof MainStackType | undefined
-  >(undefined);
+  const [initialRoute, setInitialRoute] =
+    useState<keyof MainStackType>("Login");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,28 +42,23 @@ const MainStack: React.FC = () => {
         const savedOption = await AsyncStorage.getItem("toggleOption");
 
         if (token) {
-          if (savedOption === "PublicMode") {
-            setInitialRoute("PublicMode");
-          } else if (savedOption === "PrivateMode") {
-            setInitialRoute("PrivateMode");
-          } else {
-            setInitialRoute("Login");
-          }
+          setInitialRoute(
+            savedOption === "PublicMode" ? "PublicMode" : "PrivateMode"
+          );
         } else {
           setInitialRoute("Login");
         }
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu từ AsyncStorage:", error);
+        console.error("AsyncStorage error:", error);
         setInitialRoute("Login");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkAuth();
   }, []);
-
-  if (initialRoute === null) {
-    return null; // Hiển thị màn hình loading hoặc splash screen nếu cần
-  }
+  if (isLoading) return <LoadingScreen />;
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}

@@ -15,7 +15,7 @@ const useMessage= (myUserId: number, userIdProp: number) => {
             return response?.data || [];
             },
             enabled: !!myUserId && !!userIdProp,
-          
+            refetchInterval: 5000,
         });
         return { message, isMessageLoading, messageError };
 };

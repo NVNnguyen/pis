@@ -19,7 +19,7 @@ import {
   titleFontsize,
 } from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
-import { emailRegex } from "@/utils/regex";
+import { emailRegex, passwordRegex } from "@/utils/regex";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -39,6 +39,7 @@ const LoginScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
+  const [titleAlert, setTitleAlert] = useState<string>("");
 
   const showAlert = (message: string) => {
     setAlertMessage(message);
@@ -48,11 +49,29 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     const trimmedEmail = email.toLowerCase().trim();
     if (!trimmedEmail) {
-      showAlert("Please enter email or phone number!");
+      setAlertMessage("Email is required!");
+      setTitleAlert("Invalid email!");
+      setAlertVisible(true);
       return;
     }
     if (!emailRegex.test(trimmedEmail)) {
-      showAlert("Invalid email format! Please enter a valid email.");
+      setAlertMessage("Invalid email format! Please enter a valid email.");
+      setTitleAlert("Invalid email!");
+      setAlertVisible(true);
+      return;
+    }
+    if (password.trim() === "") {
+      setAlertMessage("Password is required!");
+      setTitleAlert("Invalid password!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!passwordRegex.test(password)) {
+      setAlertMessage(
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
+      );
+      setTitleAlert("Invalid password!");
+      setAlertVisible(true);
       return;
     }
     if (email && password) {

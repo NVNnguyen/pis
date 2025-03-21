@@ -33,29 +33,72 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
 
   const flatListRef = useRef<FlatList<any>>(null);
   const [messageList, setMessageList] = useState<any[]>([]);
-  console.log("myUserid, userInfo?.id: ", myUserid, userInfo?.id);
+  const [pendingNewMessages, setPendingNewMessages] = useState<any[]>([]); // Lưu tin nhắn mới tạm thời
+  const [isAtBottom, setIsAtBottom] = useState(true); // Kiểm tra xem có ở cuối danh sách không
+
   const { message } = useMessage(myUserid, userInfo?.id);
   const { newMessage } = useNewestMessage(myUserid, userInfo?.id);
+
+  // Khởi tạo danh sách tin nhắn ban đầu
   useEffect(() => {
     if (message && message.length > 0) {
       setMessageList(message);
     }
   }, [message]);
 
+  // Xử lý tin nhắn mới từ useNewestMessage
   useEffect(() => {
     if (newMessage && newMessage.length > 0) {
-      setMessageList([...message, newMessage]);
+      setPendingNewMessages((prev) => [...prev, ...newMessage]); // Lưu tin nhắn mới vào pending
     }
   }, [newMessage]);
 
-  // 👉 Scroll xuống cuối khi messageList thay đổi
+  // Kiểm tra và cập nhật messageList dựa trên vị trí scroll
   useEffect(() => {
-    if (messageList.length > 0) {
+    if (pendingNewMessages.length > 0) {
+      if (isAtBottom) {
+        // Nếu đang ở cuối, thêm tin nhắn mới và scroll xuống
+        setMessageList((prev) => [...prev, ...pendingNewMessages]);
+        setPendingNewMessages([]); // Xóa tin nhắn tạm sau khi thêm
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+      // Nếu không ở cuối, giữ tin nhắn mới trong pendingNewMessages mà không render lại
+    }
+  }, [pendingNewMessages, isAtBottom]);
+
+  // Theo dõi vị trí scroll để xác định có ở cuối không
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const isBottom =
+      contentOffset.y + layoutMeasurement.height >= contentSize.height - 50; // Ngưỡng 50px để coi là "gần cuối"
+    setIsAtBottom(isBottom);
+  };
+
+  // Scroll xuống cuối khi messageList thay đổi (chỉ khi khởi tạo hoặc thêm tin nhắn lúc ở cuối)
+  useEffect(() => {
+    if (messageList.length > 0 && isAtBottom) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100); // delay 100ms đảm bảo layout đã render xong
+      }, 100);
     }
   }, [messageList]);
+
+  const renderItem = ({ item }: { item: any }) => (
+    <View
+      style={
+        item?.userId === myUserid ? styles.ownerMessage : styles.theirMessage
+      }
+    >
+      <Message
+        {...item}
+        style={
+          item?.userId === myUserid ? styles.ownerMessage : styles.theirMessage
+        }
+      />
+    </View>
+  );
 
   return (
     <>
@@ -65,24 +108,9 @@ const MessageList: React.FC<MessageProps> = (userInfo: MessageProps) => {
           showsVerticalScrollIndicator={false}
           data={messageList}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View
-              style={
-                item?.userId === myUserid
-                  ? styles.ownerMessage
-                  : styles.theirMessage
-              }
-            >
-              <Message
-                {...item}
-                style={
-                  item?.userId === myUserid
-                    ? styles.ownerMessage
-                    : styles.theirMessage
-                }
-              />
-            </View>
-          )}
+          renderItem={renderItem}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           contentContainerStyle={{ paddingBottom: height * 0.05 }}
         />
       ) : (

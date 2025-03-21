@@ -4,7 +4,7 @@ import friendAPI from "@/api/friendAPI";
 import { getDecodedToken } from "@/utils/decodeToken";
 import { MainStackType } from "@/utils/types/MainStackType";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NavigationProp } from "@react-navigation/native";
+import { CommonActions, NavigationProp } from "@react-navigation/native";
 import { useMutation } from "@tanstack/react-query";
 
 import { Alert } from "react-native";
@@ -27,7 +27,12 @@ const useLogin = (navigation: NavigationProp<MainStackType>) => {
         getDecodedToken(response?.data?.token);
         await AsyncStorage.setItem("token", response?.data?.token);
         console.log("token login: ", await AsyncStorage.getItem("token"));
-        navigation.navigate("PublicMode");
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "PublicMode" }],
+          })
+        );
       },
       onError: () => {
         Alert.alert('Login failed!', 'Username or password incorrect!', [

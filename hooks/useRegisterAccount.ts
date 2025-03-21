@@ -45,7 +45,7 @@ const useRegisterAccount = (navigation: NavigationProp<MainStackType>) => {
     },
   });
 
-  return { register: register.mutate, isLoading: register.isPending , isSuccess: register.isSuccess };
+  return { register: register.mutate, isLoading: register.isPending , isSuccess: register.isSuccess , isError: register.isError };
 };
 
 export default useRegisterAccount;

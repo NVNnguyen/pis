@@ -20,7 +20,7 @@ import {
   textFontSize,
 } from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
-import { emailRegex } from "@/utils/regex";
+import { emailRegex, passwordRegex } from "@/utils/regex";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
@@ -39,6 +39,7 @@ const RegisterScreen = () => {
   const [rePassword, setRePassword] = useState<string>("");
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("");
+  const [titleAlert, setTitleAlert] = useState<string>("");
   const { isDarkMode } = useTheme();
   const register = useRegisterAccount(navigation);
 
@@ -51,21 +52,36 @@ const RegisterScreen = () => {
     }
     if (!emailRegex.test(email.toLowerCase().trim())) {
       setAlertMessage("Invalid email format! Please enter a valid email.");
+      setTitleAlert("Invalid email format!");
       setAlertVisible(true);
       return;
     }
     if (password.trim() === "") {
-      setAlertMessage("Please enter password!");
+      setAlertMessage(
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
+      );
+      setTitleAlert("Invalid password!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!passwordRegex.test(password)) {
+      setAlertMessage(
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
+      );
+      setTitleAlert("Invalid password");
       setAlertVisible(true);
       return;
     }
     if (rePassword.trim() === null) {
-      setAlertMessage("Please enter re-enter password!");
+      setAlertMessage("Password do not match!");
+      setTitleAlert("Invalid re-enter password!");
       setAlertVisible(true);
       return;
     }
+
     if (rePassword != password) {
-      setAlertMessage("Passwords do not match! Please re-enter!");
+      setAlertMessage("Passwords do not match!");
+      setTitleAlert("Invalid re-enter password!");
       setAlertVisible(true);
       return;
     }
@@ -78,6 +94,11 @@ const RegisterScreen = () => {
 
     if (register.isSuccess) {
       navigation.navigate("Login");
+    }
+    if (register.isError) {
+      setAlertMessage("Email already exists!");
+      setTitleAlert("Register failed!");
+      setAlertVisible(true);
     }
   };
 
@@ -154,7 +175,7 @@ const RegisterScreen = () => {
           {/* Custom Alert */}
           <CustomAlert
             visible={alertVisible}
-            title="Error"
+            title={titleAlert}
             message={alertMessage}
             onConfirm={() => {
               setAlertVisible(false);

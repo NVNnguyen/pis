@@ -20,7 +20,7 @@ import {
   fontWeight,
 } from "../../../styles/stylePrimary";
 import CustomAlert from "@/components/genaral/alert/CustomAlert";
-import { emailRegex } from "@/utils/regex";
+import { emailRegex, passwordRegex } from "@/utils/regex";
 import { MainStackType } from "@/utils/types/MainStackType";
 import { useTheme } from "@/contexts/ThemeContext";
 import { darkTheme, lightTheme } from "@/utils/themes";
@@ -54,6 +54,13 @@ const ResetPasswordScreen = () => {
   const handleResetPassword = async () => {
     if (password.trim() === "") {
       setAlertMessage("Please enter password!");
+      setAlertVisible(true);
+      return;
+    }
+    if (!passwordRegex.test(password)) {
+      setAlertMessage(
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
+      );
       setAlertVisible(true);
       return;
     }
